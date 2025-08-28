@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "pnpm",
+        "dlx",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=kdgqyejbtfcqunwloxwu"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZ3F5ZWpidGZjcXVud2xveHd1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjIwMjgwMCwiZXhwIjoyMDcxNzc4ODAwfQ.CtHvC0RzzEB3tSo3iwWcPDWGW_LZWHH5OLrX6DTGhgw"
+      }
+    },
+    "context7": {
+      "command": "uvx",
+      "args": ["@context-ai/context7-mcp"],
+      "env": {}
+    },
+    "playwright": {
+      "command": "uvx",
+      "args": ["@context-labs/mcp-playwright"],
+      "env": {}
+    }
+  },
+  "serverSettings": {
+    "context7": {
+      "read_only": true,
+      "description": "Read documentation and best practices from Context7"
+    },
+    "playwright": {
+      "read_only": true,
+      "description": "Browser automation for testing"
+    }
+  },
+  "comment": "MCP configuration for cledger5 - Read-only access to external APIs and documentation"
+} 

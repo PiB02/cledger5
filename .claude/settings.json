@@ -1,0 +1,25 @@
+{
+  "enabledMcpjsonServers": [
+    "vercel","supabase"
+  ],
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Bash(ls:*)",
+      "Bash(gh:*)",
+      "Bash(git:*)",
+      "Bash(cmd:*)",
+      "Bash(npm:*)",
+      "Bash(pnpm:*)",
+      "Read(~/.zshrc)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
+    ],
+    "defaultMode": "acceptEdits",
+    "deny": [
+      "Bash(curl:*)"
+    ]
+  }
+}

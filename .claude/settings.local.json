@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd:*)",
+      "mcp__supabase__list_tables",
+      "Bash(powershell Invoke-RestMethod:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "vercel",
+    "supabase"
+  ]
+}

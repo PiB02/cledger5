@@ -1,0 +1,5 @@
+﻿2025-08-26T15:51:46Z | T-010 | done | Next.js App Router + Tailwind initialized with pnpm
+2025-08-26T15:58:58Z | T-011 | done | shadcn/ui configured with components, ThemeProvider and dark mode
+2025-08-26T17:00:29Z | T-012 | done | Supabase clients configured (server, client, route-handler, service)
+2025-08-26T17:12:27Z | T-013 | done | Repository structure created according to PRD section 4.4
+2025-08-26T17:22:20Z | T-030 to T-032 | done | Backend foundations: error factory, offers API, SSE streaming
