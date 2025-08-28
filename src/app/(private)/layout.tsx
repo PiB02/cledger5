@@ -6,6 +6,7 @@ import {
   Users,
   Building2,
   Download,
+  Filter,
   Settings,
   LogOut,
   ChevronLeft,
@@ -24,6 +25,7 @@ export default function PrivateLayout({
     { name: 'Candidats', href: '/admin/candidats', icon: Users },
     { name: 'Entreprises', href: '/admin/entreprises', icon: Building2 },
     { name: 'Ingestion', href: '/admin/ingestion', icon: Download },
+    { name: 'Canonicalisation', href: '/admin/canonicalization', icon: Filter },
     { name: 'Paramètres', href: '/admin/settings', icon: Settings },
   ]
   

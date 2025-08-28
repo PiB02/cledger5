@@ -132,3 +132,5 @@ Batch processing uses Server-Sent Events via `/api/batch/:id/stream` for real-ti
 - **Supabase** : Direct database operations, schema management, migrations
 - **Vercel** : Deployment management and project operations  
 - **Playwright** : Browser automation and E2E testing
+- always use the PostgreSQL MCP server each time you need to write a complex query or do something with supabase
+- quand je te dis "look in memory.md" tu dois suivre le process qui y est décrit. toutes les étapes.

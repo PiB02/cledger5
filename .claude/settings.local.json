@@ -2,8 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(cmd:*)",
-      "mcp__supabase__list_tables",
-      "Bash(powershell Invoke-RestMethod:*)"
+      "Bash(mcp:*)",
+      "Bash(powershell:*)",
+      "mcp__supabase__execute_sql",
+      "Bash(node:*)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/admin/canonicalization\" -Method GET)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_wait_for"
     ]
   },
   "enableAllProjectMcpServers": true,

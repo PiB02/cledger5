@@ -98,14 +98,16 @@ After implementing changes, update relevant memory docs:
 
 ## Recent Development Context
 
-### État actuel (27/12/2024 - 19:15)
+### État actuel (28/08/2025 - 17:00)
 ✅ **Environnement** :
 - Repo GitHub : créé et actif
-- Base de données Supabase : **⚠️ INCOMPLÈTE** - tables `offers_raw` et `sources` manquantes
+- Base de données Supabase : **✅ COMPLÈTE** - toutes les tables créées avec succès
+- Tables d'ingestion : `sources` et `offers_raw` (partitionnée) ✅
 - `.env.local` : configuré avec toutes les clés nécessaires
 - **Données de test** : 3 offres, 2 companies, 2 locations insérées
 - **UI complète** : Pages publiques et admin dashboard fonctionnels
 - **Sécurité** : Secret admin sécurisé via Server Action (plus jamais exposé côté client)
+- **Canonicalisation** : ✅ SYSTÈME COMPLET implémenté et opérationnel
 
 ✅ **Phases complétées** :
 - **Phase 0** : Setup environnement ✅
@@ -116,7 +118,7 @@ After implementing changes, update relevant memory docs:
   - Structure repo selon PRD 4.4
   - Packages monorepo (types, utils)
   - MCP config pour Context7 et Playwright
-- **Phase 2** : Base de données ⚠️ (tables principales créées, **tables ingestion manquantes**)
+- **Phase 2** : Base de données ✅ (toutes les tables créées, y compris tables d'ingestion)
 - **Phase 3** : Backend fondations (T-030 à T-032) ✅
   - Error factory centralisé avec httpErrorMap
   - API `/api/search/offers` avec recherche full-text et filtres
@@ -139,6 +141,15 @@ After implementing changes, update relevant memory docs:
   - ✅ Schéma ultra-flexible : SEULS `id` et `title` sont requis
   - ✅ Peut traiter TOUTES les données LBA, même incomplètes, sans aucune erreur
   - ✅ **INGESTION 100% FONCTIONNELLE** : Toutes erreurs résolues, SSE corrigé, contraintes DB ajoutées
+- **Phase 6** : Canonicalisation et déduplication ✅ (**SYSTÈME COMPLET IMPLÉMENTÉ**)
+  - ✅ **Déduplication intelligente** : Fonction `compute_offer_fingerprint()` PostgreSQL + `generateOfferFingerprint()` TypeScript
+  - ✅ **Pipeline canonicalisation** : `src/lib/canonicalization.ts` avec transformation complète `offers_raw` → `offers`
+  - ✅ **API canonicalisation** : `POST/GET /api/canonicalize` avec auth admin et gestion d'erreur centralisée
+  - ✅ **Interface admin** : Page `/admin/canonicalization` avec dashboard complet et statistiques temps réel
+  - ✅ **Base de données** : Colonne `processed_at` ajoutée avec index optimisé pour traitement par lot
+  - ✅ **Sources multiples** : Support LBA + FT avec détection de doublons cross-sources via `offer_sources`
+  - ✅ **Idempotence** : Relancer le processus n'ajoute pas de doublons, marque les offres comme traitées
+  - ✅ **Performance** : Traitement par batch de 50 offres avec progression temps réel
 
 ### APIs 100% fonctionnelles
 ✅ **Toutes les APIs testées et opérationnelles** :
@@ -147,6 +158,8 @@ After implementing changes, update relevant memory docs:
 3. `GET /api/offers/[id]` - Détail complet avec company et location
 4. `GET /api/batch/[id]/stream` - SSE pour logs temps réel
 5. `POST /api/ingest/lba` - **Ingestion LBA 100% fonctionnelle** ✅
+6. `POST /api/canonicalize` - **Canonicalisation par source avec auth admin** ✅
+7. `GET /api/canonicalize` - **Statistiques canonicalisation par source** ✅
 
 ### Pages UI disponibles
 ✅ **Interface complète** :
@@ -155,8 +168,9 @@ After implementing changes, update relevant memory docs:
 3. `/offres/[id]` - Détail complet d'une offre
 4. `/admin` - Dashboard admin avec KPIs et monitoring
 5. `/admin/ingestion` - Page d'ingestion LBA avec Server Action sécurisée
+6. `/admin/canonicalization` - **Page canonicalisation avec dashboard temps réel et contrôles** ✅
 
-### Corrections récentes (27/12/2024 - 16:30)
+### Corrections récentes (28/08/2025 - 17:00)
 ✅ **Problèmes résolus** :
 1. **Secret admin exposé** : Migration vers Server Action sécurisée
 2. **NEXT_PUBLIC_ADMIN_SECRET** : Supprimé, remplacé par ADMIN_SECRET côté serveur
@@ -169,9 +183,22 @@ After implementing changes, update relevant memory docs:
 9. **Schéma matchas** : Support des différentes structures de données (peJobs vs matchas)
 10. **Valeurs null LBA** : Schéma corrigé avec `.nullable().optional()` pour tous les champs
 11. **Champs "requis" manquants** : Réalisation que seuls `id` et `title` sont garantis par l'API
+12. **Tables d'ingestion manquantes** : Script SQL corrigé et exécuté avec succès ✅
+    - Correction de la colonne `label` obligatoire dans `sources`
+    - Adaptation pour table `offers_raw` partitionnée existante
+    - Index unique modifié pour inclure `fetched_at` (contrainte partitionnement)
+    - Politiques RLS ajustées pour accès sécurisé
+13. **Pipeline canonicalisation** : Système complet implémenté ✅ (28/08/2025)
+    - Import `createSupabaseService` vs `createServiceSupabaseClient` corrigé
+    - ErrorFactory méthodes en majuscules (`UNAUTHORIZED`, `INTERNAL`) vs minuscules
+    - Colonne `processed_at` ajoutée à `offers_raw` avec migration SQL
+    - Interface admin `/admin/canonicalization` avec navigation mise à jour
 
-🚧 **Prochaine étape URGENTE** :
-- **Exécuter `create-missing-tables.sql` dans Supabase Dashboard** pour créer les tables d'ingestion
+✅ **Tables d'ingestion maintenant disponibles** :
+- **Table `sources`** : LBA et France Travail configurées avec URLs et rate limits
+- **Table `offers_raw`** : Prête pour ingestion massive avec partitionnement par mois
+- **Index optimisés** : Performance garantie pour requêtes d'ingestion et dédoublonnage
+- **RLS activé** : Sécurité complète avec accès admin seulement
 
 ### Architecture actuelle
 - **Frontend** : Next.js 15 App Router, TypeScript, Tailwind, shadcn/ui
@@ -207,6 +234,7 @@ After implementing changes, update relevant memory docs:
 - ✅ **Admin secret hardcoded** : Moved to env variable with Server Action (27/12/2024)
 - ✅ **NEXT_PUBLIC_ADMIN_SECRET exposure** : Removed dangerous client-side exposure (27/12/2024)
 - ✅ **DNS resolution error LBA** : Fixed API URL and parameters (27/12/2024)
+- ✅ **Tables d'ingestion manquantes** : Script SQL exécuté avec succès (28/08/2025)
 
 ### Pending Issues
 - ⚠️ Character encoding in API responses (é → Ã©)
@@ -240,12 +268,15 @@ Invoke-RestMethod -Uri "http://localhost:3000/api/search/offers?query=react"
 - **Seed** : `supabase/seed/test-offers.sql`
 - **Docs** : `docs/`
 
-## Next Actions
-1. **Phase 5 Ingestion** : Implement LBA and FT data fetching
-2. **Auth implementation** : Setup Supabase Auth with RLS  
-3. **AI enrichment** : GPT-4o-mini for offer parsing
-4. **Embeddings** : Implement text-embedding-3-small
-5. **Candidate features** : CV upload and matching
+## Next Actions (Priorité décroissante)
+1. ✅ ~~**Tester l'ingestion complète LBA**~~ : TERMINÉ - 183 offres en `offers_raw`
+2. ✅ ~~**Déduplication des offres**~~ : TERMINÉ - Système fingerprinting canonique opérationnel
+3. ✅ ~~**Canonicalisation**~~ : TERMINÉ - Pipeline complet `offers_raw` → `offers` avec interface admin
+4. **AI enrichment** : GPT-4o-mini pour extraction compétences/séniorité (PROCHAINE PRIORITÉ)
+5. **Embeddings** : text-embedding-3-small pour matching vectoriel  
+6. **Auth implementation** : Setup Supabase Auth avec RLS
+7. **Candidate features** : CV upload et profil candidat
+8. **France Travail integration** : OAuth2 + ingestion FT
 
 ---
 *End of Memory Document* 
