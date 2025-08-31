@@ -19,7 +19,10 @@
       "mcp__supabase__list_extensions",
       "mcp__supabase__list_migrations",
       "mcp__supabase__apply_migration",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(Get-ChildItem -Path \"src\\app\\(private)\\admin\" -Recurse)",
+      "Bash(find:*)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/enrich/stats\" -Method GET -Headers @{\"x-admin-secret\"=$adminSecret})"
     ]
   },
   "enableAllProjectMcpServers": true,

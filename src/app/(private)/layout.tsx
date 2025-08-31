@@ -7,6 +7,7 @@ import {
   Building2,
   Download,
   Filter,
+  Brain,
   Settings,
   LogOut,
   ChevronLeft,
@@ -26,6 +27,7 @@ export default function PrivateLayout({
     { name: 'Entreprises', href: '/admin/entreprises', icon: Building2 },
     { name: 'Ingestion', href: '/admin/ingestion', icon: Download },
     { name: 'Canonicalisation', href: '/admin/canonicalization', icon: Filter },
+    { name: 'Enrichissement IA', href: '/admin/enrichment', icon: Brain },
     { name: 'Paramètres', href: '/admin/settings', icon: Settings },
   ]
   

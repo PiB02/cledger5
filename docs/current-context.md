@@ -38,9 +38,12 @@
 - **Queue worker**: `POST /api/enrich/queue` pour traitement batch ✅
 - **Scripts PowerShell**: Tests mass enrichment opérationnels ✅
 
-#### 🔄 **En cours: T-071 Interface Admin**
-- Dashboard monitoring enrichissement IA
-- Statistiques coût/performance temps réel
+#### ✅ **T-071: Interface Admin - COMPLÉTÉ**
+- **Dashboard `/admin/enrichment`**: Interface complète avec onglets Vue d'ensemble, Performance, Activité récente, Queue ✅
+- **API statistiques**: `GET /api/admin/enrich/stats` sans authentification côté client ✅
+- **Métriques temps réel**: Coût OpenAI, tokens utilisés, confiance, performance ✅
+- **Queue management**: Bouton lancement avec Server Action sécurisée ✅
+- **Navigation intégrée**: Menu admin avec icône Brain ✅
 
 ## 🔧 **APIs 100% Fonctionnelles**
 1. `GET /api/health` - Connexion Supabase ✅
@@ -52,6 +55,7 @@
 7. `GET /api/canonicalize` - Statistiques canonicalisation ✅
 8. `POST /api/enrich/offers` - **Enrichissement IA GPT-4o-mini** ✅
 9. `POST /api/enrich/queue` - **Queue worker enrichissement** ✅
+10. `GET /api/admin/enrich/stats` - **Statistiques enrichissement pour dashboard** ✅
 
 ## 🏗️ **Architecture Actuelle**
 
@@ -70,6 +74,7 @@
 - `/admin` - Dashboard KPIs et monitoring ✅  
 - `/admin/ingestion` - Interface ingestion LBA sécurisée ✅
 - `/admin/canonicalization` - **Interface canonicalisation temps réel** ✅
+- `/admin/enrichment` - **Dashboard enrichissement IA avec métriques** ✅
 
 ## ⚠️ **Issues Connues**
 - **Character encoding**: é → Ã© dans les réponses API
@@ -77,11 +82,11 @@
 - **Performance**: Search ~1200ms (target <500ms) - optimisation nécessaire
 
 ## 📋 **Prochaines Actions (Ordre de Priorité)**
-1. **🎯 AI enrichment** : GPT-4o-mini extraction compétences/séniorité (EN COURS)
-2. **Embeddings** : text-embedding-3-small pour matching vectoriel
-3. **Auth implementation** : Setup Supabase Auth + RLS
-4. **Candidate features** : CV upload et profil candidat  
-5. **France Travail integration** : OAuth2 + ingestion FT
+1. **🎯 Embeddings** : text-embedding-3-small pour matching vectoriel (Phase 8)
+2. **Auth implementation** : Setup Supabase Auth + RLS (Phase 9)
+3. **France Travail integration** : OAuth2 + ingestion FT (Phase 10)
+4. **Candidate features** : CV upload et profil candidat (Phase 11)
+5. **Production optimization** : Performance + monitoring (Phase 12)
 
 ## 🔑 **Configuration Critique**
 
