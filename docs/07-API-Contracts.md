@@ -28,6 +28,18 @@ POST /api/ingest/offers/lba
 POST /api/ingest/offers/ft
 - Contrat identique
 
+## Enrichissement IA (T-070)
+POST /api/enrich/offers
+- Auth: x-admin-secret
+- Body: { "offer_ids": ["uuid1", "uuid2"], "force_reprocess": false, "confidence_threshold": 0.80 }
+- 200: { "total_processed": 2, "successful": 1, "failed": 1, "enrichments": [...], "cost_tracking": {"total_tokens_used": 871, "total_cost_usd": 0.0001} }
+
+## Queue Enrichissement IA
+POST /api/enrich/queue
+- Auth: x-admin-secret
+- Body: {} (no body required)
+- 200: { "success": true, "processed": 20, "successful": 18, "failed": 2 }
+
 ## Upload CV
 POST /api/cv/upload
 - multipart/form-data → file: PDF

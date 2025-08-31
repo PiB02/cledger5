@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
+import { createSupabaseServiceRole } from '@/lib/supabase/route-handler'
 import { EnrichmentRequestSchema, EnrichmentResponseSchema, type EnrichmentRequest, type EnrichmentResponse } from '@cledger5/types'
 import { errorFactory } from '@/lib/errors'
 import OpenAI from 'openai'
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedRequest: EnrichmentRequest = EnrichmentRequestSchema.parse(body)
     
-    const supabase = createRouteHandlerClient()
+    const supabase = createSupabaseServiceRole()
     
     // Fetch offers to enrich
     const { data: offers, error: fetchError } = await supabase
@@ -57,13 +57,13 @@ export async function POST(request: NextRequest) {
         title,
         description,
         rome_codes,
-        seniority_level,
+        career_level,
         created_at
       `)
       .in('id', validatedRequest.offer_ids)
     
     if (fetchError) {
-      throw errorFactory.INTERNAL_ERROR(`Failed to fetch offers: ${fetchError.message}`)
+      throw errorFactory.INTERNAL(`Failed to fetch offers: ${fetchError.message}`)
     }
 
     if (!offers || offers.length === 0) {
@@ -175,7 +175,7 @@ CODES ROME EXISTANTS: ${offer.rome_codes?.join(', ') || 'Non spécifiés'}`
             processed_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq('id', enrichmentRecord.id)
+          .eq('offer_id', offer.id)
 
         if (updateError) {
           throw new Error(`Failed to update enrichment: ${updateError.message}`)
@@ -282,7 +282,7 @@ export async function GET(request: NextRequest) {
       throw errorFactory.BAD_REQUEST('offer_ids parameter required')
     }
 
-    const supabase = createRouteHandlerClient()
+    const supabase = createSupabaseServiceRole()
     
     const { data: enrichments, error } = await supabase
       .from('offer_enrichment')

@@ -20,6 +20,8 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  AdminBatchEnrichmentRequestSchema: () => AdminBatchEnrichmentRequestSchema,
+  AdminEnrichmentStatsSchema: () => AdminEnrichmentStatsSchema,
   AppRoleEnum: () => AppRoleEnum,
   AppUserSchema: () => AppUserSchema,
   BatchCreateRequestSchema: () => BatchCreateRequestSchema,
@@ -38,14 +40,19 @@ __export(index_exports, {
   CandidateProfileSchema: () => CandidateProfileSchema,
   CompanySchema: () => CompanySchema,
   ConfidenceScoreSchema: () => ConfidenceScoreSchema,
+  ConfidenceScoresSchema: () => ConfidenceScoresSchema,
   ContractTypeEnum: () => ContractTypeEnum,
   DegreeClassificationSchema: () => DegreeClassificationSchema,
+  DegreeRequirementSchema: () => DegreeRequirementSchema,
   EnrichedLanguageSchema: () => EnrichedLanguageSchema,
   EnrichedSkillSchema: () => EnrichedSkillSchema,
+  EnrichmentHistoryItemSchema: () => EnrichmentHistoryItemSchema,
+  EnrichmentHistoryResponseSchema: () => EnrichmentHistoryResponseSchema,
   EnrichmentRequestSchema: () => EnrichmentRequestSchema,
   EnrichmentResponseSchema: () => EnrichmentResponseSchema,
   ErrorResponseSchema: () => ErrorResponseSchema,
   IngestOffersRequestSchema: () => IngestOffersRequestSchema,
+  LanguageDetectionSchema: () => LanguageDetectionSchema,
   LanguageRequirementSchema: () => LanguageRequirementSchema,
   LocationSchema: () => LocationSchema,
   LoginSchema: () => LoginSchema,
@@ -66,6 +73,7 @@ __export(index_exports, {
   SeniorityLevelEnum: () => SeniorityLevelEnum,
   SessionSchema: () => SessionSchema,
   SkillCategoryEnum: () => SkillCategoryEnum,
+  SkillExtractionSchema: () => SkillExtractionSchema,
   SkillSchema: () => SkillSchema,
   SortOrderEnum: () => SortOrderEnum,
   SuccessResponseSchema: () => SuccessResponseSchema,
@@ -193,33 +201,6 @@ var OfferEnrichmentSchema = import_zod.z.object({
   created_at: import_zod.z.string().optional(),
   processed_at: import_zod.z.string().optional(),
   updated_at: import_zod.z.string().optional()
-});
-var EnrichmentRequestSchema = import_zod.z.object({
-  offer_ids: import_zod.z.array(import_zod.z.string().uuid()).min(1).max(50),
-  // Batch processing
-  force_reprocess: import_zod.z.boolean().default(false),
-  confidence_threshold: import_zod.z.number().min(0.5).max(1).default(0.8),
-  include_low_confidence: import_zod.z.boolean().default(false)
-  // Store even if below threshold
-});
-var EnrichmentResponseSchema = import_zod.z.object({
-  success: import_zod.z.boolean(),
-  processed_count: import_zod.z.number(),
-  enrichments: import_zod.z.array(OfferEnrichmentSchema),
-  errors: import_zod.z.array(import_zod.z.object({
-    offer_id: import_zod.z.string().uuid(),
-    error: import_zod.z.string(),
-    retryable: import_zod.z.boolean()
-  })).default([]),
-  cost_estimate: import_zod.z.object({
-    tokens_used: import_zod.z.number(),
-    estimated_cost_usd: import_zod.z.number()
-  }).optional(),
-  processing_stats: import_zod.z.object({
-    total_time_ms: import_zod.z.number(),
-    avg_confidence: import_zod.z.number(),
-    success_rate: import_zod.z.number()
-  }).optional()
 });
 var OfferEmbeddingSchema = import_zod.z.object({
   offer_id: import_zod.z.string().uuid(),
@@ -495,8 +476,138 @@ var SSEEventSchema = import_zod5.z.object({
   data: import_zod5.z.any(),
   timestamp: import_zod5.z.string()
 });
+var SkillExtractionSchema = import_zod5.z.object({
+  name: import_zod5.z.string(),
+  normalized_name: import_zod5.z.string(),
+  category: import_zod5.z.enum(["technical", "soft", "domain", "tool", "language"]),
+  confidence: import_zod5.z.number().min(0).max(1),
+  required: import_zod5.z.boolean()
+});
+var LanguageDetectionSchema = import_zod5.z.object({
+  code: import_zod5.z.string().length(2),
+  name: import_zod5.z.string(),
+  level: import_zod5.z.enum(["A1", "A2", "B1", "B2", "C1", "C2", "native"]).optional(),
+  confidence: import_zod5.z.number().min(0).max(1),
+  required: import_zod5.z.boolean()
+});
+var DegreeRequirementSchema = import_zod5.z.object({
+  level_eqf: import_zod5.z.number().min(1).max(8),
+  degree_type: import_zod5.z.string(),
+  confidence: import_zod5.z.number().min(0).max(1)
+});
+var ConfidenceScoresSchema = import_zod5.z.object({
+  skills: import_zod5.z.number().min(0).max(1),
+  seniority: import_zod5.z.number().min(0).max(1),
+  languages: import_zod5.z.number().min(0).max(1),
+  degrees: import_zod5.z.number().min(0).max(1),
+  global: import_zod5.z.number().min(0).max(1)
+});
+var EnrichmentRequestSchema = import_zod5.z.object({
+  offer_ids: import_zod5.z.array(import_zod5.z.string().uuid()).min(1).max(100),
+  confidence_threshold: import_zod5.z.number().min(0).max(1).default(0.8),
+  force_reprocess: import_zod5.z.boolean().default(false),
+  include_low_confidence: import_zod5.z.boolean().default(false)
+});
+var EnrichmentResponseSchema = import_zod5.z.object({
+  success: import_zod5.z.boolean(),
+  processed_count: import_zod5.z.number(),
+  enrichments: import_zod5.z.array(import_zod5.z.object({
+    id: import_zod5.z.string().uuid(),
+    offer_id: import_zod5.z.string().uuid(),
+    skills_required: import_zod5.z.array(SkillExtractionSchema),
+    skills_preferred: import_zod5.z.array(SkillExtractionSchema),
+    seniority_level: import_zod5.z.enum(["intern", "junior", "mid", "senior", "lead", "manager"]).optional(),
+    languages_detected: import_zod5.z.array(LanguageDetectionSchema),
+    degree_requirements: import_zod5.z.array(DegreeRequirementSchema),
+    confidence_scores: ConfidenceScoresSchema,
+    enrichment_status: import_zod5.z.enum(["completed", "low_confidence", "failed"]),
+    processed_at: import_zod5.z.string()
+  })),
+  errors: import_zod5.z.array(import_zod5.z.object({
+    offer_id: import_zod5.z.string().uuid(),
+    error: import_zod5.z.string(),
+    retryable: import_zod5.z.boolean()
+  })),
+  cost_estimate: import_zod5.z.object({
+    tokens_used: import_zod5.z.number(),
+    estimated_cost_usd: import_zod5.z.number()
+  }),
+  processing_stats: import_zod5.z.object({
+    total_time_ms: import_zod5.z.number(),
+    avg_confidence: import_zod5.z.number(),
+    success_rate: import_zod5.z.number()
+  })
+});
+var AdminEnrichmentStatsSchema = import_zod5.z.object({
+  overview: import_zod5.z.object({
+    total_offers: import_zod5.z.number(),
+    enriched_offers: import_zod5.z.number(),
+    enrichment_rate: import_zod5.z.number(),
+    avg_confidence: import_zod5.z.number()
+  }),
+  status_breakdown: import_zod5.z.object({
+    completed: import_zod5.z.number(),
+    processing: import_zod5.z.number(),
+    failed: import_zod5.z.number(),
+    low_confidence: import_zod5.z.number()
+  }),
+  cost_tracking: import_zod5.z.object({
+    total_tokens_used: import_zod5.z.number(),
+    total_cost_usd: import_zod5.z.number(),
+    avg_cost_per_offer: import_zod5.z.number(),
+    monthly_budget_used: import_zod5.z.number()
+  }),
+  performance_metrics: import_zod5.z.object({
+    avg_processing_time_ms: import_zod5.z.number(),
+    success_rate_24h: import_zod5.z.number(),
+    latest_batch_id: import_zod5.z.string().optional(),
+    active_batches: import_zod5.z.number()
+  }),
+  skill_categories: import_zod5.z.array(import_zod5.z.object({
+    category: import_zod5.z.string(),
+    count: import_zod5.z.number(),
+    confidence_avg: import_zod5.z.number()
+  }))
+});
+var EnrichmentHistoryItemSchema = import_zod5.z.object({
+  id: import_zod5.z.string().uuid(),
+  batch_id: import_zod5.z.string().uuid().optional(),
+  offer_id: import_zod5.z.string().uuid(),
+  offer_title: import_zod5.z.string(),
+  enrichment_status: import_zod5.z.enum(["completed", "processing", "failed", "low_confidence"]),
+  confidence_scores: ConfidenceScoresSchema.optional(),
+  skills_count: import_zod5.z.number(),
+  tokens_used: import_zod5.z.number(),
+  processing_time_ms: import_zod5.z.number(),
+  error_message: import_zod5.z.string().optional(),
+  processed_at: import_zod5.z.string(),
+  created_at: import_zod5.z.string()
+});
+var EnrichmentHistoryResponseSchema = import_zod5.z.object({
+  success: import_zod5.z.boolean(),
+  history: import_zod5.z.array(EnrichmentHistoryItemSchema),
+  pagination: import_zod5.z.object({
+    total: import_zod5.z.number(),
+    page: import_zod5.z.number(),
+    limit: import_zod5.z.number(),
+    total_pages: import_zod5.z.number()
+  })
+});
+var AdminBatchEnrichmentRequestSchema = import_zod5.z.object({
+  filters: import_zod5.z.object({
+    rome_codes: import_zod5.z.array(import_zod5.z.string()).optional(),
+    source: import_zod5.z.enum(["LBA", "FT"]).optional(),
+    created_after: import_zod5.z.string().optional(),
+    not_enriched_only: import_zod5.z.boolean().default(true)
+  }).optional(),
+  batch_size: import_zod5.z.number().min(1).max(500).default(100),
+  confidence_threshold: import_zod5.z.number().min(0).max(1).default(0.8),
+  priority: import_zod5.z.enum(["low", "normal", "high"]).default("normal")
+});
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  AdminBatchEnrichmentRequestSchema,
+  AdminEnrichmentStatsSchema,
   AppRoleEnum,
   AppUserSchema,
   BatchCreateRequestSchema,
@@ -515,14 +626,19 @@ var SSEEventSchema = import_zod5.z.object({
   CandidateProfileSchema,
   CompanySchema,
   ConfidenceScoreSchema,
+  ConfidenceScoresSchema,
   ContractTypeEnum,
   DegreeClassificationSchema,
+  DegreeRequirementSchema,
   EnrichedLanguageSchema,
   EnrichedSkillSchema,
+  EnrichmentHistoryItemSchema,
+  EnrichmentHistoryResponseSchema,
   EnrichmentRequestSchema,
   EnrichmentResponseSchema,
   ErrorResponseSchema,
   IngestOffersRequestSchema,
+  LanguageDetectionSchema,
   LanguageRequirementSchema,
   LocationSchema,
   LoginSchema,
@@ -543,6 +659,7 @@ var SSEEventSchema = import_zod5.z.object({
   SeniorityLevelEnum,
   SessionSchema,
   SkillCategoryEnum,
+  SkillExtractionSchema,
   SkillSchema,
   SortOrderEnum,
   SuccessResponseSchema,

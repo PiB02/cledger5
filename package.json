@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@cledger5/api-clients": "workspace:*",
+    "@cledger5/types": "workspace:*",
     "@cledger5/utils": "workspace:*",
     "@clerk/nextjs": "^6.31.6",
     "@hookform/resolvers": "^5.2.1",

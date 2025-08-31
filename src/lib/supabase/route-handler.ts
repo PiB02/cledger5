@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -52,4 +53,18 @@ export async function createSupabaseRouteHandlerWithResponse(request: NextReques
   )
 
   return { supabase, response }
+}
+
+// Service role client pour les opérations admin (enrichissement IA, etc.)
+export function createSupabaseServiceRole() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
 } 

@@ -155,36 +155,7 @@ export const OfferEnrichmentSchema = z.object({
 })
 export type OfferEnrichment = z.infer<typeof OfferEnrichmentSchema>
 
-// Input schema for enrichment API
-export const EnrichmentRequestSchema = z.object({
-  offer_ids: z.array(z.string().uuid()).min(1).max(50), // Batch processing
-  force_reprocess: z.boolean().default(false),
-  confidence_threshold: z.number().min(0.5).max(1.0).default(0.80),
-  include_low_confidence: z.boolean().default(false) // Store even if below threshold
-})
-export type EnrichmentRequest = z.infer<typeof EnrichmentRequestSchema>
-
-// Response schema for enrichment API
-export const EnrichmentResponseSchema = z.object({
-  success: z.boolean(),
-  processed_count: z.number(),
-  enrichments: z.array(OfferEnrichmentSchema),
-  errors: z.array(z.object({
-    offer_id: z.string().uuid(),
-    error: z.string(),
-    retryable: z.boolean()
-  })).default([]),
-  cost_estimate: z.object({
-    tokens_used: z.number(),
-    estimated_cost_usd: z.number()
-  }).optional(),
-  processing_stats: z.object({
-    total_time_ms: z.number(),
-    avg_confidence: z.number(),
-    success_rate: z.number()
-  }).optional()
-})
-export type EnrichmentResponse = z.infer<typeof EnrichmentResponseSchema>
+// Note: EnrichmentRequest and EnrichmentResponse schemas are defined in api.ts to avoid duplication
 
 // Offer embedding
 export const OfferEmbeddingSchema = z.object({

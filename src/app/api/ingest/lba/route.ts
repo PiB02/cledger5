@@ -382,6 +382,21 @@ async function processIngestion(batchId: string, params: IngestRequest) {
                     source_offer_id: canonicalOffer.external_id,
                     source_url: canonicalOffer.application_url,
                   })
+                
+                // Déclencher l'enrichissement IA automatique pour les nouvelles offres
+                try {
+                  await supabase
+                    .from('offer_enrichment')
+                    .insert({
+                      offer_id: newOffer.id,
+                      enrichment_status: 'pending',
+                      created_at: new Date().toISOString()
+                    })
+                  console.log(`✅ Enrichment queued for offer ${newOffer.id}`)
+                } catch (enrichmentError) {
+                  console.error(`⚠️ Failed to queue enrichment for ${newOffer.id}:`, enrichmentError)
+                  // Ne pas faire échouer l'ingestion si l'enrichissement échoue
+                }
               }
             }
           } else {

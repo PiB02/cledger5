@@ -23,19 +23,35 @@
 - **Phase 5**: Ingestion LBA **100% fonctionnelle** ✅
 - **Phase 6**: Canonicalisation et déduplication **COMPLÈTE** ✅
 
-### 🚀 **Phase 7 En Cours: AI Enhancement**
-- **GPT-4o-mini** pour extraction compétences/séniorité (≥0.80 confidence)
-- Pipeline enrichissement offres avec validation
-- Interface admin pour monitoring IA
+### 🚀 **Phase 7: AI Enhancement (PARTIELLEMENT COMPLÈTE)**
+
+#### ✅ **T-070: API Enrichissement GPT-4o-mini - FONCTIONNELLE**
+- **Endpoint**: `POST /api/enrich/offers` avec authentification admin ✅
+- **GPT-4o-mini**: Intégration complète, extraction skills/seniority/languages ✅
+- **Base données**: Table `offer_enrichment` avec colonnes IA complètes ✅
+- **Performance**: ~871 tokens/batch, $0.0001, temps traitement ~5s ✅
+- **Seuils**: Confidence ≥0.80 configuré, validation Zod ✅
+- **Tests**: Scripts PowerShell de test opérationnels ✅
+
+#### ✅ **T-070 COMPLÈTEMENT FINALISÉ** 
+- **Auto-enrichissement**: Intégré dans pipeline d'import LBA ✅
+- **Queue worker**: `POST /api/enrich/queue` pour traitement batch ✅
+- **Scripts PowerShell**: Tests mass enrichment opérationnels ✅
+
+#### 🔄 **En cours: T-071 Interface Admin**
+- Dashboard monitoring enrichissement IA
+- Statistiques coût/performance temps réel
 
 ## 🔧 **APIs 100% Fonctionnelles**
 1. `GET /api/health` - Connexion Supabase ✅
 2. `GET /api/search/offers` - Recherche avec filtres, pagination ✅  
 3. `GET /api/offers/[id]` - Détail complet avec relations ✅
 4. `GET /api/batch/[id]/stream` - SSE streaming temps réel ✅
-5. `POST /api/ingest/lba` - **Ingestion LBA 183 offres** ✅
+5. `POST /api/ingest/lba` - **Ingestion LBA 2002 offres** ✅
 6. `POST /api/canonicalize` - **Pipeline canonicalisation complet** ✅
 7. `GET /api/canonicalize` - Statistiques canonicalisation ✅
+8. `POST /api/enrich/offers` - **Enrichissement IA GPT-4o-mini** ✅
+9. `POST /api/enrich/queue` - **Queue worker enrichissement** ✅
 
 ## 🏗️ **Architecture Actuelle**
 
@@ -44,6 +60,7 @@
 - `offers` : Données canoniques enrichies ✅
 - `companies`, `locations` : Référentiels normalisés ✅
 - `offer_sources` : Gestion des sources multiples ✅
+- `offer_enrichment` : **Enrichissement IA avec GPT-4o-mini** ✅
 - Système fingerprinting pour déduplication ✅
 
 ### **Pages UI Disponibles**

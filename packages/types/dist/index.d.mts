@@ -524,456 +524,6 @@ declare const OfferEnrichmentSchema: z.ZodObject<{
     processed_at?: string | undefined;
 }>;
 type OfferEnrichment = z.infer<typeof OfferEnrichmentSchema>;
-declare const EnrichmentRequestSchema: z.ZodObject<{
-    offer_ids: z.ZodArray<z.ZodString, "many">;
-    force_reprocess: z.ZodDefault<z.ZodBoolean>;
-    confidence_threshold: z.ZodDefault<z.ZodNumber>;
-    include_low_confidence: z.ZodDefault<z.ZodBoolean>;
-}, "strip", z.ZodTypeAny, {
-    offer_ids: string[];
-    force_reprocess: boolean;
-    confidence_threshold: number;
-    include_low_confidence: boolean;
-}, {
-    offer_ids: string[];
-    force_reprocess?: boolean | undefined;
-    confidence_threshold?: number | undefined;
-    include_low_confidence?: boolean | undefined;
-}>;
-type EnrichmentRequest = z.infer<typeof EnrichmentRequestSchema>;
-declare const EnrichmentResponseSchema: z.ZodObject<{
-    success: z.ZodBoolean;
-    processed_count: z.ZodNumber;
-    enrichments: z.ZodArray<z.ZodObject<{
-        id: z.ZodOptional<z.ZodString>;
-        offer_id: z.ZodString;
-        enrichment_status: z.ZodDefault<z.ZodEnum<["pending", "processing", "completed", "failed", "low_confidence"]>>;
-        enrichment_version: z.ZodDefault<z.ZodString>;
-        model_used: z.ZodDefault<z.ZodString>;
-        skills_required: z.ZodDefault<z.ZodArray<z.ZodObject<{
-            name: z.ZodString;
-            normalized_name: z.ZodString;
-            category: z.ZodEnum<["technical", "business", "soft", "language", "certification"]>;
-            confidence: z.ZodNumber;
-            required: z.ZodDefault<z.ZodBoolean>;
-            years_required: z.ZodOptional<z.ZodNumber>;
-            source: z.ZodDefault<z.ZodEnum<["extracted", "existing", "inferred"]>>;
-        }, "strip", z.ZodTypeAny, {
-            required: boolean;
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            source: "extracted" | "existing" | "inferred";
-            years_required?: number | undefined;
-        }, {
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            required?: boolean | undefined;
-            years_required?: number | undefined;
-            source?: "extracted" | "existing" | "inferred" | undefined;
-        }>, "many">>;
-        skills_preferred: z.ZodDefault<z.ZodArray<z.ZodObject<{
-            name: z.ZodString;
-            normalized_name: z.ZodString;
-            category: z.ZodEnum<["technical", "business", "soft", "language", "certification"]>;
-            confidence: z.ZodNumber;
-            required: z.ZodDefault<z.ZodBoolean>;
-            years_required: z.ZodOptional<z.ZodNumber>;
-            source: z.ZodDefault<z.ZodEnum<["extracted", "existing", "inferred"]>>;
-        }, "strip", z.ZodTypeAny, {
-            required: boolean;
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            source: "extracted" | "existing" | "inferred";
-            years_required?: number | undefined;
-        }, {
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            required?: boolean | undefined;
-            years_required?: number | undefined;
-            source?: "extracted" | "existing" | "inferred" | undefined;
-        }>, "many">>;
-        seniority_level: z.ZodOptional<z.ZodEnum<["intern", "junior", "mid", "senior", "lead", "manager"]>>;
-        languages_detected: z.ZodDefault<z.ZodArray<z.ZodObject<{
-            code: z.ZodString;
-            name: z.ZodString;
-            level: z.ZodEnum<["A1", "A2", "B1", "B2", "C1", "C2"]>;
-            confidence: z.ZodNumber;
-            required: z.ZodDefault<z.ZodBoolean>;
-            context: z.ZodOptional<z.ZodEnum<["professional", "client", "technical", "general"]>>;
-        }, "strip", z.ZodTypeAny, {
-            code: string;
-            level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
-            required: boolean;
-            name: string;
-            confidence: number;
-            context?: "technical" | "professional" | "client" | "general" | undefined;
-        }, {
-            code: string;
-            level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
-            name: string;
-            confidence: number;
-            required?: boolean | undefined;
-            context?: "technical" | "professional" | "client" | "general" | undefined;
-        }>, "many">>;
-        degree_requirements: z.ZodDefault<z.ZodArray<z.ZodObject<{
-            level_eqf: z.ZodNumber;
-            degree_type: z.ZodOptional<z.ZodString>;
-            field_of_study: z.ZodOptional<z.ZodString>;
-            confidence: z.ZodNumber;
-            source_text: z.ZodOptional<z.ZodString>;
-        }, "strip", z.ZodTypeAny, {
-            confidence: number;
-            level_eqf: number;
-            degree_type?: string | undefined;
-            field_of_study?: string | undefined;
-            source_text?: string | undefined;
-        }, {
-            confidence: number;
-            level_eqf: number;
-            degree_type?: string | undefined;
-            field_of_study?: string | undefined;
-            source_text?: string | undefined;
-        }>, "many">>;
-        confidence_scores: z.ZodOptional<z.ZodObject<{
-            skills: z.ZodNumber;
-            seniority: z.ZodNumber;
-            languages: z.ZodNumber;
-            degrees: z.ZodNumber;
-            global: z.ZodNumber;
-        }, "strip", z.ZodTypeAny, {
-            languages: number;
-            skills: number;
-            seniority: number;
-            degrees: number;
-            global: number;
-        }, {
-            languages: number;
-            skills: number;
-            seniority: number;
-            degrees: number;
-            global: number;
-        }>>;
-        rome_codes_suggested: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-        job_category_detected: z.ZodOptional<z.ZodString>;
-        company_size_indicators: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
-        tokens_used: z.ZodOptional<z.ZodNumber>;
-        processing_time_ms: z.ZodOptional<z.ZodNumber>;
-        error_message: z.ZodOptional<z.ZodString>;
-        retry_count: z.ZodDefault<z.ZodNumber>;
-        created_at: z.ZodOptional<z.ZodString>;
-        processed_at: z.ZodOptional<z.ZodString>;
-        updated_at: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        skills_required: {
-            required: boolean;
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            source: "extracted" | "existing" | "inferred";
-            years_required?: number | undefined;
-        }[];
-        skills_preferred: {
-            required: boolean;
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            source: "extracted" | "existing" | "inferred";
-            years_required?: number | undefined;
-        }[];
-        offer_id: string;
-        enrichment_status: "pending" | "processing" | "completed" | "failed" | "low_confidence";
-        enrichment_version: string;
-        model_used: string;
-        languages_detected: {
-            code: string;
-            level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
-            required: boolean;
-            name: string;
-            confidence: number;
-            context?: "technical" | "professional" | "client" | "general" | undefined;
-        }[];
-        degree_requirements: {
-            confidence: number;
-            level_eqf: number;
-            degree_type?: string | undefined;
-            field_of_study?: string | undefined;
-            source_text?: string | undefined;
-        }[];
-        rome_codes_suggested: string[];
-        company_size_indicators: string[];
-        retry_count: number;
-        id?: string | undefined;
-        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
-        created_at?: string | undefined;
-        updated_at?: string | undefined;
-        confidence_scores?: {
-            languages: number;
-            skills: number;
-            seniority: number;
-            degrees: number;
-            global: number;
-        } | undefined;
-        job_category_detected?: string | undefined;
-        tokens_used?: number | undefined;
-        processing_time_ms?: number | undefined;
-        error_message?: string | undefined;
-        processed_at?: string | undefined;
-    }, {
-        offer_id: string;
-        id?: string | undefined;
-        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
-        skills_required?: {
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            required?: boolean | undefined;
-            years_required?: number | undefined;
-            source?: "extracted" | "existing" | "inferred" | undefined;
-        }[] | undefined;
-        skills_preferred?: {
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            required?: boolean | undefined;
-            years_required?: number | undefined;
-            source?: "extracted" | "existing" | "inferred" | undefined;
-        }[] | undefined;
-        created_at?: string | undefined;
-        updated_at?: string | undefined;
-        enrichment_status?: "pending" | "processing" | "completed" | "failed" | "low_confidence" | undefined;
-        enrichment_version?: string | undefined;
-        model_used?: string | undefined;
-        languages_detected?: {
-            code: string;
-            level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
-            name: string;
-            confidence: number;
-            required?: boolean | undefined;
-            context?: "technical" | "professional" | "client" | "general" | undefined;
-        }[] | undefined;
-        degree_requirements?: {
-            confidence: number;
-            level_eqf: number;
-            degree_type?: string | undefined;
-            field_of_study?: string | undefined;
-            source_text?: string | undefined;
-        }[] | undefined;
-        confidence_scores?: {
-            languages: number;
-            skills: number;
-            seniority: number;
-            degrees: number;
-            global: number;
-        } | undefined;
-        rome_codes_suggested?: string[] | undefined;
-        job_category_detected?: string | undefined;
-        company_size_indicators?: string[] | undefined;
-        tokens_used?: number | undefined;
-        processing_time_ms?: number | undefined;
-        error_message?: string | undefined;
-        retry_count?: number | undefined;
-        processed_at?: string | undefined;
-    }>, "many">;
-    errors: z.ZodDefault<z.ZodArray<z.ZodObject<{
-        offer_id: z.ZodString;
-        error: z.ZodString;
-        retryable: z.ZodBoolean;
-    }, "strip", z.ZodTypeAny, {
-        offer_id: string;
-        error: string;
-        retryable: boolean;
-    }, {
-        offer_id: string;
-        error: string;
-        retryable: boolean;
-    }>, "many">>;
-    cost_estimate: z.ZodOptional<z.ZodObject<{
-        tokens_used: z.ZodNumber;
-        estimated_cost_usd: z.ZodNumber;
-    }, "strip", z.ZodTypeAny, {
-        tokens_used: number;
-        estimated_cost_usd: number;
-    }, {
-        tokens_used: number;
-        estimated_cost_usd: number;
-    }>>;
-    processing_stats: z.ZodOptional<z.ZodObject<{
-        total_time_ms: z.ZodNumber;
-        avg_confidence: z.ZodNumber;
-        success_rate: z.ZodNumber;
-    }, "strip", z.ZodTypeAny, {
-        total_time_ms: number;
-        avg_confidence: number;
-        success_rate: number;
-    }, {
-        total_time_ms: number;
-        avg_confidence: number;
-        success_rate: number;
-    }>>;
-}, "strip", z.ZodTypeAny, {
-    success: boolean;
-    processed_count: number;
-    enrichments: {
-        skills_required: {
-            required: boolean;
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            source: "extracted" | "existing" | "inferred";
-            years_required?: number | undefined;
-        }[];
-        skills_preferred: {
-            required: boolean;
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            source: "extracted" | "existing" | "inferred";
-            years_required?: number | undefined;
-        }[];
-        offer_id: string;
-        enrichment_status: "pending" | "processing" | "completed" | "failed" | "low_confidence";
-        enrichment_version: string;
-        model_used: string;
-        languages_detected: {
-            code: string;
-            level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
-            required: boolean;
-            name: string;
-            confidence: number;
-            context?: "technical" | "professional" | "client" | "general" | undefined;
-        }[];
-        degree_requirements: {
-            confidence: number;
-            level_eqf: number;
-            degree_type?: string | undefined;
-            field_of_study?: string | undefined;
-            source_text?: string | undefined;
-        }[];
-        rome_codes_suggested: string[];
-        company_size_indicators: string[];
-        retry_count: number;
-        id?: string | undefined;
-        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
-        created_at?: string | undefined;
-        updated_at?: string | undefined;
-        confidence_scores?: {
-            languages: number;
-            skills: number;
-            seniority: number;
-            degrees: number;
-            global: number;
-        } | undefined;
-        job_category_detected?: string | undefined;
-        tokens_used?: number | undefined;
-        processing_time_ms?: number | undefined;
-        error_message?: string | undefined;
-        processed_at?: string | undefined;
-    }[];
-    errors: {
-        offer_id: string;
-        error: string;
-        retryable: boolean;
-    }[];
-    cost_estimate?: {
-        tokens_used: number;
-        estimated_cost_usd: number;
-    } | undefined;
-    processing_stats?: {
-        total_time_ms: number;
-        avg_confidence: number;
-        success_rate: number;
-    } | undefined;
-}, {
-    success: boolean;
-    processed_count: number;
-    enrichments: {
-        offer_id: string;
-        id?: string | undefined;
-        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
-        skills_required?: {
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            required?: boolean | undefined;
-            years_required?: number | undefined;
-            source?: "extracted" | "existing" | "inferred" | undefined;
-        }[] | undefined;
-        skills_preferred?: {
-            name: string;
-            confidence: number;
-            normalized_name: string;
-            category: "technical" | "business" | "soft" | "language" | "certification";
-            required?: boolean | undefined;
-            years_required?: number | undefined;
-            source?: "extracted" | "existing" | "inferred" | undefined;
-        }[] | undefined;
-        created_at?: string | undefined;
-        updated_at?: string | undefined;
-        enrichment_status?: "pending" | "processing" | "completed" | "failed" | "low_confidence" | undefined;
-        enrichment_version?: string | undefined;
-        model_used?: string | undefined;
-        languages_detected?: {
-            code: string;
-            level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
-            name: string;
-            confidence: number;
-            required?: boolean | undefined;
-            context?: "technical" | "professional" | "client" | "general" | undefined;
-        }[] | undefined;
-        degree_requirements?: {
-            confidence: number;
-            level_eqf: number;
-            degree_type?: string | undefined;
-            field_of_study?: string | undefined;
-            source_text?: string | undefined;
-        }[] | undefined;
-        confidence_scores?: {
-            languages: number;
-            skills: number;
-            seniority: number;
-            degrees: number;
-            global: number;
-        } | undefined;
-        rome_codes_suggested?: string[] | undefined;
-        job_category_detected?: string | undefined;
-        company_size_indicators?: string[] | undefined;
-        tokens_used?: number | undefined;
-        processing_time_ms?: number | undefined;
-        error_message?: string | undefined;
-        retry_count?: number | undefined;
-        processed_at?: string | undefined;
-    }[];
-    errors?: {
-        offer_id: string;
-        error: string;
-        retryable: boolean;
-    }[] | undefined;
-    cost_estimate?: {
-        tokens_used: number;
-        estimated_cost_usd: number;
-    } | undefined;
-    processing_stats?: {
-        total_time_ms: number;
-        avg_confidence: number;
-        success_rate: number;
-    } | undefined;
-}>;
-type EnrichmentResponse = z.infer<typeof EnrichmentResponseSchema>;
 declare const OfferEmbeddingSchema: z.ZodObject<{
     offer_id: z.ZodString;
     kind: z.ZodDefault<z.ZodEnum<["semantic", "skills"]>>;
@@ -1224,7 +774,7 @@ declare const CVEnrichmentSchema: z.ZodObject<{
     processed_at: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     app_user_id: string;
-    parse_status: "pending" | "processing" | "error" | "ok";
+    parse_status: "pending" | "processing" | "ok" | "error";
     confidence_scores?: Record<string, number> | undefined;
     error_message?: string | undefined;
     processed_at?: string | undefined;
@@ -1245,7 +795,7 @@ declare const CVEnrichmentSchema: z.ZodObject<{
     years_experience_detected?: number | undefined;
 }, {
     app_user_id: string;
-    parse_status: "pending" | "processing" | "error" | "ok";
+    parse_status: "pending" | "processing" | "ok" | "error";
     confidence_scores?: Record<string, number> | undefined;
     error_message?: string | undefined;
     processed_at?: string | undefined;
@@ -1824,6 +1374,825 @@ declare const SSEEventSchema: z.ZodObject<{
     data?: any;
 }>;
 type SSEEvent = z.infer<typeof SSEEventSchema>;
+declare const SkillExtractionSchema: z.ZodObject<{
+    name: z.ZodString;
+    normalized_name: z.ZodString;
+    category: z.ZodEnum<["technical", "soft", "domain", "tool", "language"]>;
+    confidence: z.ZodNumber;
+    required: z.ZodBoolean;
+}, "strip", z.ZodTypeAny, {
+    required: boolean;
+    name: string;
+    confidence: number;
+    normalized_name: string;
+    category: "technical" | "soft" | "language" | "domain" | "tool";
+}, {
+    required: boolean;
+    name: string;
+    confidence: number;
+    normalized_name: string;
+    category: "technical" | "soft" | "language" | "domain" | "tool";
+}>;
+type SkillExtraction = z.infer<typeof SkillExtractionSchema>;
+declare const LanguageDetectionSchema: z.ZodObject<{
+    code: z.ZodString;
+    name: z.ZodString;
+    level: z.ZodOptional<z.ZodEnum<["A1", "A2", "B1", "B2", "C1", "C2", "native"]>>;
+    confidence: z.ZodNumber;
+    required: z.ZodBoolean;
+}, "strip", z.ZodTypeAny, {
+    code: string;
+    required: boolean;
+    name: string;
+    confidence: number;
+    level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+}, {
+    code: string;
+    required: boolean;
+    name: string;
+    confidence: number;
+    level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+}>;
+type LanguageDetection = z.infer<typeof LanguageDetectionSchema>;
+declare const DegreeRequirementSchema: z.ZodObject<{
+    level_eqf: z.ZodNumber;
+    degree_type: z.ZodString;
+    confidence: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    confidence: number;
+    level_eqf: number;
+    degree_type: string;
+}, {
+    confidence: number;
+    level_eqf: number;
+    degree_type: string;
+}>;
+type DegreeRequirement = z.infer<typeof DegreeRequirementSchema>;
+declare const ConfidenceScoresSchema: z.ZodObject<{
+    skills: z.ZodNumber;
+    seniority: z.ZodNumber;
+    languages: z.ZodNumber;
+    degrees: z.ZodNumber;
+    global: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    languages: number;
+    skills: number;
+    seniority: number;
+    degrees: number;
+    global: number;
+}, {
+    languages: number;
+    skills: number;
+    seniority: number;
+    degrees: number;
+    global: number;
+}>;
+type ConfidenceScores = z.infer<typeof ConfidenceScoresSchema>;
+declare const EnrichmentRequestSchema: z.ZodObject<{
+    offer_ids: z.ZodArray<z.ZodString, "many">;
+    confidence_threshold: z.ZodDefault<z.ZodNumber>;
+    force_reprocess: z.ZodDefault<z.ZodBoolean>;
+    include_low_confidence: z.ZodDefault<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    offer_ids: string[];
+    confidence_threshold: number;
+    force_reprocess: boolean;
+    include_low_confidence: boolean;
+}, {
+    offer_ids: string[];
+    confidence_threshold?: number | undefined;
+    force_reprocess?: boolean | undefined;
+    include_low_confidence?: boolean | undefined;
+}>;
+type EnrichmentRequest = z.infer<typeof EnrichmentRequestSchema>;
+declare const EnrichmentResponseSchema: z.ZodObject<{
+    success: z.ZodBoolean;
+    processed_count: z.ZodNumber;
+    enrichments: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        offer_id: z.ZodString;
+        skills_required: z.ZodArray<z.ZodObject<{
+            name: z.ZodString;
+            normalized_name: z.ZodString;
+            category: z.ZodEnum<["technical", "soft", "domain", "tool", "language"]>;
+            confidence: z.ZodNumber;
+            required: z.ZodBoolean;
+        }, "strip", z.ZodTypeAny, {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }, {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }>, "many">;
+        skills_preferred: z.ZodArray<z.ZodObject<{
+            name: z.ZodString;
+            normalized_name: z.ZodString;
+            category: z.ZodEnum<["technical", "soft", "domain", "tool", "language"]>;
+            confidence: z.ZodNumber;
+            required: z.ZodBoolean;
+        }, "strip", z.ZodTypeAny, {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }, {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }>, "many">;
+        seniority_level: z.ZodOptional<z.ZodEnum<["intern", "junior", "mid", "senior", "lead", "manager"]>>;
+        languages_detected: z.ZodArray<z.ZodObject<{
+            code: z.ZodString;
+            name: z.ZodString;
+            level: z.ZodOptional<z.ZodEnum<["A1", "A2", "B1", "B2", "C1", "C2", "native"]>>;
+            confidence: z.ZodNumber;
+            required: z.ZodBoolean;
+        }, "strip", z.ZodTypeAny, {
+            code: string;
+            required: boolean;
+            name: string;
+            confidence: number;
+            level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+        }, {
+            code: string;
+            required: boolean;
+            name: string;
+            confidence: number;
+            level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+        }>, "many">;
+        degree_requirements: z.ZodArray<z.ZodObject<{
+            level_eqf: z.ZodNumber;
+            degree_type: z.ZodString;
+            confidence: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }, {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }>, "many">;
+        confidence_scores: z.ZodObject<{
+            skills: z.ZodNumber;
+            seniority: z.ZodNumber;
+            languages: z.ZodNumber;
+            degrees: z.ZodNumber;
+            global: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        }, {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        }>;
+        enrichment_status: z.ZodEnum<["completed", "low_confidence", "failed"]>;
+        processed_at: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        skills_required: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        skills_preferred: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        offer_id: string;
+        enrichment_status: "completed" | "failed" | "low_confidence";
+        languages_detected: {
+            code: string;
+            required: boolean;
+            name: string;
+            confidence: number;
+            level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+        }[];
+        degree_requirements: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }[];
+        confidence_scores: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        };
+        processed_at: string;
+        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+    }, {
+        id: string;
+        skills_required: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        skills_preferred: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        offer_id: string;
+        enrichment_status: "completed" | "failed" | "low_confidence";
+        languages_detected: {
+            code: string;
+            required: boolean;
+            name: string;
+            confidence: number;
+            level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+        }[];
+        degree_requirements: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }[];
+        confidence_scores: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        };
+        processed_at: string;
+        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+    }>, "many">;
+    errors: z.ZodArray<z.ZodObject<{
+        offer_id: z.ZodString;
+        error: z.ZodString;
+        retryable: z.ZodBoolean;
+    }, "strip", z.ZodTypeAny, {
+        offer_id: string;
+        error: string;
+        retryable: boolean;
+    }, {
+        offer_id: string;
+        error: string;
+        retryable: boolean;
+    }>, "many">;
+    cost_estimate: z.ZodObject<{
+        tokens_used: z.ZodNumber;
+        estimated_cost_usd: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        tokens_used: number;
+        estimated_cost_usd: number;
+    }, {
+        tokens_used: number;
+        estimated_cost_usd: number;
+    }>;
+    processing_stats: z.ZodObject<{
+        total_time_ms: z.ZodNumber;
+        avg_confidence: z.ZodNumber;
+        success_rate: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        total_time_ms: number;
+        avg_confidence: number;
+        success_rate: number;
+    }, {
+        total_time_ms: number;
+        avg_confidence: number;
+        success_rate: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    success: boolean;
+    processed_count: number;
+    enrichments: {
+        id: string;
+        skills_required: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        skills_preferred: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        offer_id: string;
+        enrichment_status: "completed" | "failed" | "low_confidence";
+        languages_detected: {
+            code: string;
+            required: boolean;
+            name: string;
+            confidence: number;
+            level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+        }[];
+        degree_requirements: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }[];
+        confidence_scores: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        };
+        processed_at: string;
+        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+    }[];
+    errors: {
+        offer_id: string;
+        error: string;
+        retryable: boolean;
+    }[];
+    cost_estimate: {
+        tokens_used: number;
+        estimated_cost_usd: number;
+    };
+    processing_stats: {
+        total_time_ms: number;
+        avg_confidence: number;
+        success_rate: number;
+    };
+}, {
+    success: boolean;
+    processed_count: number;
+    enrichments: {
+        id: string;
+        skills_required: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        skills_preferred: {
+            required: boolean;
+            name: string;
+            confidence: number;
+            normalized_name: string;
+            category: "technical" | "soft" | "language" | "domain" | "tool";
+        }[];
+        offer_id: string;
+        enrichment_status: "completed" | "failed" | "low_confidence";
+        languages_detected: {
+            code: string;
+            required: boolean;
+            name: string;
+            confidence: number;
+            level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "native" | undefined;
+        }[];
+        degree_requirements: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }[];
+        confidence_scores: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        };
+        processed_at: string;
+        seniority_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+    }[];
+    errors: {
+        offer_id: string;
+        error: string;
+        retryable: boolean;
+    }[];
+    cost_estimate: {
+        tokens_used: number;
+        estimated_cost_usd: number;
+    };
+    processing_stats: {
+        total_time_ms: number;
+        avg_confidence: number;
+        success_rate: number;
+    };
+}>;
+type EnrichmentResponse = z.infer<typeof EnrichmentResponseSchema>;
+declare const AdminEnrichmentStatsSchema: z.ZodObject<{
+    overview: z.ZodObject<{
+        total_offers: z.ZodNumber;
+        enriched_offers: z.ZodNumber;
+        enrichment_rate: z.ZodNumber;
+        avg_confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        avg_confidence: number;
+        total_offers: number;
+        enriched_offers: number;
+        enrichment_rate: number;
+    }, {
+        avg_confidence: number;
+        total_offers: number;
+        enriched_offers: number;
+        enrichment_rate: number;
+    }>;
+    status_breakdown: z.ZodObject<{
+        completed: z.ZodNumber;
+        processing: z.ZodNumber;
+        failed: z.ZodNumber;
+        low_confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        processing: number;
+        completed: number;
+        failed: number;
+        low_confidence: number;
+    }, {
+        processing: number;
+        completed: number;
+        failed: number;
+        low_confidence: number;
+    }>;
+    cost_tracking: z.ZodObject<{
+        total_tokens_used: z.ZodNumber;
+        total_cost_usd: z.ZodNumber;
+        avg_cost_per_offer: z.ZodNumber;
+        monthly_budget_used: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        total_tokens_used: number;
+        total_cost_usd: number;
+        avg_cost_per_offer: number;
+        monthly_budget_used: number;
+    }, {
+        total_tokens_used: number;
+        total_cost_usd: number;
+        avg_cost_per_offer: number;
+        monthly_budget_used: number;
+    }>;
+    performance_metrics: z.ZodObject<{
+        avg_processing_time_ms: z.ZodNumber;
+        success_rate_24h: z.ZodNumber;
+        latest_batch_id: z.ZodOptional<z.ZodString>;
+        active_batches: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        avg_processing_time_ms: number;
+        success_rate_24h: number;
+        active_batches: number;
+        latest_batch_id?: string | undefined;
+    }, {
+        avg_processing_time_ms: number;
+        success_rate_24h: number;
+        active_batches: number;
+        latest_batch_id?: string | undefined;
+    }>;
+    skill_categories: z.ZodArray<z.ZodObject<{
+        category: z.ZodString;
+        count: z.ZodNumber;
+        confidence_avg: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        category: string;
+        count: number;
+        confidence_avg: number;
+    }, {
+        category: string;
+        count: number;
+        confidence_avg: number;
+    }>, "many">;
+}, "strip", z.ZodTypeAny, {
+    overview: {
+        avg_confidence: number;
+        total_offers: number;
+        enriched_offers: number;
+        enrichment_rate: number;
+    };
+    status_breakdown: {
+        processing: number;
+        completed: number;
+        failed: number;
+        low_confidence: number;
+    };
+    cost_tracking: {
+        total_tokens_used: number;
+        total_cost_usd: number;
+        avg_cost_per_offer: number;
+        monthly_budget_used: number;
+    };
+    performance_metrics: {
+        avg_processing_time_ms: number;
+        success_rate_24h: number;
+        active_batches: number;
+        latest_batch_id?: string | undefined;
+    };
+    skill_categories: {
+        category: string;
+        count: number;
+        confidence_avg: number;
+    }[];
+}, {
+    overview: {
+        avg_confidence: number;
+        total_offers: number;
+        enriched_offers: number;
+        enrichment_rate: number;
+    };
+    status_breakdown: {
+        processing: number;
+        completed: number;
+        failed: number;
+        low_confidence: number;
+    };
+    cost_tracking: {
+        total_tokens_used: number;
+        total_cost_usd: number;
+        avg_cost_per_offer: number;
+        monthly_budget_used: number;
+    };
+    performance_metrics: {
+        avg_processing_time_ms: number;
+        success_rate_24h: number;
+        active_batches: number;
+        latest_batch_id?: string | undefined;
+    };
+    skill_categories: {
+        category: string;
+        count: number;
+        confidence_avg: number;
+    }[];
+}>;
+type AdminEnrichmentStats = z.infer<typeof AdminEnrichmentStatsSchema>;
+declare const EnrichmentHistoryItemSchema: z.ZodObject<{
+    id: z.ZodString;
+    batch_id: z.ZodOptional<z.ZodString>;
+    offer_id: z.ZodString;
+    offer_title: z.ZodString;
+    enrichment_status: z.ZodEnum<["completed", "processing", "failed", "low_confidence"]>;
+    confidence_scores: z.ZodOptional<z.ZodObject<{
+        skills: z.ZodNumber;
+        seniority: z.ZodNumber;
+        languages: z.ZodNumber;
+        degrees: z.ZodNumber;
+        global: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        languages: number;
+        skills: number;
+        seniority: number;
+        degrees: number;
+        global: number;
+    }, {
+        languages: number;
+        skills: number;
+        seniority: number;
+        degrees: number;
+        global: number;
+    }>>;
+    skills_count: z.ZodNumber;
+    tokens_used: z.ZodNumber;
+    processing_time_ms: z.ZodNumber;
+    error_message: z.ZodOptional<z.ZodString>;
+    processed_at: z.ZodString;
+    created_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    offer_id: string;
+    enrichment_status: "processing" | "completed" | "failed" | "low_confidence";
+    tokens_used: number;
+    processing_time_ms: number;
+    processed_at: string;
+    offer_title: string;
+    skills_count: number;
+    confidence_scores?: {
+        languages: number;
+        skills: number;
+        seniority: number;
+        degrees: number;
+        global: number;
+    } | undefined;
+    error_message?: string | undefined;
+    batch_id?: string | undefined;
+}, {
+    id: string;
+    created_at: string;
+    offer_id: string;
+    enrichment_status: "processing" | "completed" | "failed" | "low_confidence";
+    tokens_used: number;
+    processing_time_ms: number;
+    processed_at: string;
+    offer_title: string;
+    skills_count: number;
+    confidence_scores?: {
+        languages: number;
+        skills: number;
+        seniority: number;
+        degrees: number;
+        global: number;
+    } | undefined;
+    error_message?: string | undefined;
+    batch_id?: string | undefined;
+}>;
+type EnrichmentHistoryItem = z.infer<typeof EnrichmentHistoryItemSchema>;
+declare const EnrichmentHistoryResponseSchema: z.ZodObject<{
+    success: z.ZodBoolean;
+    history: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        batch_id: z.ZodOptional<z.ZodString>;
+        offer_id: z.ZodString;
+        offer_title: z.ZodString;
+        enrichment_status: z.ZodEnum<["completed", "processing", "failed", "low_confidence"]>;
+        confidence_scores: z.ZodOptional<z.ZodObject<{
+            skills: z.ZodNumber;
+            seniority: z.ZodNumber;
+            languages: z.ZodNumber;
+            degrees: z.ZodNumber;
+            global: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        }, {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        }>>;
+        skills_count: z.ZodNumber;
+        tokens_used: z.ZodNumber;
+        processing_time_ms: z.ZodNumber;
+        error_message: z.ZodOptional<z.ZodString>;
+        processed_at: z.ZodString;
+        created_at: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        created_at: string;
+        offer_id: string;
+        enrichment_status: "processing" | "completed" | "failed" | "low_confidence";
+        tokens_used: number;
+        processing_time_ms: number;
+        processed_at: string;
+        offer_title: string;
+        skills_count: number;
+        confidence_scores?: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        } | undefined;
+        error_message?: string | undefined;
+        batch_id?: string | undefined;
+    }, {
+        id: string;
+        created_at: string;
+        offer_id: string;
+        enrichment_status: "processing" | "completed" | "failed" | "low_confidence";
+        tokens_used: number;
+        processing_time_ms: number;
+        processed_at: string;
+        offer_title: string;
+        skills_count: number;
+        confidence_scores?: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        } | undefined;
+        error_message?: string | undefined;
+        batch_id?: string | undefined;
+    }>, "many">;
+    pagination: z.ZodObject<{
+        total: z.ZodNumber;
+        page: z.ZodNumber;
+        limit: z.ZodNumber;
+        total_pages: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        page: number;
+        limit: number;
+        total: number;
+        total_pages: number;
+    }, {
+        page: number;
+        limit: number;
+        total: number;
+        total_pages: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    success: boolean;
+    history: {
+        id: string;
+        created_at: string;
+        offer_id: string;
+        enrichment_status: "processing" | "completed" | "failed" | "low_confidence";
+        tokens_used: number;
+        processing_time_ms: number;
+        processed_at: string;
+        offer_title: string;
+        skills_count: number;
+        confidence_scores?: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        } | undefined;
+        error_message?: string | undefined;
+        batch_id?: string | undefined;
+    }[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        total_pages: number;
+    };
+}, {
+    success: boolean;
+    history: {
+        id: string;
+        created_at: string;
+        offer_id: string;
+        enrichment_status: "processing" | "completed" | "failed" | "low_confidence";
+        tokens_used: number;
+        processing_time_ms: number;
+        processed_at: string;
+        offer_title: string;
+        skills_count: number;
+        confidence_scores?: {
+            languages: number;
+            skills: number;
+            seniority: number;
+            degrees: number;
+            global: number;
+        } | undefined;
+        error_message?: string | undefined;
+        batch_id?: string | undefined;
+    }[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        total_pages: number;
+    };
+}>;
+type EnrichmentHistoryResponse = z.infer<typeof EnrichmentHistoryResponseSchema>;
+declare const AdminBatchEnrichmentRequestSchema: z.ZodObject<{
+    filters: z.ZodOptional<z.ZodObject<{
+        rome_codes: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        source: z.ZodOptional<z.ZodEnum<["LBA", "FT"]>>;
+        created_after: z.ZodOptional<z.ZodString>;
+        not_enriched_only: z.ZodDefault<z.ZodBoolean>;
+    }, "strip", z.ZodTypeAny, {
+        not_enriched_only: boolean;
+        rome_codes?: string[] | undefined;
+        source?: "LBA" | "FT" | undefined;
+        created_after?: string | undefined;
+    }, {
+        rome_codes?: string[] | undefined;
+        source?: "LBA" | "FT" | undefined;
+        created_after?: string | undefined;
+        not_enriched_only?: boolean | undefined;
+    }>>;
+    batch_size: z.ZodDefault<z.ZodNumber>;
+    confidence_threshold: z.ZodDefault<z.ZodNumber>;
+    priority: z.ZodDefault<z.ZodEnum<["low", "normal", "high"]>>;
+}, "strip", z.ZodTypeAny, {
+    confidence_threshold: number;
+    batch_size: number;
+    priority: "low" | "normal" | "high";
+    filters?: {
+        not_enriched_only: boolean;
+        rome_codes?: string[] | undefined;
+        source?: "LBA" | "FT" | undefined;
+        created_after?: string | undefined;
+    } | undefined;
+}, {
+    filters?: {
+        rome_codes?: string[] | undefined;
+        source?: "LBA" | "FT" | undefined;
+        created_after?: string | undefined;
+        not_enriched_only?: boolean | undefined;
+    } | undefined;
+    confidence_threshold?: number | undefined;
+    batch_size?: number | undefined;
+    priority?: "low" | "normal" | "high" | undefined;
+}>;
+type AdminBatchEnrichmentRequest = z.infer<typeof AdminBatchEnrichmentRequestSchema>;
 
 interface Database {
     public: {
@@ -2004,4 +2373,4 @@ interface Database {
     };
 }
 
-export { type AppRole, AppRoleEnum, type AppUser, AppUserSchema, type Batch, type BatchCreateRequest, BatchCreateRequestSchema, BatchSchema, type BatchStatus, BatchStatusEnum, type CEFRLevel, CEFRLevelEnum, type CVDegree, CVDegreeSchema, type CVDocument, CVDocumentSchema, type CVEmbedding, CVEmbeddingSchema, type CVEnrichment, CVEnrichmentSchema, type CVExperience, CVExperienceSchema, type CVLanguage, CVLanguageSchema, type CVParseStatus, CVParseStatusEnum, type CVSkill, CVSkillSchema, type CVUploadRequest, CVUploadRequestSchema, type CandidateProfile, CandidateProfileSchema, type Company, CompanySchema, type ConfidenceScore, ConfidenceScoreSchema, type ContractType, ContractTypeEnum, type Database, type DegreeClassification, DegreeClassificationSchema, type EnrichedLanguage, EnrichedLanguageSchema, type EnrichedSkill, EnrichedSkillSchema, type EnrichmentRequest, EnrichmentRequestSchema, type EnrichmentResponse, EnrichmentResponseSchema, type ErrorResponse, ErrorResponseSchema, type IngestOffersRequest, IngestOffersRequestSchema, type LanguageRequirement, LanguageRequirementSchema, type Location, LocationSchema, type LoginCredentials, LoginSchema, type MatchRequest, MatchRequestSchema, type MatchResult, MatchResultSchema, type Offer, type OfferEmbedding, OfferEmbeddingSchema, type OfferEnrichment, OfferEnrichmentSchema, OfferSchema, type OfferSource, OfferSourceEnum, type OfferStatus, OfferStatusEnum, type Pagination, PaginationSchema, type PasswordReset, type PasswordResetRequest, PasswordResetRequestSchema, PasswordResetSchema, type Registration, RegistrationSchema, type SSEEvent, SSEEventSchema, type SSEEventType, SSEEventTypeEnum, type SearchOffersRequest, SearchOffersRequestSchema, type SeniorityLevel, SeniorityLevelEnum, type Session, SessionSchema, type Skill, type SkillCategory, SkillCategoryEnum, SkillSchema, type SortOrder, SortOrderEnum, type SuccessResponse, SuccessResponseSchema, type WorkMode, WorkModeEnum };
+export { type AdminBatchEnrichmentRequest, AdminBatchEnrichmentRequestSchema, type AdminEnrichmentStats, AdminEnrichmentStatsSchema, type AppRole, AppRoleEnum, type AppUser, AppUserSchema, type Batch, type BatchCreateRequest, BatchCreateRequestSchema, BatchSchema, type BatchStatus, BatchStatusEnum, type CEFRLevel, CEFRLevelEnum, type CVDegree, CVDegreeSchema, type CVDocument, CVDocumentSchema, type CVEmbedding, CVEmbeddingSchema, type CVEnrichment, CVEnrichmentSchema, type CVExperience, CVExperienceSchema, type CVLanguage, CVLanguageSchema, type CVParseStatus, CVParseStatusEnum, type CVSkill, CVSkillSchema, type CVUploadRequest, CVUploadRequestSchema, type CandidateProfile, CandidateProfileSchema, type Company, CompanySchema, type ConfidenceScore, ConfidenceScoreSchema, type ConfidenceScores, ConfidenceScoresSchema, type ContractType, ContractTypeEnum, type Database, type DegreeClassification, DegreeClassificationSchema, type DegreeRequirement, DegreeRequirementSchema, type EnrichedLanguage, EnrichedLanguageSchema, type EnrichedSkill, EnrichedSkillSchema, type EnrichmentHistoryItem, EnrichmentHistoryItemSchema, type EnrichmentHistoryResponse, EnrichmentHistoryResponseSchema, type EnrichmentRequest, EnrichmentRequestSchema, type EnrichmentResponse, EnrichmentResponseSchema, type ErrorResponse, ErrorResponseSchema, type IngestOffersRequest, IngestOffersRequestSchema, type LanguageDetection, LanguageDetectionSchema, type LanguageRequirement, LanguageRequirementSchema, type Location, LocationSchema, type LoginCredentials, LoginSchema, type MatchRequest, MatchRequestSchema, type MatchResult, MatchResultSchema, type Offer, type OfferEmbedding, OfferEmbeddingSchema, type OfferEnrichment, OfferEnrichmentSchema, OfferSchema, type OfferSource, OfferSourceEnum, type OfferStatus, OfferStatusEnum, type Pagination, PaginationSchema, type PasswordReset, type PasswordResetRequest, PasswordResetRequestSchema, PasswordResetSchema, type Registration, RegistrationSchema, type SSEEvent, SSEEventSchema, type SSEEventType, SSEEventTypeEnum, type SearchOffersRequest, SearchOffersRequestSchema, type SeniorityLevel, SeniorityLevelEnum, type Session, SessionSchema, type Skill, type SkillCategory, SkillCategoryEnum, type SkillExtraction, SkillExtractionSchema, SkillSchema, type SortOrder, SortOrderEnum, type SuccessResponse, SuccessResponseSchema, type WorkMode, WorkModeEnum };

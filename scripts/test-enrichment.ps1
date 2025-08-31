@@ -1,151 +1,153 @@
-# Script de test pour l'API d'enrichissement GPT-4o-mini
-# Usage: .\scripts\test-enrichment.ps1
+# PowerShell script to test GPT-4o-mini enrichment API
+# Usage: powershell -File scripts/test-enrichment.ps1
 
 param(
-    [string]$BaseUrl = "http://localhost:3003",
+    [string]$ApiUrl = "http://localhost:3000",
     [string]$AdminSecret = $env:ADMIN_SECRET,
-    [int]$MaxOffers = 3
+    [int]$BatchSize = 3,
+    [switch]$Verbose
 )
 
-Write-Host "🚀 Testing cledger5 AI Enrichment API" -ForegroundColor Green
-Write-Host "Base URL: $BaseUrl" -ForegroundColor Cyan
+# Configuration
+$ErrorActionPreference = "Stop"
 
-# Vérifier que ADMIN_SECRET est disponible  
+Write-Host "=== GPT-4o-mini Enrichment API Test ===" -ForegroundColor Magenta
+
+# Validation des paramètres
 if (-not $AdminSecret) {
-    Write-Host "❌ ADMIN_SECRET environment variable not set" -ForegroundColor Red
-    Write-Host "Please set: `$env:ADMIN_SECRET = 'your-admin-secret'" -ForegroundColor Yellow
+    Write-Host "Error: ADMIN_SECRET environment variable is required" -ForegroundColor Red
     exit 1
 }
 
-# Étape 1: Health check
-Write-Host "`n🔍 Step 1: Health Check" -ForegroundColor Blue
+if ($Verbose) {
+    Write-Host "Configuration:" -ForegroundColor Gray
+    Write-Host "  API URL: $ApiUrl" -ForegroundColor Gray
+    Write-Host "  Batch Size: $BatchSize" -ForegroundColor Gray
+    Write-Host "  Admin Secret: [HIDDEN]" -ForegroundColor Gray
+    Write-Host ""
+}
+
+# Headers
+$headers = @{
+    "Content-Type" = "application/json"
+    "x-admin-secret" = $AdminSecret
+}
+
+# Test 1: Health check
+Write-Host "1. Testing API health..." -ForegroundColor Yellow
 try {
-    $healthResponse = Invoke-RestMethod -Uri "$BaseUrl/api/health" -Method GET
-    if ($healthResponse.status -eq "healthy") {
-        Write-Host "✅ API is healthy" -ForegroundColor Green
-        Write-Host "   Supabase: $($healthResponse.supabase.connected)" -ForegroundColor Gray
-    } else {
-        throw "API not healthy"
-    }
+    $healthResponse = Invoke-RestMethod -Uri "$ApiUrl/api/health" -Method GET -Headers @{"Content-Type"="application/json"}
+    Write-Host "   Status: $($healthResponse.status)" -ForegroundColor Green
+    Write-Host "   Database: $($healthResponse.database)" -ForegroundColor Green
 } catch {
-    Write-Host "❌ Health check failed: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "   Health check failed: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 
-# Étape 2: Récupérer des offres à enrichir
-Write-Host "`n📋 Step 2: Fetching offers to enrich" -ForegroundColor Blue
+# Test 2: Get some offers for enrichment
+Write-Host "`n2. Fetching offers for enrichment..." -ForegroundColor Yellow
 try {
-    $offersResponse = Invoke-RestMethod -Uri "$BaseUrl/api/search/offers?limit=$MaxOffers" -Method GET
-    $offers = $offersResponse.data.offers
+    $offersResponse = Invoke-RestMethod -Uri "$ApiUrl/api/search/offers?limit=$BatchSize" -Method GET -Headers @{"Content-Type"="application/json"}
+    $offers = $offersResponse.data
     
-    if ($offers.Count -eq 0) {
-        Write-Host "❌ No offers found in database" -ForegroundColor Red
+    if (-not $offers -or $offers.Count -eq 0) {
+        Write-Host "   No offers found for testing. Please ingest some offers first." -ForegroundColor Red
         exit 1
     }
     
-    Write-Host "✅ Found $($offers.Count) offers to test:" -ForegroundColor Green
+    Write-Host "   Found $($offers.Count) offers:" -ForegroundColor Green
     foreach ($offer in $offers) {
         Write-Host "   - $($offer.id): $($offer.title)" -ForegroundColor Gray
     }
 } catch {
-    Write-Host "❌ Failed to fetch offers: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "   Failed to fetch offers: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 
-# Étape 3: Préparer la requête d'enrichissement
-$offerIds = $offers | ForEach-Object { $_.id }
-$enrichmentRequest = @{
-    offer_ids = $offerIds
-    confidence_threshold = 0.80
+# Test 3: Run enrichment
+Write-Host "`n3. Running GPT-4o-mini enrichment..." -ForegroundColor Yellow
+
+$enrichmentPayload = @{
+    offer_ids = $offers | ForEach-Object { $_.id }
     force_reprocess = $true
-    include_low_confidence = $true
+    confidence_threshold = 0.80
 } | ConvertTo-Json
 
-Write-Host "`n🤖 Step 3: Testing AI Enrichment" -ForegroundColor Blue
-Write-Host "Request payload:" -ForegroundColor Gray
-Write-Host $enrichmentRequest -ForegroundColor DarkGray
+if ($Verbose) {
+    Write-Host "   Payload: $enrichmentPayload" -ForegroundColor Gray
+}
 
-# Étape 4: Appeler l'API d'enrichissement
 try {
-    $headers = @{
-        "Content-Type" = "application/json"
-        "x-admin-secret" = $AdminSecret
+    $enrichmentResponse = Invoke-RestMethod -Uri "$ApiUrl/api/enrich/offers" -Method POST -Headers $headers -Body $enrichmentPayload
+    
+    Write-Host "   Enrichment completed!" -ForegroundColor Green
+    Write-Host "   Total processed: $($enrichmentResponse.total_processed)" -ForegroundColor Cyan
+    Write-Host "   Successful: $($enrichmentResponse.successful)" -ForegroundColor Green
+    Write-Host "   Failed: $($enrichmentResponse.failed)" -ForegroundColor Red
+    Write-Host "   Low confidence: $($enrichmentResponse.low_confidence)" -ForegroundColor Yellow
+    
+    # Cost tracking
+    if ($enrichmentResponse.cost_tracking) {
+        $cost = $enrichmentResponse.cost_tracking
+        Write-Host "   Total tokens used: $($cost.total_tokens_used)" -ForegroundColor Cyan
+        Write-Host "   Total cost: $([math]::Round($cost.total_cost_usd, 6)) USD" -ForegroundColor Cyan
+        Write-Host "   Average cost per offer: $([math]::Round($cost.avg_cost_per_offer, 6)) USD" -ForegroundColor Cyan
     }
     
-    Write-Host "`n⏳ Calling GPT-4o-mini enrichment API..." -ForegroundColor Yellow
-    $startTime = Get-Date
-    
-    $enrichmentResponse = Invoke-RestMethod -Uri "$BaseUrl/api/enrich/offers" -Method POST -Body $enrichmentRequest -Headers $headers
-    
-    $endTime = Get-Date
-    $duration = ($endTime - $startTime).TotalMilliseconds
-    
-    Write-Host "✅ Enrichment completed in $([math]::Round($duration))ms" -ForegroundColor Green
+    # Performance metrics
+    if ($enrichmentResponse.performance) {
+        $perf = $enrichmentResponse.performance
+        Write-Host "   Average processing time: $($perf.avg_processing_time_ms)ms" -ForegroundColor Cyan
+        Write-Host "   Total processing time: $($perf.total_processing_time_ms)ms" -ForegroundColor Cyan
+    }
     
 } catch {
-    Write-Host "❌ Enrichment failed: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "   Enrichment failed: $($_.Exception.Message)" -ForegroundColor Red
     if ($_.Exception.Response) {
         $statusCode = $_.Exception.Response.StatusCode
         Write-Host "   Status Code: $statusCode" -ForegroundColor Red
-        
-        if ($statusCode -eq 401) {
-            Write-Host "   💡 Check your ADMIN_SECRET value" -ForegroundColor Yellow
-        }
     }
     exit 1
 }
 
-# Étape 5: Analyser les résultats
-Write-Host "`n📊 Step 4: Analyzing Results" -ForegroundColor Blue
+# Test 4: Verify stored results
+Write-Host "`n4. Verifying stored enrichment results..." -ForegroundColor Yellow
 
-Write-Host "Success: $($enrichmentResponse.success)" -ForegroundColor $(if ($enrichmentResponse.success) { "Green" } else { "Red" })
-Write-Host "Processed Count: $($enrichmentResponse.processed_count)" -ForegroundColor Cyan
-Write-Host "Errors Count: $($enrichmentResponse.errors.Count)" -ForegroundColor $(if ($enrichmentResponse.errors.Count -eq 0) { "Green" } else { "Red" })
-
-# Coûts et performance
-if ($enrichmentResponse.cost_estimate) {
-    $cost = $enrichmentResponse.cost_estimate
-    Write-Host "`n💰 Cost Estimate:" -ForegroundColor Magenta
-    Write-Host "   Tokens Used: $($cost.tokens_used)" -ForegroundColor Gray
-    Write-Host "   Estimated Cost: $([math]::Round($cost.estimated_cost_usd, 4)) USD" -ForegroundColor Gray
-}
-
-if ($enrichmentResponse.processing_stats) {
-    $stats = $enrichmentResponse.processing_stats
-    Write-Host "`n⚡ Performance Stats:" -ForegroundColor Magenta
-    Write-Host "   Total Time: $($stats.total_time_ms)ms" -ForegroundColor Gray
-    Write-Host "   Avg Confidence: $([math]::Round($stats.avg_confidence, 3))" -ForegroundColor Gray
-    Write-Host "   Success Rate: $([math]::Round($stats.success_rate * 100, 1))%" -ForegroundColor Gray
-}
-
-# Détails des enrichissements
-Write-Host "`n🎯 Enrichment Details:" -ForegroundColor Blue
-foreach ($enrichment in $enrichmentResponse.enrichments) {
-    Write-Host "   Offer: $($enrichment.offer_id)" -ForegroundColor White
-    Write-Host "   Status: $($enrichment.enrichment_status)" -ForegroundColor $(if ($enrichment.enrichment_status -eq "completed") { "Green" } else { "Yellow" })
+# Afficher les enrichissements réussis
+if ($enrichmentResponse.enrichments -and $enrichmentResponse.enrichments.Count -gt 0) {
+    Write-Host "   Successful enrichments:" -ForegroundColor Green
     
-    if ($enrichment.confidence_scores) {
-        $conf = $enrichment.confidence_scores
-        Write-Host "   Global Confidence: $([math]::Round($conf.global, 3))" -ForegroundColor Cyan
-        Write-Host "   Skills: $([math]::Round($conf.skills, 3)) | Seniority: $([math]::Round($conf.seniority, 3)) | Languages: $([math]::Round($conf.languages, 3)) | Degrees: $([math]::Round($conf.degrees, 3))" -ForegroundColor Gray
+    foreach ($enrichment in $enrichmentResponse.enrichments) {
+        Write-Host "   Offer ID: $($enrichment.offer_id)" -ForegroundColor Cyan
+        
+        # Skills required
+        if ($enrichment.skills_required) {
+            $skillsRequired = $enrichment.skills_required | ConvertFrom-Json -ErrorAction SilentlyContinue
+        }
+        
+        # Confidence scores
+        if ($enrichment.confidence_scores) {
+            $conf = $enrichment.confidence_scores
+            Write-Host "   Global Confidence: $([math]::Round($conf.global, 3))" -ForegroundColor Cyan
+            Write-Host "   Skills: $([math]::Round($conf.skills, 3)) | Seniority: $([math]::Round($conf.seniority, 3)) | Languages: $([math]::Round($conf.languages, 3)) | Degrees: $([math]::Round($conf.degrees, 3))" -ForegroundColor Gray
+        }
+        
+        if ($enrichment.seniority_level) {
+            Write-Host "   Seniority: $($enrichment.seniority_level)" -ForegroundColor Green
+        }
+        
+        if ($skillsRequired -and $skillsRequired.Count -gt 0) {
+            $skillNames = $skillsRequired | ForEach-Object { $_.name }
+            Write-Host "   Skills Required: $($skillNames -join ', ')" -ForegroundColor Green
+        }
+        
+        Write-Host "" # Ligne vide
     }
-    
-    if ($enrichment.seniority_level) {
-        Write-Host "   Seniority: $($enrichment.seniority_level)" -ForegroundColor Green
-    }
-    
-    $skillsRequired = $enrichment.skills_required
-    if ($skillsRequired -and $skillsRequired.Count -gt 0) {
-        $skillNames = $skillsRequired | ForEach-Object { $_.name }
-        Write-Host "   Skills Required: $($skillNames -join ', ')" -ForegroundColor Green
-    }
-    
-    Write-Host "" # Ligne vide
 }
 
 # Erreurs
 if ($enrichmentResponse.errors.Count -gt 0) {
-    Write-Host "`n❌ Errors:" -ForegroundColor Red
+    Write-Host "`nErrors:" -ForegroundColor Red
     foreach ($error in $enrichmentResponse.errors) {
         Write-Host "   Offer $($error.offer_id): $($error.error)" -ForegroundColor Red
         if ($error.retryable) {
@@ -154,5 +156,5 @@ if ($enrichmentResponse.errors.Count -gt 0) {
     }
 }
 
-Write-Host "`n✅ Test completed successfully!" -ForegroundColor Green
-Write-Host "💡 Check Supabase Dashboard > offer_enrichment table for stored results" -ForegroundColor Yellow
+Write-Host "`nTest completed successfully!" -ForegroundColor Green
+Write-Host "Check Supabase Dashboard > offer_enrichment table for stored results" -ForegroundColor Yellow

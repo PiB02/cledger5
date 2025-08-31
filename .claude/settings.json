@@ -7,7 +7,9 @@
     "allow": [
       "Edit",
       "Bash(ls:*)",
-      "Bash(gh:*)",
+      "Bash(gh:*)", 
+      "Bash(powershell:*)",
+      "Bash(curl:*)",
       "Bash(git:*)",
       "Bash(cmd:*)",
       "Bash(npm:*)",

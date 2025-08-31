@@ -11,6 +11,9 @@ importers:
       '@cledger5/api-clients':
         specifier: workspace:*
         version: link:packages/api-clients
+      '@cledger5/types':
+        specifier: workspace:*
+        version: link:packages/types
       '@cledger5/utils':
         specifier: workspace:*
         version: link:packages/utils
