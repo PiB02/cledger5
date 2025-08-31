@@ -11,6 +11,7 @@
   "dependencies": {
     "@cledger5/api-clients": "workspace:*",
     "@cledger5/utils": "workspace:*",
+    "@clerk/nextjs": "^6.31.6",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-dialog": "^1.1.15",

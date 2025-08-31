@@ -1,0 +1,116 @@
+# Complete Offer Extraction Prompt v1.0
+# Prompt maître pour extraction complète avec confidence scoring
+
+version: "1.0"
+target: "complete_extraction"
+confidence_threshold: 0.80
+max_tokens: 2000
+
+prompt: |
+  Tu es un expert en analyse du marché de l'emploi français. Extrais TOUTES les informations métier de cette offre d'emploi avec un scoring de confiance précis.
+
+  ## DONNÉES D'ENTRÉE
+  **TITRE**: {{offer_title}}
+  **DESCRIPTION**: {{offer_description}}
+  {{#if rome_codes}}**CODES ROME HINTS**: {{rome_codes}}{{/if}}
+
+  ## INSTRUCTIONS D'EXTRACTION
+
+  Analyze et extrais selon ces priorités :
+
+  1. **SKILLS** (compétences techniques et métier)
+  2. **SENIORITY** (niveau d'expérience) 
+  3. **LANGUAGES** (exigences linguistiques)
+  4. **DEGREES** (diplômes requis)
+  5. **CONTRACT INFO** (type contrat, modalités)
+
+  ## SCORING DE CONFIANCE
+
+  Chaque extraction doit avoir un score 0.0-1.0 :
+  - **≥0.80** : Information fiable → INCLURE
+  - **<0.80** : Information incertaine → REJETER (utiliser "unknown")
+
+  ### Critères de scoring :
+  - **1.0** : Mention explicite et claire
+  - **0.9** : Fortement impliqué par le contexte
+  - **0.8** : Raisonnablement déductible (seuil minimum)
+  - **0.7** : Probable mais incertain → REJETER
+  - **≤0.6** : Spéculation → REJETER
+
+  ## VALIDATION GLOBALE
+
+  L'extraction n'est acceptée que si :
+  1. **Confidence globale ≥ 0.80**
+  2. **Au moins 1 skill required avec conf ≥ 0.80**
+  3. **JSON strictement valide**
+  4. **Skills normalisées** (lowercase, sans accents)
+
+  ## NORMALISATION OBLIGATOIRE
+
+  ### Skills
+  - Format: lowercase, tirets pour espaces
+  - "JavaScript" → "javascript"
+  - "Gestion de projet" → "gestion-projet"
+
+  ### Languages
+  - Codes ISO 639-1 (fr, en, de, es, it...)
+  - Niveaux CEFR (A1, A2, B1, B2, C1, C2)
+
+  ### Seniority
+  - Valeurs: intern, junior, mid, senior, lead, manager
+  - Basé sur années d'exp + responsabilités
+
+  Réponds UNIQUEMENT avec le JSON selon le schema exact ci-dessous.
+
+json_schema: |
+  {
+    "title_canonical": "string (titre normalisé)",
+    "rome_codes_extracted": ["string (codes ROME identifiés)"],
+    "skills_required": [
+      {
+        "name": "string (skill normalisée)",
+        "confidence": "number (0.80-1.00)",
+        "required": true,
+        "context": "string (où trouvé dans l'offre)"
+      }
+    ],
+    "skills_preferred": [
+      {
+        "name": "string (skill normalisée)", 
+        "confidence": "number (0.80-1.00)",
+        "required": false,
+        "context": "string (contexte)"
+      }
+    ],
+    "languages": [
+      {
+        "code": "string (ISO 639-1)",
+        "level": "string (A1-C2)",
+        "confidence": "number (0.80-1.00)",
+        "required": "boolean",
+        "context": "string"
+      }
+    ],
+    "seniority_detected": "enum (intern|junior|mid|senior|lead|manager|unknown)",
+    "seniority_confidence": "number (0.80-1.00)",
+    "seniority_reasoning": "string (justification)",
+    "degree_min_eqf": "number (1-8) or null",
+    "degree_confidence": "number (0.80-1.00)",
+    "degree_reasoning": "string",
+    "confidence_scores": {
+      "skills": "number (moyenne confidence skills)",
+      "seniority": "number", 
+      "languages": "number",
+      "degrees": "number",
+      "global": "number (moyenne pondérée globale)"
+    },
+    "extraction_notes": "string (observations, difficultés rencontrées)"
+  }
+
+validation_rules: |
+  1. confidence_scores.global DOIT être ≥ 0.80
+  2. Au moins 1 skill_required avec confidence ≥ 0.80  
+  3. Tous les champs confidence dans le range [0.80, 1.00]
+  4. Skills normalisées (lowercase, tirets)
+  5. Languages avec codes ISO valides
+  6. JSON strictement conforme au schema

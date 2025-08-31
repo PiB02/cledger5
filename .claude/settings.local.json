@@ -11,7 +11,10 @@
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_snapshot",
-      "mcp__playwright__browser_wait_for"
+      "mcp__playwright__browser_wait_for",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(Remove-Item \"C:\\Users\\Admin\\odrive\\Pierre@Barreaud\\AI\\cledger5.claude\\cledger5\\docs\\memory.md\" -Force)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3003/api/health\")"
     ]
   },
   "enableAllProjectMcpServers": true,

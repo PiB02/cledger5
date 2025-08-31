@@ -1,0 +1,232 @@
+# Confidence Scoring & Error Handling Logic v1.0
+# Logique de scoring et stratégies de gestion d'erreur
+
+version: "1.0"
+target: "confidence_logic"
+threshold: 0.80
+
+confidence_algorithm: |
+  ## ALGORITHME DE SCORING DE CONFIANCE
+
+  ### 1. SCORING INDIVIDUEL (par extraction)
+  Chaque extraction reçoit un score basé sur :
+
+  #### INDICATEURS DE FORTE CONFIANCE (0.9-1.0)
+  - **Mention explicite** : "Python requis", "5 ans d'expérience", "Bac+5 exigé"
+  - **Format standardisé** : "JavaScript", "ROME M1805", "Anglais B2"
+  - **Contexte clair** : Section "Compétences requises", "Profil recherché"
+
+  #### INDICATEURS DE CONFIANCE MODÉRÉE (0.8-0.89)
+  - **Déduction contextuelle** : Développeur → programmation, Manager → encadrement
+  - **Implications sectorielles** : Finance → Excel, Tech → Git
+  - **Responsabilités décrites** : "Encadrer une équipe" → Manager level
+
+  #### INDICATEURS DE FAIBLE CONFIANCE (<0.8)
+  - **Spéculation** : Aucune mention directe ou indirecte
+  - **Ambiguïtés** : "Expérience souhaitée" sans précision
+  - **Contradictions** : Informations incompatibles
+
+  ### 2. SCORING GLOBAL (par offre)
+  
+  ```
+  confidence_global = (
+    w_skills * mean(skills_confidence) +
+    w_seniority * seniority_confidence +
+    w_languages * mean(languages_confidence) +
+    w_degrees * degree_confidence
+  ) / (w_skills + w_seniority + w_languages + w_degrees)
+  ```
+
+  #### POIDS RECOMMANDÉS
+  - **w_skills**: 0.4 (priorité maximale)
+  - **w_seniority**: 0.3 (importance élevée)
+  - **w_languages**: 0.2 (important si présent)
+  - **w_degrees**: 0.1 (moins critique)
+
+error_handling_strategies: |
+  ## STRATÉGIES DE GESTION D'ERREUR
+
+  ### 1. ÉCHEC D'EXTRACTION GLOBALE (confidence < 0.80)
+  
+  #### STRATÉGIE 1: RETRY AVEC PROMPT SIMPLIFIÉ
+  - Réduire la complexité du prompt
+  - Se concentrer sur les éléments les plus évidents
+  - Utiliser des exemples plus simples
+
+  #### STRATÉGIE 2: EXTRACTION PARTIELLE
+  - Extraire seulement les éléments avec high confidence
+  - Marquer les autres comme "unknown"
+  - Permettre complétion ultérieure
+
+  #### STRATÉGIE 3: FALLBACK VALUES
+  ```yaml
+  fallback_values:
+    seniority: "unknown"
+    languages: []
+    degree_min_eqf: null
+    skills_required: [] # ERREUR - doit avoir au moins 1
+    skills_preferred: []
+  ```
+
+  ### 2. ÉCHEC DE PARSING JSON
+  
+  #### STRATÉGIE 1: JSON REPAIR
+  - Tentative de correction automatique JSON malformé
+  - Ajout de quotes manquantes, fermeture brackets
+  - Validation avec schema Zod
+
+  #### STRATÉGIE 2: EXTRACTION REGEX
+  - Parse manuel des éléments clés via regex
+  - Reconstruction JSON minimal valide
+  - Fallback pour cas critiques
+
+  ### 3. TIMEOUT/RATE LIMITING
+  
+  #### STRATÉGIE 1: EXPONENTIAL BACKOFF
+  ```
+  retry_delays = [1s, 2s, 4s, 8s, 16s]
+  max_retries = 3
+  ```
+
+  #### STRATÉGIE 2: BATCH PROCESSING
+  - Grouper les offres par lots
+  - Traitement asynchrone avec queue
+  - Monitoring des quotas OpenAI
+
+  ### 4. COÛT EXCESSIF
+  
+  #### STRATÉGIE 1: PROMPT OPTIMIZATION
+  - Réduire la taille des prompts
+  - Utiliser des exemples plus courts
+  - Template variables dynamiques
+
+  #### STRATÉGIE 2: SMART FILTERING
+  - Pré-filtrage des offres évidentes
+  - Extraction différentielle (changements seulement)
+  - Cache des extractions similaires
+
+validation_rules: |
+  ## RÈGLES DE VALIDATION
+
+  ### 1. VALIDATION STRUCTURELLE
+  - JSON syntaxiquement correct
+  - Tous les champs requis présents
+  - Types de données conformes au schema
+
+  ### 2. VALIDATION MÉTIER
+  - Au moins 1 skill required avec confidence ≥ 0.80
+  - Seniority dans l'enum autorisé
+  - Codes languages ISO valides
+  - EQF dans range 1-8
+
+  ### 3. VALIDATION COHÉRENCE
+  - Skills required/preferred non dupliquées
+  - Seniority cohérent avec années d'expérience
+  - Langues cohérentes avec contexte métier
+
+cost_optimization: |
+  ## OPTIMISATION COÛT/PERFORMANCE
+
+  ### 1. STRATÉGIE DE PROMPTS
+  
+  #### PROMPT SIZING
+  - Prompts system : ~500 tokens max
+  - Input data : ~1000 tokens max (titre + description)
+  - Expected output : ~800 tokens max
+  - **Total par call : ~2300 tokens**
+
+  #### COST ESTIMATION GPT-4O-MINI
+  - Input : $0.15 / 1M tokens
+  - Output : $0.60 / 1M tokens
+  - **Coût unitaire : ~$0.0008 par offre**
+  - **Coût 10k offres : ~$8**
+
+  ### 2. STRATÉGIES D'OPTIMISATION
+
+  #### DEDUPLICATION
+  - Cache des extractions par fingerprint
+  - Détection offres similaires (titre + entreprise)
+  - Réutilisation des extractions récentes
+
+  #### INCREMENTAL PROCESSING
+  - Extraction seulement si changement détecté
+  - Delta processing pour updates
+  - Versioning des prompts pour invalidation cache
+
+  #### BATCH PROCESSING
+  - Groupement par similarité (même secteur/métier)
+  - Réutilisation contexte between calls
+  - Parallel processing avec rate limiting
+
+  ### 3. MONITORING & ALERTING
+  
+  #### MÉTRIQUES CLÉS
+  - Coût par offre traitée
+  - Taux de succès extraction (≥0.80)
+  - Temps moyen de traitement
+  - Taux d'erreur par type
+
+  #### ALERTES BUDGÉTAIRES
+  - Seuil quotidien : $50
+  - Seuil mensuel : $1000  
+  - Alert si taux erreur > 10%
+  - Alert si coût unitaire > $0.002
+
+example_implementation: |
+  ## EXEMPLE D'IMPLÉMENTATION
+
+  ```typescript
+  interface ExtractionResult {
+    success: boolean
+    confidence: number
+    data?: OfferEnrichment
+    error?: string
+    cost?: number
+    retries?: number
+  }
+
+  async function extractOfferData(
+    title: string, 
+    description: string
+  ): Promise<ExtractionResult> {
+    
+    const maxRetries = 3
+    let attempt = 0
+    
+    while (attempt < maxRetries) {
+      try {
+        const prompt = buildExtractionPrompt(title, description)
+        const response = await callGPT4oMini(prompt)
+        const parsed = parseAndValidate(response)
+        
+        if (parsed.confidence_scores.global >= 0.80) {
+          return {
+            success: true,
+            confidence: parsed.confidence_scores.global,
+            data: parsed,
+            retries: attempt
+          }
+        }
+        
+        // Retry avec prompt simplifié
+        attempt++
+        await exponentialBackoff(attempt)
+        
+      } catch (error) {
+        if (isRateLimitError(error)) {
+          await exponentialBackoff(attempt + 5) 
+          continue
+        }
+        
+        return {
+          success: false,
+          error: error.message,
+          retries: attempt
+        }
+      }
+    }
+    
+    // Fallback extraction
+    return tryFallbackExtraction(title, description)
+  }
+  ```

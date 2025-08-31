@@ -1,0 +1,208 @@
+name: 📚 Documentation Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: 
+      - 'docs/**'
+      - 'CLAUDE.md'
+      - 'README.md'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'CLAUDE.md'
+      - 'README.md'
+
+jobs:
+  docs-validation:
+    name: 🔍 Validate Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📁 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        npm install -g markdownlint-cli2
+        npm install -g markdown-link-check
+        
+    - name: ✅ Markdown Linting
+      run: |
+        markdownlint-cli2 "docs/**/*.md" "*.md"
+        
+    - name: 🔗 Link Validation
+      run: |
+        find docs/ -name "*.md" -exec markdown-link-check {} \;
+        markdown-link-check README.md
+        markdown-link-check CLAUDE.md
+        
+    - name: 📋 Phase Consistency Check
+      run: |
+        echo "🔍 Checking phase consistency between files..."
+        
+        # Extract current phase from current-context.md
+        CURRENT_PHASE=$(grep -o "Phase [0-9]\+" docs/current-context.md | head -1 | grep -o "[0-9]\+")
+        echo "Current phase in current-context.md: $CURRENT_PHASE"
+        
+        # Extract current phase from task-roadmap.md  
+        ROADMAP_PHASE=$(grep -o "Phase [0-9]\+" docs/task-roadmap.md | grep "EN COURS\|Current" | head -1 | grep -o "[0-9]\+" || echo "")
+        echo "Current phase in task-roadmap.md: $ROADMAP_PHASE"
+        
+        # Check consistency
+        if [ "$CURRENT_PHASE" != "$ROADMAP_PHASE" ] && [ -n "$ROADMAP_PHASE" ]; then
+          echo "❌ PHASE INCONSISTENCY DETECTED!"
+          echo "   current-context.md shows Phase $CURRENT_PHASE"
+          echo "   task-roadmap.md shows Phase $ROADMAP_PHASE"
+          exit 1
+        fi
+        
+        echo "✅ Phase consistency validated"
+        
+    - name: 📊 Documentation Metrics
+      run: |
+        echo "📊 Documentation Statistics"
+        echo "=========================="
+        
+        # Count total files
+        TOTAL_FILES=$(find docs/ -name "*.md" | wc -l)
+        echo "Total MD files: $TOTAL_FILES"
+        
+        # Count lines per file
+        echo ""
+        echo "📄 File sizes:"
+        find docs/ -name "*.md" -exec wc -l {} + | sort -nr
+        
+        # Check for TODO/FIXME items
+        echo ""
+        echo "🚧 Outstanding TODOs/FIXMEs:"
+        grep -r "TODO\|FIXME" docs/ || echo "None found ✅"
+        
+        # Check last update dates  
+        echo ""
+        echo "📅 Last update tracking:"
+        grep -r "Last Updated\|Updated:" docs/ | head -5
+        
+    - name: 🎯 Auto-Context Validation
+      run: |
+        echo "🤖 Validating auto-context loading setup..."
+        
+        # Check CLAUDE.md has auto-loading protocol
+        if ! grep -q "AUTO-CONTEXT LOADING PROTOCOL" CLAUDE.md; then
+          echo "❌ Missing auto-context loading protocol in CLAUDE.md"
+          exit 1
+        fi
+        
+        # Check required files exist
+        REQUIRED_FILES=("docs/current-context.md" "docs/development-history.md" "docs/troubleshooting.md" "docs/task-roadmap.md")
+        
+        for file in "${REQUIRED_FILES[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Missing required auto-context file: $file"
+            exit 1
+          fi
+        done
+        
+        echo "✅ Auto-context setup validated"
+        
+    - name: 📈 Performance Targets Check
+      run: |
+        echo "⚡ Checking performance target consistency..."
+        
+        # Extract performance targets from different files
+        echo "Performance targets found in documentation:"
+        grep -r "500ms\|700ms\|<500\|<700" docs/ | grep -v ".yml" || echo "No specific targets found"
+        
+        # Check for inconsistent performance numbers
+        SEARCH_TARGETS=$(grep -r "Search.*500ms\|search.*500ms" docs/ | wc -l || echo "0")
+        DETAIL_TARGETS=$(grep -r "detail.*700ms\|Detail.*700ms" docs/ | wc -l || echo "0")
+        
+        echo "Search targets found: $SEARCH_TARGETS references"
+        echo "Detail targets found: $DETAIL_TARGETS references" 
+        
+        echo "✅ Performance targets check completed"
+
+  schema-sync-check:
+    name: 🗄️ Database Schema Sync Check  
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📁 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Schema References Validation
+      run: |
+        echo "🗄️ Checking database schema consistency..."
+        
+        # Check if DB architecture doc mentions tables that exist in migrations
+        if [ -f "docs/01-DB-Architecture.md" ]; then
+          echo "✅ DB Architecture doc found"
+          
+          # Extract table names from architecture doc (basic check)
+          echo "Tables mentioned in architecture:"
+          grep -o "CREATE TABLE [a-zA-Z_]*" docs/01-DB-Architecture.md | cut -d' ' -f3 || echo "No CREATE TABLE statements found"
+          
+        else
+          echo "⚠️ No DB Architecture doc found"
+        fi
+        
+        # Check migration files exist
+        if [ -d "supabase/migrations" ]; then
+          MIGRATION_COUNT=$(find supabase/migrations -name "*.sql" | wc -l)
+          echo "Migration files found: $MIGRATION_COUNT"
+        else  
+          echo "⚠️ No migration directory found"
+        fi
+        
+        echo "✅ Schema sync check completed"
+
+  update-dates:
+    name: 📅 Update Documentation Dates
+    runs-on: ubuntu-latest  
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 📁 Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 📅 Update Last Modified Dates
+      run: |
+        echo "📅 Updating last modified dates..."
+        
+        # Get current date in consistent format
+        CURRENT_DATE=$(date '+%d/%m/%Y')
+        echo "Current date: $CURRENT_DATE"
+        
+        # Update dates in key files (only if they have changed)
+        for file in docs/current-context.md docs/development-history.md docs/troubleshooting.md; do
+          if [ -f "$file" ]; then
+            # Check if file was modified in this commit
+            if git diff --name-only HEAD~1 HEAD | grep -q "$file"; then
+              echo "Updating date in $file"
+              sed -i "s/Last Updated: [0-9]\{2\}\/[0-9]\{2\}\/[0-9]\{4\}/Last Updated: $CURRENT_DATE/g" "$file"
+            fi
+          fi
+        done
+        
+    - name: 💾 Commit Date Updates
+      run: |
+        git config --global user.name 'Documentation Bot'
+        git config --global user.email 'bot@cledger5.dev'
+        
+        if git diff --quiet; then
+          echo "No date updates needed"
+        else
+          git add docs/
+          git commit -m "📅 docs: update last modified dates [skip ci]"
+          git push
+          echo "✅ Documentation dates updated"
+        fi

@@ -1,0 +1,112 @@
+# Degrees Classification Prompt v1.0
+# Classification des exigences de diplômes vers échelle EQF
+
+version: "1.0"
+target: "degrees_classification"
+confidence_threshold: 0.80
+
+prompt: |
+  Détermine les exigences de diplôme de cette offre et convertis vers l'échelle EQF européenne :
+
+  **TITRE**: {{offer_title}}
+  **DESCRIPTION**: {{offer_description}}
+
+  ## ÉCHELLE EQF (European Qualifications Framework)
+
+  ### NIVEAU 1-2 : FORMATION INITIALE
+  - **EQF 1**: Sans diplôme, savoirs de base
+  - **EQF 2**: Fin de scolarité obligatoire (Brevet)
+  - **Mots-clés**: "sans diplôme", "niveau 3ème", "brevet"
+
+  ### NIVEAU 3-4 : FORMATION SECONDAIRE
+  - **EQF 3**: CAP, BEP (formation professionnelle courte)
+  - **EQF 4**: Baccalauréat (général, technologique, professionnel)
+  - **Mots-clés**: "CAP", "BEP", "bac", "baccalauréat", "niveau IV"
+
+  ### NIVEAU 5 : POST-BAC COURT
+  - **EQF 5**: BTS, DUT, DEUST (2 ans post-bac)
+  - **Mots-clés**: "BTS", "DUT", "bac+2", "technicien supérieur"
+
+  ### NIVEAU 6 : LICENCE
+  - **EQF 6**: Licence, Licence Pro, BUT (3-4 ans post-bac)
+  - **Mots-clés**: "licence", "bachelor", "bac+3", "bac+4"
+
+  ### NIVEAU 7 : MASTER
+  - **EQF 7**: Master, Ingénieur, MBA (5 ans post-bac)
+  - **Mots-clés**: "master", "ingénieur", "bac+5", "MBA", "DESS", "DEA"
+
+  ### NIVEAU 8 : DOCTORAT
+  - **EQF 8**: Doctorat, PhD (8+ ans post-bac)
+  - **Mots-clés**: "doctorat", "PhD", "thèse", "bac+8"
+
+  ## SPÉCIFICITÉS FRANÇAISES
+
+  ### GRANDES ÉCOLES
+  - **École d'ingénieur**: EQF 7 (équivalent Master)
+  - **École de commerce**: EQF 7 (équivalent Master)
+  - **École normale**: EQF 7-8 selon cursus
+
+  ### FORMATIONS SPÉCIALISÉES
+  - **Formations courtes métier**: EQF 3-4
+  - **Certifications professionnelles**: Selon niveau (3-6)
+  - **Formations continues**: Selon référentiel
+
+  ## DÉTECTION D'EXIGENCES
+
+  ### NIVEAU MINIMUM REQUIS
+  - **Explicite**: "Bac+5 exigé", "Master requis"
+  - **Implicite**: Poste complexe → déduire niveau minimum
+  - **Secteur**: Finance, pharma → souvent Master minimum
+
+  ### ÉQUIVALENCES/ALTERNATIVES
+  - **Expérience**: "Bac+3 ou 5 ans d'expérience"
+  - **Compétences**: "Formation ou compétences équivalentes"
+
+  ## MAPPING EXPRESSIONS COURANTES
+
+  ### NIVEAU BAC
+  - "Niveau Bac" → EQF 4
+  - "Bac + expérience" → EQF 4 minimum
+
+  ### NIVEAU SUPÉRIEUR  
+  - "Bac+2" → EQF 5 (BTS/DUT)
+  - "Bac+3" → EQF 6 (Licence)
+  - "Bac+4/5" → EQF 7 (Master/Ingénieur)
+  - "Bac+8" → EQF 8 (Doctorat)
+
+  ### EXPRESSIONS GÉNÉRIQUES
+  - "Études supérieures" → EQF 6 minimum
+  - "Formation supérieure" → EQF 5-6
+  - "Diplôme d'ingénieur" → EQF 7
+  - "3ème cycle" → EQF 7-8
+
+  ## CONFIDENCE SCORING
+  - **1.0**: Diplôme/niveau explicitement mentionné
+  - **0.9**: Niveau déductible du secteur/complexité
+  - **0.8**: Indications indirectes permettant déduction
+  - **<0.8**: Ambiguë → "unknown"
+
+  ## CAS PARTICULIERS
+
+  ### AUTO-ENTREPRENEUR/STARTUP
+  - Souvent moins formels sur diplômes
+  - Focus compétences > diplômes
+  - Considérer contexte startup
+
+  ### SECTEUR PUBLIC
+  - Exigences souvent strictes
+  - Concours avec conditions précises
+  - Respecter équivalences officielles
+
+schema_example: |
+  {
+    "degree_min_eqf": 7,
+    "degree_text_original": "Bac+5 en informatique ou ingénieur",
+    "confidence": 0.95,
+    "alternatives_accepted": [
+      "Master informatique",
+      "École d'ingénieur",
+      "5 ans d'expérience équivalente"
+    ],
+    "reasoning": "Bac+5 explicitement mentionné"
+  }

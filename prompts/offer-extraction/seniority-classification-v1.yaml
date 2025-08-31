@@ -1,0 +1,79 @@
+# Seniority Classification Prompt v1.0
+# Classification du niveau de séniorité pour le marché français
+
+version: "1.0"
+target: "seniority_classification"
+confidence_threshold: 0.80
+
+prompt: |
+  Détermine le niveau de séniorité de cette offre d'emploi française :
+
+  **TITRE**: {{offer_title}}
+  **DESCRIPTION**: {{offer_description}}
+
+  ## NIVEAUX DE SÉNIORITÉ (marché français)
+
+  ### INTERN (Stagiaire)
+  - **Mots-clés**: "stage", "stagiaire", "étudiant"
+  - **Durée**: 2-6 mois généralement
+  - **Formation**: En cours d'études
+  - **Rémunération**: Gratification stage
+
+  ### JUNIOR (0-2 ans d'expérience)
+  - **Mots-clés**: "junior", "débutant", "première expérience", "jeune diplômé"
+  - **Profil**: Sortie d'école, alternance récente
+  - **Autonomie**: Encadrement nécessaire
+  - **Expérience**: 0-2 ans
+
+  ### MID (2-5 ans d'expérience)  
+  - **Mots-clés**: "confirmé", "expérimenté", "autonome", "2-5 ans"
+  - **Profil**: Autonome sur les tâches courantes
+  - **Responsabilité**: Projets de taille moyenne
+  - **Expérience**: 2-5 ans
+
+  ### SENIOR (5-8 ans d'expérience)
+  - **Mots-clés**: "senior", "expert", "référent", "5+ ans", "expertise"
+  - **Profil**: Expert technique, mentor
+  - **Responsabilité**: Projets complexes, formation juniors
+  - **Expérience**: 5-8 ans
+
+  ### LEAD (8+ ans, leadership technique)
+  - **Mots-clés**: "lead", "tech lead", "référent technique", "architecture"
+  - **Profil**: Leadership technique, pas forcément managérial
+  - **Responsabilité**: Architecture, choix techniques
+  - **Expérience**: 8+ ans + leadership
+
+  ### MANAGER (Management d'équipe)
+  - **Mots-clés**: "manager", "chef d'équipe", "responsable", "encadrement"
+  - **Profil**: Management opérationnel et/ou stratégique
+  - **Responsabilité**: Équipe, budgets, objectifs
+  - **Expérience**: Variable selon la structure
+
+  ## INDICATEURS SPÉCIAUX (marché français)
+
+  ### ALTERNANCE/APPRENTISSAGE
+  - **Contrat**: APP (apprentissage) ou PRO (professionnalisation)
+  - **Classification**: Généralement JUNIOR si pas d'expérience préalable
+  - **Mots-clés**: "alternant", "apprenti", "contrat d'apprentissage"
+
+  ### DÉTECTION AUTOMATIQUE
+  1. **Analyser le titre** : "Développeur Junior", "Chef de projet Senior"
+  2. **Chercher les années** : "2-3 ans", "minimum 5 ans"
+  3. **Identifier les responsabilités** : encadrement, architecture, etc.
+  4. **Contexte métier** : Certains métiers ont des grilles spécifiques
+
+  ## CONFIDENCE SCORING
+  - **1.0**: Séniorité explicite dans le titre ou description
+  - **0.9**: Années d'expérience clairement mentionnées
+  - **0.8**: Responsabilités permettent de déduire le niveau
+  - **<0.8**: Ambiguë → "unknown"
+
+schema_example: |
+  {
+    "seniority_level": "senior",
+    "confidence": 0.92,
+    "reasoning": "5+ ans d'expérience exigés + encadrement junior",
+    "years_min": 5,
+    "years_max": null,
+    "indicators": ["5+ ans", "encadrement", "expertise"]
+  }

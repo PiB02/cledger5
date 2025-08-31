@@ -70,21 +70,121 @@ export const OfferSchema = z.object({
 })
 export type Offer = z.infer<typeof OfferSchema>
 
-// Offer enrichment from AI
+// AI Enrichment Confidence Score
+export const ConfidenceScoreSchema = z.object({
+  skills: z.number().min(0).max(1),
+  seniority: z.number().min(0).max(1),
+  languages: z.number().min(0).max(1),
+  degrees: z.number().min(0).max(1),
+  global: z.number().min(0).max(1)
+})
+export type ConfidenceScore = z.infer<typeof ConfidenceScoreSchema>
+
+// Skills categories for better classification
+export const SkillCategoryEnum = z.enum(['technical', 'business', 'soft', 'language', 'certification'])
+export type SkillCategory = z.infer<typeof SkillCategoryEnum>
+
+// Enhanced skill schema with category and confidence
+export const EnrichedSkillSchema = z.object({
+  name: z.string().min(1),
+  normalized_name: z.string().min(1), // lowercase, no accents
+  category: SkillCategoryEnum,
+  confidence: z.number().min(0).max(1),
+  required: z.boolean().default(false),
+  years_required: z.number().optional(),
+  source: z.enum(['extracted', 'existing', 'inferred']).default('extracted')
+})
+export type EnrichedSkill = z.infer<typeof EnrichedSkillSchema>
+
+// Enhanced language with confidence scoring
+export const EnrichedLanguageSchema = z.object({
+  code: z.string().length(2), // ISO 639-1 (fr, en, de, etc.)
+  name: z.string(), // français, english, deutsch
+  level: CEFRLevelEnum,
+  confidence: z.number().min(0).max(1),
+  required: z.boolean().default(false),
+  context: z.enum(['professional', 'client', 'technical', 'general']).optional()
+})
+export type EnrichedLanguage = z.infer<typeof EnrichedLanguageSchema>
+
+// Degree classification with EQF mapping
+export const DegreeClassificationSchema = z.object({
+  level_eqf: z.number().min(1).max(8), // European Qualifications Framework
+  degree_type: z.string().optional(), // "Master", "Licence", "BTS", etc.
+  field_of_study: z.string().optional(), // "Informatique", "Commerce", etc.
+  confidence: z.number().min(0).max(1),
+  source_text: z.string().optional() // original text matched
+})
+export type DegreeClassification = z.infer<typeof DegreeClassificationSchema>
+
+// Offer enrichment from AI - Updated schema
 export const OfferEnrichmentSchema = z.object({
+  id: z.string().uuid().optional(), // Primary key
   offer_id: z.string().uuid(),
-  parse_status: z.enum(['pending', 'ok', 'error']),
-  title_canonical: z.string().optional(),
-  rome_codes_extracted: z.array(z.string()).optional(),
-  skills_extracted: z.array(SkillSchema).optional(),
-  languages_extracted: z.array(LanguageRequirementSchema).optional(),
-  seniority_detected: SeniorityLevelEnum.optional(),
-  degree_min_detected: z.number().min(1).max(8).optional(),
-  confidence_scores: z.record(z.number()).optional(),
+  
+  // Processing status and metadata
+  enrichment_status: z.enum(['pending', 'processing', 'completed', 'failed', 'low_confidence']).default('pending'),
+  enrichment_version: z.string().default('1.0'), // For schema evolution
+  model_used: z.string().default('gpt-4o-mini'), // AI model version
+  
+  // Core AI extractions
+  skills_required: z.array(EnrichedSkillSchema).default([]),
+  skills_preferred: z.array(EnrichedSkillSchema).default([]),
+  seniority_level: SeniorityLevelEnum.optional(),
+  languages_detected: z.array(EnrichedLanguageSchema).default([]),
+  degree_requirements: z.array(DegreeClassificationSchema).default([]),
+  
+  // Confidence scoring (≥0.80 required for validation)
+  confidence_scores: ConfidenceScoreSchema.optional(),
+  
+  // Additional context and metadata
+  rome_codes_suggested: z.array(z.string()).default([]), // AI-suggested ROME codes
+  job_category_detected: z.string().optional(), // Broad category detection
+  company_size_indicators: z.array(z.string()).default([]), // "startup", "multinational", etc.
+  
+  // Processing info and error handling
+  tokens_used: z.number().optional(), // For cost tracking
+  processing_time_ms: z.number().optional(), // Performance monitoring
   error_message: z.string().optional(),
-  processed_at: z.string().optional()
+  retry_count: z.number().default(0),
+  
+  // Timestamps
+  created_at: z.string().optional(),
+  processed_at: z.string().optional(),
+  updated_at: z.string().optional()
 })
 export type OfferEnrichment = z.infer<typeof OfferEnrichmentSchema>
+
+// Input schema for enrichment API
+export const EnrichmentRequestSchema = z.object({
+  offer_ids: z.array(z.string().uuid()).min(1).max(50), // Batch processing
+  force_reprocess: z.boolean().default(false),
+  confidence_threshold: z.number().min(0.5).max(1.0).default(0.80),
+  include_low_confidence: z.boolean().default(false) // Store even if below threshold
+})
+export type EnrichmentRequest = z.infer<typeof EnrichmentRequestSchema>
+
+// Response schema for enrichment API
+export const EnrichmentResponseSchema = z.object({
+  success: z.boolean(),
+  processed_count: z.number(),
+  enrichments: z.array(OfferEnrichmentSchema),
+  errors: z.array(z.object({
+    offer_id: z.string().uuid(),
+    error: z.string(),
+    retryable: z.boolean()
+  })).default([]),
+  cost_estimate: z.object({
+    tokens_used: z.number(),
+    estimated_cost_usd: z.number()
+  }).optional(),
+  processing_stats: z.object({
+    total_time_ms: z.number(),
+    avg_confidence: z.number(),
+    success_rate: z.number()
+  }).optional()
+})
+export type EnrichmentResponse = z.infer<typeof EnrichmentResponseSchema>
 
 // Offer embedding
 export const OfferEmbeddingSchema = z.object({

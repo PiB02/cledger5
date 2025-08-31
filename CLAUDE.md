@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🤖 AUTO-CONTEXT LOADING PROTOCOL
+**CRITICAL**: At the start of EVERY conversation, automatically read these files in order:
+1. **`docs/current-context.md`** - Current project state, active phase, and priority tasks
+2. **`docs/development-history.md`** - Complete development history and phase details  
+3. **`docs/troubleshooting.md`** - If user mentions errors, issues, or debugging
+4. **`docs/task-roadmap.md`** - For roadmap questions or task planning
+5. **`docs/developer-quickstart.md`** - For onboarding or setup questions
+6. **`docs/architecture-diagrams.md`** - For system architecture or visual diagram needs
+
+This auto-loading protocol replaces the manual "look in memory.md" command and ensures you always have current project context.
+
 ## Development Commands
 
 ### Build & Development
@@ -123,9 +134,10 @@ Batch processing uses Server-Sent Events via `/api/batch/:id/stream` for real-ti
 - `docs/02-DB-SQL-Queries.md` - Essential SQL queries
 - `docs/05-Cursor-Dev-Rules.md` - Development rules and constraints
 
-## Memories and Guidance
-- Read and apply documentation from `memory.md` in all development tasks
-- PowerShell does not accept `&&` in commands
+## Important Notes for Development
+- PowerShell does not accept `&&` in commands - use `;` or separate commands
+- Always follow the auto-context loading protocol above
+- All critical project information is maintained in the docs/ folder structure
 
 ## MCP Servers Available
 - **Context7** : Library documentation and best practices lookup
@@ -133,4 +145,3 @@ Batch processing uses Server-Sent Events via `/api/batch/:id/stream` for real-ti
 - **Vercel** : Deployment management and project operations  
 - **Playwright** : Browser automation and E2E testing
 - always use the PostgreSQL MCP server each time you need to write a complex query or do something with supabase
-- quand je te dis "look in memory.md" tu dois suivre le process qui y est décrit. toutes les étapes.

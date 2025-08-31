@@ -1,0 +1,108 @@
+# Languages Extraction Prompt v1.0
+# Extraction des exigences linguistiques avec niveaux CEFR
+
+version: "1.0"
+target: "languages_extraction"
+confidence_threshold: 0.80
+
+prompt: |
+  Extrais les exigences linguistiques de cette offre d'emploi :
+
+  **TITRE**: {{offer_title}}
+  **DESCRIPTION**: {{offer_description}}
+
+  ## NIVEAUX CEFR (Cadre Européen Commun de Référence)
+
+  ### A1 - DÉBUTANT
+  - **Mots-clés**: "notions", "bases", "débutant"
+  - **Capacité**: Phrases simples, situations familières
+
+  ### A2 - ÉLÉMENTAIRE  
+  - **Mots-clés**: "élémentaire", "niveau scolaire", "bases solides"
+  - **Capacité**: Communication simple et directe
+
+  ### B1 - INTERMÉDIAIRE
+  - **Mots-clés**: "courant", "intermédiaire", "se débrouiller"
+  - **Capacité**: Situations professionnelles simples
+
+  ### B2 - INTERMÉDIAIRE SUPÉRIEUR
+  - **Mots-clés**: "bon niveau", "aisance", "professionnel"
+  - **Capacité**: Communication professionnelle fluide
+
+  ### C1 - AUTONOME
+  - **Mots-clés**: "maîtrise", "excellent niveau", "quasi-natif"
+  - **Capacité**: Langue de travail sans difficulté
+
+  ### C2 - MAÎTRISE
+  - **Mots-clés**: "parfaite maîtrise", "bilingue", "natif"
+  - **Capacité**: Niveau natif ou équivalent
+
+  ## LANGUES COURANTES
+
+  ### FRANÇAIS (fr)
+  - **Défaut**: C2 pour postes en France (sauf mention contraire)
+  - **Variations**: "français", "langue française"
+
+  ### ANGLAIS (en)
+  - **Fréquent**: Secteur tech, international
+  - **Variations**: "anglais", "english", "langue de Shakespeare"
+
+  ### AUTRES LANGUES
+  - **Allemand** (de): "allemand", "deutsch"
+  - **Espagnol** (es): "espagnol", "castillan" 
+  - **Italien** (it): "italien"
+  - **Mandarin** (zh): "chinois", "mandarin"
+
+  ## DÉTECTION DES EXIGENCES
+
+  ### OBLIGATOIRE/REQUIRED
+  - **Mots-clés**: "exigé", "requis", "indispensable", "impératif"
+  - **Contexte**: Échanges clients, documentation technique
+
+  ### APPRÉCIÉ/PREFERRED
+  - **Mots-clés**: "apprécié", "souhaité", "serait un plus", "atout"
+  - **Contexte**: Équipes internationales, évolution de carrière
+
+  ## MAPPING NIVEAU → CEFR
+
+  ### EXPRESSIONS FRANÇAISES COURANTES
+  - "Notions" → A1/A2
+  - "Niveau scolaire" → A2/B1
+  - "Courant" → B2
+  - "Bon niveau" → B2/C1  
+  - "Maîtrise" → C1
+  - "Bilingue" → C2
+  - "Langue maternelle" → C2
+
+  ### CONTEXTE PROFESSIONNEL
+  - "Communication client" → B2+ minimum
+  - "Rédaction technique" → C1+ minimum
+  - "Négociation" → C1+ minimum
+  - "Animation réunions" → B2+ minimum
+
+  ## CONFIDENCE SCORING
+  - **1.0**: Niveau explicitement mentionné (ex: "anglais B2")
+  - **0.9**: Niveau déductible du contexte professionnel
+  - **0.8**: Langue mentionnée avec indice de niveau
+  - **<0.8**: Langue sans indication de niveau → ne pas inclure
+
+schema_example: |
+  {
+    "languages": [
+      {
+        "code": "en",
+        "level": "B2",
+        "confidence": 0.85,
+        "required": true,
+        "context": "Communication avec clients internationaux"
+      },
+      {
+        "code": "de", 
+        "level": "A2",
+        "confidence": 0.80,
+        "required": false,
+        "context": "Atout pour le développement allemand"
+      }
+    ],
+    "confidence_global": 0.83
+  }

@@ -1,0 +1,72 @@
+# Skills Extraction Prompt v1.0
+# Spécialisé pour l'extraction et normalisation des compétences
+
+version: "1.0"
+target: "skills_extraction" 
+confidence_threshold: 0.80
+
+prompt: |
+  Extrais les compétences techniques et métier de cette offre d'emploi :
+  
+  **TITRE**: {{offer_title}}
+  **DESCRIPTION**: {{offer_description}}
+  {{#if rome_codes}}**CODES ROME**: {{rome_codes}}{{/if}}
+
+  ## TYPES DE COMPÉTENCES À IDENTIFIER
+
+  ### 1. COMPÉTENCES TECHNIQUES
+  - **Langages**: Python, JavaScript, Java, PHP, C#, etc.
+  - **Frameworks**: React, Vue, Angular, Django, Spring, etc.
+  - **Outils**: Docker, Git, Jenkins, Kubernetes, etc.
+  - **Bases de données**: SQL, PostgreSQL, MongoDB, Redis, etc.
+  - **Cloud**: AWS, Azure, GCP, etc.
+
+  ### 2. COMPÉTENCES MÉTIER
+  - **Domaines**: Finance, Marketing, RH, Logistique, etc.
+  - **Sectorielles**: Banque, Assurance, E-commerce, etc.
+  - **Fonctionnelles**: Gestion projet, Analyse données, etc.
+
+  ### 3. COMPÉTENCES TRANSVERSALES
+  - **Management**: Encadrement, Leadership, etc.
+  - **Communication**: Présentation, Négociation, etc.
+  - **Méthodes**: Agile, Scrum, Lean, etc.
+
+  ## RÈGLES DE CLASSIFICATION
+
+  ### REQUIRED (Exigées/Obligatoires)
+  Mots-clés indicateurs : "exigé", "requis", "obligatoire", "impératif", "indispensable", "maîtrise", "vous maîtrisez", "expérience en", "connaissance de"
+
+  ### PREFERRED (Souhaitées/Appréciées)
+  Mots-clés indicateurs : "souhaité", "apprécié", "serait un plus", "idéalement", "bonus", "atout", "connaissance appréciée"
+
+  ## NORMALISATION
+  - **Format**: lowercase, sans accents, espaces → tirets
+  - **Exemples**: "JavaScript" → "javascript", "Gestion de projet" → "gestion-projet"
+  - **Regroupement**: "JS/Javascript/JavaScript" → "javascript"
+
+  ## CONFIDENCE SCORING
+  - **1.0**: Compétence explicitement listée
+  - **0.9**: Compétence clairement impliquée par le contexte
+  - **0.8**: Compétence raisonnablement déductible du métier/secteur
+  - **<0.8**: Trop incertain → ne pas inclure
+
+schema_example: |
+  {
+    "skills_required": [
+      {
+        "name": "python",
+        "confidence": 0.95,
+        "required": true,
+        "context": "Développeur Python expérimenté"
+      }
+    ],
+    "skills_preferred": [
+      {
+        "name": "docker",
+        "confidence": 0.85,
+        "required": false,
+        "context": "Containerisation appréciée"
+      }
+    ],
+    "confidence_global": 0.90
+  }

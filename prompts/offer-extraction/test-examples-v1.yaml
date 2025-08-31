@@ -1,0 +1,318 @@
+# Test Examples & Validation Cases v1.0
+# Exemples de test et cas de validation pour les prompts
+
+version: "1.0"
+target: "test_examples"
+
+test_cases:
+
+  # CAS 1: OFFRE TECH JUNIOR CLAIRE
+  - case_id: "tech_junior_clear"
+    confidence_expected: 0.92
+    input:
+      title: "Développeur JavaScript Junior - React"
+      description: |
+        Nous recherchons un développeur JavaScript junior pour rejoindre notre équipe web.
+        
+        Compétences requises :
+        - JavaScript ES6+
+        - React et ses écosystèmes
+        - HTML5/CSS3
+        - Git
+        
+        Compétences appréciées :
+        - Node.js
+        - TypeScript
+        - Docker
+        
+        Profil : 1-2 ans d'expérience en développement web
+        Formation : Bac+3 minimum en informatique
+        Anglais technique apprécié (niveau B1 minimum)
+        
+        Contrat : CDI
+        Localisation : Paris (75)
+        Télétravail : Hybride (2j/semaine)
+    
+    expected_output:
+      title_canonical: "développeur javascript junior"
+      rome_codes_extracted: ["M1805"]
+      skills_required:
+        - name: "javascript"
+          confidence: 1.0
+          required: true
+          context: "JavaScript ES6+ dans compétences requises"
+        - name: "react" 
+          confidence: 1.0
+          required: true
+          context: "React explicitement requis"
+        - name: "html5"
+          confidence: 0.95
+          required: true
+          context: "HTML5/CSS3 requis"
+        - name: "css3"
+          confidence: 0.95  
+          required: true
+          context: "HTML5/CSS3 requis"
+        - name: "git"
+          confidence: 1.0
+          required: true
+          context: "Git dans compétences requises"
+      skills_preferred:
+        - name: "nodejs"
+          confidence: 0.9
+          required: false
+          context: "Node.js dans compétences appréciées"
+        - name: "typescript"
+          confidence: 0.9
+          required: false
+          context: "TypeScript apprécié"
+        - name: "docker"
+          confidence: 0.9
+          required: false
+          context: "Docker apprécié"
+      languages:
+        - code: "en"
+          level: "B1"
+          confidence: 0.85
+          required: false
+          context: "Anglais technique B1 minimum"
+      seniority_detected: "junior"
+      seniority_confidence: 0.95
+      seniority_reasoning: "1-2 ans d'expérience + titre Junior"
+      degree_min_eqf: 6
+      degree_confidence: 0.9
+      degree_reasoning: "Bac+3 minimum explicitement mentionné"
+      confidence_scores:
+        skills: 0.95
+        seniority: 0.95
+        languages: 0.85
+        degrees: 0.9
+        global: 0.92
+
+  # CAS 2: OFFRE AMBIGUË - FAIBLE CONFIANCE  
+  - case_id: "marketing_ambiguous"
+    confidence_expected: 0.75
+    input:
+      title: "Chargé de Marketing"
+      description: |
+        Notre startup dynamique recherche un profil marketing pour développer notre présence.
+        
+        Vous serez en charge de diverses missions marketing et communication.
+        Profil autonome et polyvalent recherché.
+        
+        Environnement startup, possibilité de télétravail.
+    
+    expected_output:
+      title_canonical: "chargé de marketing"
+      rome_codes_extracted: ["E1103"]
+      skills_required: []  # Aucune skill avec confidence ≥ 0.80
+      skills_preferred:
+        - name: "marketing"
+          confidence: 0.7  # < 0.80 → rejected
+          required: false
+          context: "Métier marketing général"
+      languages: []
+      seniority_detected: "unknown"
+      seniority_confidence: 0.6  # < 0.80
+      seniority_reasoning: "Aucune indication claire d'expérience"
+      degree_min_eqf: null
+      degree_confidence: 0.5
+      degree_reasoning: "Aucune mention de diplôme"
+      confidence_scores:
+        skills: 0.0  # Aucune skill retenue
+        seniority: 0.6
+        languages: 0.0
+        degrees: 0.5
+        global: 0.75  # < 0.80 → REJET
+
+  # CAS 3: OFFRE SENIOR COMPLEXE
+  - case_id: "senior_architect_complex"
+    confidence_expected: 0.88
+    input:
+      title: "Lead Developer / Architecte Technique Senior"  
+      description: |
+        Nous recherchons un Architecte Technique Senior pour diriger notre équipe de développement.
+        
+        Missions principales :
+        - Concevoir l'architecture de nos systèmes distribués
+        - Encadrer une équipe de 5 développeurs
+        - Définir les choix techniques et standards de développement
+        - Interface avec les équipes produit et DevOps
+        
+        Stack technique :
+        - Backend : Java 17, Spring Boot, PostgreSQL
+        - Frontend : Angular 15+, TypeScript
+        - Infrastructure : AWS, Docker, Kubernetes
+        - CI/CD : GitLab, Jenkins
+        
+        Profil recherché :
+        - 7+ ans d'expérience en développement logiciel
+        - 3+ ans en encadrement technique d'équipe  
+        - Expertise architecture microservices
+        - Maîtrise des méthodologies Agile/Scrum
+        - Anglais professionnel pour échanges avec équipes internationales
+        
+        Formation : École d'ingénieur ou Master en informatique
+        Localisation : Lyon (télétravail 3j/semaine possible)
+    
+    expected_output:
+      title_canonical: "lead developer architecte technique senior"
+      rome_codes_extracted: ["M1805"]
+      skills_required:
+        - name: "java"
+          confidence: 1.0
+          required: true
+        - name: "spring-boot"
+          confidence: 1.0
+          required: true  
+        - name: "postgresql"
+          confidence: 0.95
+          required: true
+        - name: "angular"
+          confidence: 1.0
+          required: true
+        - name: "typescript"
+          confidence: 1.0
+          required: true
+        - name: "aws"
+          confidence: 0.9
+          required: true
+        - name: "docker"
+          confidence: 0.9
+          required: true
+        - name: "kubernetes"
+          confidence: 0.9
+          required: true
+        - name: "architecture-microservices"
+          confidence: 0.95
+          required: true
+        - name: "encadrement-equipe"
+          confidence: 0.9
+          required: true
+        - name: "methodologies-agile"
+          confidence: 0.85
+          required: true
+      skills_preferred:
+        - name: "gitlab"
+          confidence: 0.85
+          required: false
+        - name: "jenkins"
+          confidence: 0.85
+          required: false
+      languages:
+        - code: "en"
+          level: "B2"
+          confidence: 0.9
+          required: true
+          context: "Anglais professionnel équipes internationales"
+      seniority_detected: "lead"
+      seniority_confidence: 0.95
+      seniority_reasoning: "7+ ans exp + encadrement + titre Lead/Senior"
+      degree_min_eqf: 7
+      degree_confidence: 0.9
+      degree_reasoning: "École d'ingénieur ou Master"
+      confidence_scores:
+        skills: 0.92
+        seniority: 0.95
+        languages: 0.9
+        degrees: 0.9
+        global: 0.88
+
+  # CAS 4: STAGE/ALTERNANCE
+  - case_id: "internship_data"
+    confidence_expected: 0.85
+    input:
+      title: "Stage Data Analyst - 6 mois"
+      description: |
+        Stage de 6 mois dans notre équipe Data pour un étudiant en fin de cursus.
+        
+        Missions :
+        - Analyser les données de vente avec Python/SQL
+        - Créer des dashboards Tableau
+        - Participer aux réunions équipe data
+        
+        Profil étudiant Master 2 ou École d'ingénieur
+        Compétences Python et SQL requises
+        Première expérience en analyse de données appréciée
+        
+        Gratification : 600€/mois
+        Localisation : Paris La Défense
+    
+    expected_output:
+      title_canonical: "stage data analyst"  
+      rome_codes_extracted: ["M1805"]
+      skills_required:
+        - name: "python"
+          confidence: 1.0
+          required: true
+        - name: "sql" 
+          confidence: 1.0
+          required: true
+      skills_preferred:
+        - name: "tableau"
+          confidence: 0.9
+          required: false
+        - name: "analyse-donnees"
+          confidence: 0.85
+          required: false
+      languages: []
+      seniority_detected: "intern"
+      seniority_confidence: 1.0
+      seniority_reasoning: "Stage 6 mois explicitement mentionné"
+      degree_min_eqf: 7
+      degree_confidence: 0.9
+      degree_reasoning: "Master 2 ou École d'ingénieur"
+      confidence_scores:
+        skills: 0.94
+        seniority: 1.0
+        languages: 0.0
+        degrees: 0.9
+        global: 0.85
+
+validation_scenarios:
+  # SCÉNARIOS DE VALIDATION
+  
+  reject_cases:
+    # Cas qui doivent être rejetés (confidence < 0.80)
+    - "Offre trop vague sans compétences claires"
+    - "Description de 2 lignes sans détails"
+    - "Titre générique type 'Assistant polyvalent'"
+    - "Offre avec informations contradictoires"
+    
+  edge_cases:
+    # Cas limites à tester
+    - "Offre multilingue (français/anglais mélangé)"
+    - "Startups avec vocabulaire non-standard" 
+    - "Secteur public avec grilles spécifiques"
+    - "Freelance/consultant vs salarié"
+    - "Offre avec skills très spécialisées/niches"
+    
+  performance_targets:
+    # Objectifs de performance
+    extraction_time_max: "2s p95"
+    cost_per_offer_max: "$0.001" 
+    success_rate_min: "85%"  # offers avec confidence ≥ 0.80
+    json_valid_rate_min: "98%"
+
+prompt_testing_strategy: |
+  ## STRATÉGIE DE TEST DES PROMPTS
+
+  ### 1. TESTS UNITAIRES
+  - 1 prompt = 1 responsabilité (skills, seniority, etc.)
+  - Test chaque cas edge individuellement
+  - Mesurer confidence scores précisément
+
+  ### 2. TESTS D'INTÉGRATION  
+  - Pipeline complet sur échantillon représentatif
+  - Validation JSON schema end-to-end
+  - Test rate limiting et error handling
+
+  ### 3. TESTS DE RÉGRESSION
+  - Benchmark sur dataset de référence
+  - Comparaison versions prompts (A/B testing)
+  - Monitoring dérive de performance
+
+  ### 4. TESTS DE CHARGE
+  - Batch processing 1000+ offres
+  - Stress test avec timeouts/retries
+  - Validation coûts dans budget

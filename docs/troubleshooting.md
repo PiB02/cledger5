@@ -1,5 +1,5 @@
-# cledger5 Troubleshooting Guide
-*Last Updated: 27/12/2024 - 17:00*
+# Troubleshooting Guide - cledger5  
+*Auto-loaded by Claude Code - Consolidated Guide - Last Updated: 31/08/2025*
 
 ## Common Issues & Solutions
 
@@ -648,21 +648,58 @@ Une fois les tables créées, l'ingestion LBA devrait fonctionner sans erreur.
 
 **Statut** : ✅ RÉSOLU - Page détail des offres fonctionnelle
 
-**Fin du fichier troubleshooting.md** 
-## 27. Page d�tail offres - Erreur TypeError map sur undefined (R�SOLU - 27/12/2024)
+---
 
-**Probl�me** : Erreur `Cannot read properties of undefined (reading 'map')` sur la page de d�tail des offres
+## 🏆 **RÉSUMÉ DES SOLUTIONS APPLIQUÉES**
 
-**Localisation** : `src/app/(public)/offres/[id]/page.tsx` ligne 355
+### **Solutions de Sécurité ✅**
+1. **Admin Secret** : Migration vers Server Actions sécurisées
+2. **Variables d'environnement** : Validation au démarrage 
+3. **RLS** : Politiques activées sur données sensibles
 
-**Cause** :
-- `offer.rome_codes` peut �tre `undefined` ou `null` dans certaines offres
-- Le code appelait directement `.map()` sans v�rification pr�alable
-- Erreur survient lors de l'affichage des codes ROME
+### **Solutions API LBA ✅**  
+1. **DNS** : URL corrigée vers domaine officiel
+2. **Paramètres** : caller + romes + insee requis ajoutés
+3. **Schémas** : Support multi-structures ultra-flexible
+4. **Gestion null** : `.nullable().optional()` systématique
 
-**Solution** :
-1.  Identifi� la ligne probl�matique : `offer.rome_codes.map((code, index) => ...)`
-2.  Ajout� une v�rification d�fensive : `(offer.rome_codes || []).map((code, index) => ...)`
-3.  Conserv� la condition `offer.rome_codes && offer.rome_codes.length > 0` pour afficher la section
+### **Solutions Database ✅**
+1. **Tables manquantes** : Scripts SQL complets exécutés
+2. **Colonnes** : Alignment parfait avec DB-Architecture
+3. **Contraintes** : Déduplication et partitioning opérationnels
+4. **Relations** : Foreign keys explicites partout
 
-**Statut** :  R�SOLU - Page d�tail des offres fonctionnelle
+### **Solutions UI/UX ✅**
+1. **Defensive Programming** : Vérifications sur tous les `.map()`
+2. **MultiSelect** : Gestion valeurs undefined/null  
+3. **SSE** : Progression 100% correcte
+4. **Performance** : Optimisations ciblées appliquées
+
+## 🔧 **QUICK DEBUG CHECKLIST**
+
+**Pour nouveaux problèmes** :
+1. ✅ Vérifier `.env.local` variables complètes
+2. ✅ Tester Supabase connection : `GET /api/health`  
+3. ✅ Vérifier logs console navigateur + serveur
+4. ✅ Valider schémas Zod sur nouvelles APIs
+5. ✅ Confirmer relations database explicites
+6. ✅ Appliquer defensive programming sur arrays/objects
+
+**Commandes Debug Windows** :
+```powershell
+# Test APIs
+Invoke-RestMethod -Uri "http://localhost:3000/api/health"
+Invoke-RestMethod -Uri "http://localhost:3000/api/search/offers"
+
+# Clear caches  
+Remove-Item -Recurse -Force .next
+pnpm dev
+
+# Rebuild packages
+cd packages/utils && pnpm build
+cd ../api-clients && pnpm build
+```
+
+---
+
+*Guide consolidé - 27 issues résolus - Toutes solutions préservées et catégorisées*
