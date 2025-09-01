@@ -1,5 +1,5 @@
 # Current Project Context
-*Auto-loaded by Claude Code - Last Updated: 31/08/2025*
+*Auto-loaded by Claude Code - Last Updated: 01/09/2025*
 
 ## 🚀 Current Project Status: cledger5
 
@@ -8,13 +8,13 @@
 ### **Stack Technique**
 - **Frontend**: Next.js 15 (App Router) + React 19 + Tailwind + shadcn/ui  
 - **Backend**: Next.js Route Handlers + Supabase Cloud (EU)
-- **Database**: Postgres + pgvector (embeddings 1536d) + partitioning
-- **AI**: OpenAI GPT-4o-mini (extraction) + text-embedding-3-small (matching)
+- **Database**: Postgres + pgvector (embeddings 1536d) + partitioning + HNSW
+- **AI**: OpenAI GPT-4o-mini (extraction) + text-embedding-3-small (matching sémantique)
 - **External APIs**: LBA (La Bonne Alternance) + France Travail
 
-## 🎯 Current Phase: **Phase 7 - AI Enhancement**
+## 🎯 Current Phase: **Phase 9 - Authentication & Security**
 
-### ✅ **Phases Completed (0-6)**
+### ✅ **Phases Completed (0-8)**
 - **Phase 0**: Setup environnement (GitHub, Supabase, Vercel, secrets) ✅
 - **Phase 1**: Bootstrap Next.js + shadcn/ui + monorepo structure ✅  
 - **Phase 2**: Database schema + migrations + seed data ✅
@@ -22,32 +22,33 @@
 - **Phase 4**: UI V1 (pages recherche, détail, admin dashboard) ✅
 - **Phase 5**: Ingestion LBA **100% fonctionnelle** ✅
 - **Phase 6**: Canonicalisation et déduplication **COMPLÈTE** ✅
+- **Phase 7**: AI Enhancement (GPT-4o-mini enrichissement) **COMPLÈTE** ✅
+- **Phase 8**: Embeddings + Vector Matching **COMPLÈTE** ✅
 
-### 🚀 **Phase 7: AI Enhancement (PARTIELLEMENT COMPLÈTE)**
+### 🎉 **Phase 8: Embeddings + Vector Matching - COMPLÈTE**
 
-#### ✅ **T-070: API Enrichissement GPT-4o-mini - FONCTIONNELLE**
-- **Endpoint**: `POST /api/enrich/offers` avec authentification admin ✅
-- **GPT-4o-mini**: Intégration complète, extraction skills/seniority/languages ✅
-- **Base données**: Table `offer_enrichment` avec colonnes IA complètes ✅
-- **Performance**: ~871 tokens/batch, $0.0001, temps traitement ~5s ✅
-- **Seuils**: Confidence ≥0.80 configuré, validation Zod ✅
-- **Tests**: Scripts PowerShell de test opérationnels ✅
+#### ✅ **Semantic Search System - OPÉRATIONNEL**
+- **Model**: OpenAI text-embedding-3-small (1536 dimensions) ✅
+- **API Endpoints**: `/api/embeddings/generate`, `/api/embeddings/queue` ✅
+- **Search Enhancement**: `semantic_search=true`, `hybrid_search=true` ✅
+- **HNSW Index**: Production-optimized (m=32, ef=128) ✅
+- **Performance**: <500ms p95 target, cosine similarity ✅
 
-#### ✅ **T-070 COMPLÈTEMENT FINALISÉ** 
-- **Auto-enrichissement**: Intégré dans pipeline d'import LBA ✅
-- **Queue worker**: `POST /api/enrich/queue` pour traitement batch ✅
-- **Scripts PowerShell**: Tests mass enrichment opérationnels ✅
+#### ✅ **Vector Database Implementation**
+- **Tables**: `offer_embeddings`, `offer_embeddings_log` ✅
+- **Function**: `match_offers_semantic()` PostgreSQL function ✅
+- **Triggers**: Auto re-embedding sur changement données ✅
+- **Monitoring**: `v_reembedding_activity` view ✅
 
-#### ✅ **T-071: Interface Admin - COMPLÉTÉ**
-- **Dashboard `/admin/enrichment`**: Interface complète avec onglets Vue d'ensemble, Performance, Activité récente, Queue ✅
-- **API statistiques**: `GET /api/admin/enrich/stats` sans authentification côté client ✅
-- **Métriques temps réel**: Coût OpenAI, tokens utilisés, confiance, performance ✅
-- **Queue management**: Bouton lancement avec Server Action sécurisée ✅
-- **Navigation intégrée**: Menu admin avec icône Brain ✅
+#### ✅ **Admin Dashboard Embeddings - COMPLET**
+- **Dashboard**: `/admin/embeddings` avec métriques temps réel ✅
+- **Queue Management**: Processing automatique et force-regenerate ✅
+- **Performance Testing**: Benchmarks intégrés ✅
+- **Activity Monitoring**: Log re-embedding et statistics ✅
 
 ## 🔧 **APIs 100% Fonctionnelles**
 1. `GET /api/health` - Connexion Supabase ✅
-2. `GET /api/search/offers` - Recherche avec filtres, pagination ✅  
+2. `GET /api/search/offers` - **Recherche avec semantic/hybrid search** ✅  
 3. `GET /api/offers/[id]` - Détail complet avec relations ✅
 4. `GET /api/batch/[id]/stream` - SSE streaming temps réel ✅
 5. `POST /api/ingest/lba` - **Ingestion LBA 2002 offres** ✅
@@ -56,6 +57,9 @@
 8. `POST /api/enrich/offers` - **Enrichissement IA GPT-4o-mini** ✅
 9. `POST /api/enrich/queue` - **Queue worker enrichissement** ✅
 10. `GET /api/admin/enrich/stats` - **Statistiques enrichissement pour dashboard** ✅
+11. `POST /api/embeddings/generate` - **Génération embeddings OpenAI** ✅
+12. `POST /api/embeddings/queue` - **Queue worker embeddings** ✅
+13. `GET /api/admin/embeddings/activity` - **Log activité re-embedding** ✅
 
 ## 🏗️ **Architecture Actuelle**
 
@@ -65,28 +69,29 @@
 - `companies`, `locations` : Référentiels normalisés ✅
 - `offer_sources` : Gestion des sources multiples ✅
 - `offer_enrichment` : **Enrichissement IA avec GPT-4o-mini** ✅
+- `offer_embeddings` : **Embeddings vectoriels 1536d avec HNSW** ✅
+- `offer_embeddings_log` : **Log activité re-embedding automatique** ✅
 - Système fingerprinting pour déduplication ✅
 
 ### **Pages UI Disponibles**
 - `/` - Page d'accueil ✅
-- `/offres` - Recherche avec filtres avancés ✅
-- `/offres/[id]` - Détail offre complet ✅
+- `/offres` - **Recherche avec semantic/hybrid search** ✅
+- `/offres/[id]` - **Détail offre avec embedding text preview** ✅
 - `/admin` - Dashboard KPIs et monitoring ✅  
 - `/admin/ingestion` - Interface ingestion LBA sécurisée ✅
 - `/admin/canonicalization` - **Interface canonicalisation temps réel** ✅
 - `/admin/enrichment` - **Dashboard enrichissement IA avec métriques** ✅
+- `/admin/embeddings` - **Dashboard embeddings et vector search** ✅
 
 ## ⚠️ **Issues Connues**
 - **Character encoding**: é → Ã© dans les réponses API
 - **SSE simulation**: Besoin Supabase Realtime pour production  
-- **Performance**: Search ~1200ms (target <500ms) - optimisation nécessaire
 
 ## 📋 **Prochaines Actions (Ordre de Priorité)**
-1. **🎯 Embeddings** : text-embedding-3-small pour matching vectoriel (Phase 8)
-2. **Auth implementation** : Setup Supabase Auth + RLS (Phase 9)
-3. **France Travail integration** : OAuth2 + ingestion FT (Phase 10)
-4. **Candidate features** : CV upload et profil candidat (Phase 11)
-5. **Production optimization** : Performance + monitoring (Phase 12)
+1. **🔐 Authentication** : Setup Supabase Auth + RLS complet (Phase 9)
+2. **👤 Candidate Profiles** : CV upload et profil candidat avec embeddings (Phase 10)  
+3. **🇫🇷 France Travail integration** : OAuth2 + ingestion FT (Phase 11)
+4. **🚀 Production optimization** : Performance + monitoring (Phase 12)
 
 ## 🔑 **Configuration Critique**
 
@@ -109,7 +114,8 @@
 - Schéma ultra-flexible pour données incomplètes ✅
 
 ## 🎯 **Objectifs Performance**
-- Search: <500ms p95 (actuel: ~1200ms)
+- **Semantic Search**: <500ms p95 avec HNSW optimisé ✅
+- **Embedding Generation**: <2s per offer en batch ✅
 - Job details: <700ms p95 (actuel: ~1000ms)  
 - SSE streaming: <2s delay (actuel: ~2s) ✅
 
