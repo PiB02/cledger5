@@ -16,12 +16,17 @@ import {
   Menu
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { UserButton, useUser } from '@clerk/nextjs'
+import { SignOutButton } from '@clerk/nextjs'
+
+'use client'
 
 export default function PrivateLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { user } = useUser()
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Offres', href: '/admin/offers', icon: FileText },
@@ -60,14 +65,25 @@ export default function PrivateLayout({
           </nav>
           
           <div className="p-4 border-t">
-            <div className="px-3 py-2 mb-2">
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-muted-foreground">admin@cledger5.com</p>
+            <div className="flex items-center gap-3 px-3 py-2 mb-2">
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "h-8 w-8",
+                  }
+                }}
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium">{user?.fullName || 'Admin User'}</p>
+                <p className="text-xs text-muted-foreground">{user?.primaryEmailAddress?.emailAddress}</p>
+              </div>
             </div>
-            <Button variant="outline" className="w-full" size="sm">
-              <LogOut className="h-4 w-4 mr-2" />
-              Déconnexion
-            </Button>
+            <SignOutButton>
+              <Button variant="outline" className="w-full" size="sm">
+                <LogOut className="h-4 w-4 mr-2" />
+                Déconnexion
+              </Button>
+            </SignOutButton>
           </div>
         </div>
       </aside>
@@ -108,9 +124,13 @@ export default function PrivateLayout({
             cledger5 Admin
           </Link>
           
-          <Button variant="ghost" size="icon">
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <UserButton 
+            appearance={{
+              elements: {
+                avatarBox: "h-8 w-8",
+              }
+            }}
+          />
         </header>
         
         {/* Page content */}

@@ -26,7 +26,10 @@
       "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/ingest/lba\" -Method POST -Headers @{\"Content-Type\"=\"application/json\")",
       "Bash($headers = @{ 'Content-Type' = 'application/json' })",
       "Bash(Invoke-RestMethod -Uri \"http://localhost:3001/api/agents/capabilities\" -Method GET -Headers $headers)",
-      "Bash(.test-agents-system.ps1)"
+      "Bash(.test-agents-system.ps1)",
+      "Bash(.test-phase8-embeddings.ps1)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/embeddings/queue\" -Method GET)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/health\")"
     ]
   },
   "enableAllProjectMcpServers": true,

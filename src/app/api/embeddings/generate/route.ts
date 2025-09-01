@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServiceRole } from '@/lib/supabase/route-handler'
 import { errorFactory } from '@/lib/errors'
 import { buildEmbeddingText, hashEmbeddingText } from '@cledger5/utils'
+import { requireAdmin } from '@/lib/supabase/clerk'
 import OpenAI from 'openai'
 import { z } from 'zod'
 
@@ -52,11 +53,8 @@ const EMBEDDING_COST_PER_1K_TOKENS = 0.00002
 
 export async function POST(request: NextRequest) {
   try {
-    // Validate admin authentication
-    const adminSecret = request.headers.get('x-admin-secret')
-    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-      throw errorFactory.UNAUTHORIZED('Admin access required')
-    }
+    // Validate admin authentication using Clerk
+    await requireAdmin()
 
     // Parse and validate request body
     const body = await request.json()

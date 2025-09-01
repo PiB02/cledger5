@@ -145,3 +145,4 @@ Batch processing uses Server-Sent Events via `/api/batch/:id/stream` for real-ti
 - **Vercel** : Deployment management and project operations  
 - **Playwright** : Browser automation and E2E testing
 - always use the PostgreSQL MCP server each time you need to write a complex query or do something with supabase
+- nous sommes dans un environnement de dev windows. powershell n'accepta pas les & et &&
