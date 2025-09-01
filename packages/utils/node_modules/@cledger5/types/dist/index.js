@@ -22,6 +22,10 @@ var index_exports = {};
 __export(index_exports, {
   AdminBatchEnrichmentRequestSchema: () => AdminBatchEnrichmentRequestSchema,
   AdminEnrichmentStatsSchema: () => AdminEnrichmentStatsSchema,
+  Agent: () => Agent,
+  AgentCapability: () => AgentCapability,
+  AgentConversation: () => AgentConversation,
+  AgentResponse: () => AgentResponse,
   AppRoleEnum: () => AppRoleEnum,
   AppUserSchema: () => AppUserSchema,
   BatchCreateRequestSchema: () => BatchCreateRequestSchema,
@@ -38,12 +42,15 @@ __export(index_exports, {
   CVSkillSchema: () => CVSkillSchema,
   CVUploadRequestSchema: () => CVUploadRequestSchema,
   CandidateProfileSchema: () => CandidateProfileSchema,
+  CapabilitiesResponse: () => CapabilitiesResponse,
   CompanySchema: () => CompanySchema,
   ConfidenceScoreSchema: () => ConfidenceScoreSchema,
   ConfidenceScoresSchema: () => ConfidenceScoresSchema,
   ContractTypeEnum: () => ContractTypeEnum,
+  ConversationStatus: () => ConversationStatus,
   DegreeClassificationSchema: () => DegreeClassificationSchema,
   DegreeRequirementSchema: () => DegreeRequirementSchema,
+  DelegateTaskRequest: () => DelegateTaskRequest,
   EnrichedLanguageSchema: () => EnrichedLanguageSchema,
   EnrichedSkillSchema: () => EnrichedSkillSchema,
   EnrichmentHistoryItemSchema: () => EnrichmentHistoryItemSchema,
@@ -52,6 +59,7 @@ __export(index_exports, {
   EnrichmentResponseSchema: () => EnrichmentResponseSchema,
   ErrorResponseSchema: () => ErrorResponseSchema,
   IngestOffersRequestSchema: () => IngestOffersRequestSchema,
+  InvokeAgentRequest: () => InvokeAgentRequest,
   LanguageDetectionSchema: () => LanguageDetectionSchema,
   LanguageRequirementSchema: () => LanguageRequirementSchema,
   LocationSchema: () => LocationSchema,
@@ -66,6 +74,7 @@ __export(index_exports, {
   PaginationSchema: () => PaginationSchema,
   PasswordResetRequestSchema: () => PasswordResetRequestSchema,
   PasswordResetSchema: () => PasswordResetSchema,
+  Priority: () => Priority,
   RegistrationSchema: () => RegistrationSchema,
   SSEEventSchema: () => SSEEventSchema,
   SSEEventTypeEnum: () => SSEEventTypeEnum,
@@ -77,7 +86,11 @@ __export(index_exports, {
   SkillSchema: () => SkillSchema,
   SortOrderEnum: () => SortOrderEnum,
   SuccessResponseSchema: () => SuccessResponseSchema,
-  WorkModeEnum: () => WorkModeEnum
+  TaskType: () => TaskType,
+  WorkModeEnum: () => WorkModeEnum,
+  canAgentInvoke: () => canAgentInvoke,
+  getAgentByCapability: () => getAgentByCapability,
+  getAgentsByTaskType: () => getAgentsByTaskType
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -604,10 +617,165 @@ var AdminBatchEnrichmentRequestSchema = import_zod5.z.object({
   confidence_threshold: import_zod5.z.number().min(0).max(1).default(0.8),
   priority: import_zod5.z.enum(["low", "normal", "high"]).default("normal")
 });
+
+// src/agents.ts
+var import_zod6 = require("zod");
+var AgentCapability = import_zod6.z.enum([
+  // Project Management
+  "project_management",
+  "task_delegation",
+  "team_coordination",
+  "decision_making",
+  "conflict_resolution",
+  // Backend
+  "database_design",
+  "api_development",
+  "supabase",
+  "postgresql",
+  "performance_optimization",
+  "data_modeling",
+  // Frontend
+  "react",
+  "nextjs",
+  "tailwind",
+  "shadcn_ui",
+  "user_experience",
+  "responsive_design",
+  // Recruitment
+  "job_matching",
+  "rome_codes",
+  "france_travail",
+  "lba_api",
+  "recruitment_processes",
+  "candidate_profiling",
+  // AI/ML
+  "openai_integration",
+  "embeddings",
+  "vector_search",
+  "pgvector",
+  "prompt_engineering",
+  "ai_optimization",
+  // DevOps
+  "vercel_deployment",
+  "ci_cd",
+  "monitoring",
+  "performance",
+  "security",
+  "infrastructure"
+]);
+var TaskType = import_zod6.z.enum([
+  "database_issue",
+  "api_bug_fix",
+  "performance_optimization",
+  "ui_improvement",
+  "ai_integration",
+  "deployment_issue",
+  "security_review",
+  "code_review",
+  "architecture_design",
+  "data_analysis",
+  "user_research",
+  "testing",
+  "documentation",
+  "troubleshooting"
+]);
+var ConversationStatus = import_zod6.z.enum([
+  "pending",
+  "in_progress",
+  "completed",
+  "failed",
+  "escalated"
+]);
+var Priority = import_zod6.z.number().int().min(1).max(5);
+var Agent = import_zod6.z.object({
+  id: import_zod6.z.string(),
+  name: import_zod6.z.string(),
+  role: import_zod6.z.string(),
+  capabilities: import_zod6.z.array(AgentCapability),
+  system_prompt: import_zod6.z.string(),
+  hierarchy_level: import_zod6.z.number().int().min(1).max(5),
+  can_invoke: import_zod6.z.array(import_zod6.z.string()),
+  created_at: import_zod6.z.union([import_zod6.z.string().datetime(), import_zod6.z.string()]).optional(),
+  updated_at: import_zod6.z.union([import_zod6.z.string().datetime(), import_zod6.z.string()]).optional()
+});
+var AgentConversation = import_zod6.z.object({
+  id: import_zod6.z.string().uuid(),
+  from_agent: import_zod6.z.string(),
+  to_agent: import_zod6.z.string(),
+  task_type: TaskType,
+  task_description: import_zod6.z.string(),
+  request_data: import_zod6.z.record(import_zod6.z.any()),
+  response_data: import_zod6.z.record(import_zod6.z.any()).optional(),
+  status: ConversationStatus,
+  priority: Priority,
+  created_at: import_zod6.z.string().datetime(),
+  started_at: import_zod6.z.string().datetime().optional(),
+  completed_at: import_zod6.z.string().datetime().optional(),
+  error_message: import_zod6.z.string().optional()
+});
+var InvokeAgentRequest = import_zod6.z.object({
+  target_agent: import_zod6.z.string(),
+  task_type: TaskType,
+  task_description: import_zod6.z.string(),
+  request_data: import_zod6.z.record(import_zod6.z.any()),
+  priority: Priority.optional().default(3)
+});
+var DelegateTaskRequest = import_zod6.z.object({
+  task_description: import_zod6.z.string(),
+  context: import_zod6.z.record(import_zod6.z.any()),
+  priority: Priority.optional().default(3),
+  preferred_agent: import_zod6.z.string().optional()
+});
+var AgentResponse = import_zod6.z.object({
+  success: import_zod6.z.boolean(),
+  data: import_zod6.z.record(import_zod6.z.any()).optional(),
+  error: import_zod6.z.string().optional(),
+  agent_id: import_zod6.z.string(),
+  conversation_id: import_zod6.z.string().uuid(),
+  execution_time_ms: import_zod6.z.number().optional()
+});
+var CapabilitiesResponse = import_zod6.z.object({
+  agents: import_zod6.z.array(Agent),
+  total_count: import_zod6.z.number()
+});
+var getAgentByCapability = (agents, capability) => {
+  return agents.find((agent) => agent.capabilities.includes(capability)) || null;
+};
+var getAgentsByTaskType = (agents, taskType) => {
+  const taskCapabilityMap = {
+    "database_issue": ["database_design", "supabase", "postgresql"],
+    "api_bug_fix": ["api_development", "supabase"],
+    "performance_optimization": ["performance_optimization", "database_design"],
+    "ui_improvement": ["react", "nextjs", "user_experience"],
+    "ai_integration": ["openai_integration", "embeddings", "ai_optimization"],
+    "deployment_issue": ["vercel_deployment", "ci_cd", "infrastructure"],
+    "security_review": ["security"],
+    "code_review": ["api_development", "react"],
+    "architecture_design": ["database_design", "user_experience"],
+    "data_analysis": ["data_modeling", "postgresql"],
+    "user_research": ["user_experience", "recruitment_processes"],
+    "testing": ["api_development", "react"],
+    "documentation": ["project_management"],
+    "troubleshooting": ["database_design", "api_development", "supabase"]
+  };
+  const requiredCapabilities = taskCapabilityMap[taskType] || [];
+  return agents.filter(
+    (agent) => requiredCapabilities.some(
+      (capability) => agent.capabilities.includes(capability)
+    )
+  ).sort((a, b) => b.hierarchy_level - a.hierarchy_level);
+};
+var canAgentInvoke = (fromAgent, toAgentId) => {
+  return fromAgent.can_invoke.includes(toAgentId) || fromAgent.hierarchy_level >= 4;
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AdminBatchEnrichmentRequestSchema,
   AdminEnrichmentStatsSchema,
+  Agent,
+  AgentCapability,
+  AgentConversation,
+  AgentResponse,
   AppRoleEnum,
   AppUserSchema,
   BatchCreateRequestSchema,
@@ -624,12 +792,15 @@ var AdminBatchEnrichmentRequestSchema = import_zod5.z.object({
   CVSkillSchema,
   CVUploadRequestSchema,
   CandidateProfileSchema,
+  CapabilitiesResponse,
   CompanySchema,
   ConfidenceScoreSchema,
   ConfidenceScoresSchema,
   ContractTypeEnum,
+  ConversationStatus,
   DegreeClassificationSchema,
   DegreeRequirementSchema,
+  DelegateTaskRequest,
   EnrichedLanguageSchema,
   EnrichedSkillSchema,
   EnrichmentHistoryItemSchema,
@@ -638,6 +809,7 @@ var AdminBatchEnrichmentRequestSchema = import_zod5.z.object({
   EnrichmentResponseSchema,
   ErrorResponseSchema,
   IngestOffersRequestSchema,
+  InvokeAgentRequest,
   LanguageDetectionSchema,
   LanguageRequirementSchema,
   LocationSchema,
@@ -652,6 +824,7 @@ var AdminBatchEnrichmentRequestSchema = import_zod5.z.object({
   PaginationSchema,
   PasswordResetRequestSchema,
   PasswordResetSchema,
+  Priority,
   RegistrationSchema,
   SSEEventSchema,
   SSEEventTypeEnum,
@@ -663,5 +836,9 @@ var AdminBatchEnrichmentRequestSchema = import_zod5.z.object({
   SkillSchema,
   SortOrderEnum,
   SuccessResponseSchema,
-  WorkModeEnum
+  TaskType,
+  WorkModeEnum,
+  canAgentInvoke,
+  getAgentByCapability,
+  getAgentsByTaskType
 });

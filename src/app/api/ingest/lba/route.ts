@@ -146,6 +146,18 @@ async function processIngestion(batchId: string, params: IngestRequest) {
     // Initialiser Supabase
     const supabase = createSupabaseService()
 
+    // Assurer que la partition du mois courant existe
+    if (!params.dryRun) {
+      try {
+        const { data: partitionResult } = await supabase
+          .rpc('ensure_offers_raw_partition', { target_date: new Date().toISOString() })
+        console.log('Partition check:', partitionResult)
+      } catch (partitionError) {
+        console.warn('Failed to ensure partition exists:', partitionError)
+        // Ne pas faire échouer l'ingestion si la partition existe déjà
+      }
+    }
+
     // Créer une entrée de batch dans la base
     if (!params.dryRun) {
       await supabase.from('batches').insert({

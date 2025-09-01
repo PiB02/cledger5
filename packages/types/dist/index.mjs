@@ -521,9 +521,164 @@ var AdminBatchEnrichmentRequestSchema = z5.object({
   confidence_threshold: z5.number().min(0).max(1).default(0.8),
   priority: z5.enum(["low", "normal", "high"]).default("normal")
 });
+
+// src/agents.ts
+import { z as z6 } from "zod";
+var AgentCapability = z6.enum([
+  // Project Management
+  "project_management",
+  "task_delegation",
+  "team_coordination",
+  "decision_making",
+  "conflict_resolution",
+  // Backend
+  "database_design",
+  "api_development",
+  "supabase",
+  "postgresql",
+  "performance_optimization",
+  "data_modeling",
+  // Frontend
+  "react",
+  "nextjs",
+  "tailwind",
+  "shadcn_ui",
+  "user_experience",
+  "responsive_design",
+  // Recruitment
+  "job_matching",
+  "rome_codes",
+  "france_travail",
+  "lba_api",
+  "recruitment_processes",
+  "candidate_profiling",
+  // AI/ML
+  "openai_integration",
+  "embeddings",
+  "vector_search",
+  "pgvector",
+  "prompt_engineering",
+  "ai_optimization",
+  // DevOps
+  "vercel_deployment",
+  "ci_cd",
+  "monitoring",
+  "performance",
+  "security",
+  "infrastructure"
+]);
+var TaskType = z6.enum([
+  "database_issue",
+  "api_bug_fix",
+  "performance_optimization",
+  "ui_improvement",
+  "ai_integration",
+  "deployment_issue",
+  "security_review",
+  "code_review",
+  "architecture_design",
+  "data_analysis",
+  "user_research",
+  "testing",
+  "documentation",
+  "troubleshooting"
+]);
+var ConversationStatus = z6.enum([
+  "pending",
+  "in_progress",
+  "completed",
+  "failed",
+  "escalated"
+]);
+var Priority = z6.number().int().min(1).max(5);
+var Agent = z6.object({
+  id: z6.string(),
+  name: z6.string(),
+  role: z6.string(),
+  capabilities: z6.array(AgentCapability),
+  system_prompt: z6.string(),
+  hierarchy_level: z6.number().int().min(1).max(5),
+  can_invoke: z6.array(z6.string()),
+  created_at: z6.union([z6.string().datetime(), z6.string()]).optional(),
+  updated_at: z6.union([z6.string().datetime(), z6.string()]).optional()
+});
+var AgentConversation = z6.object({
+  id: z6.string().uuid(),
+  from_agent: z6.string(),
+  to_agent: z6.string(),
+  task_type: TaskType,
+  task_description: z6.string(),
+  request_data: z6.record(z6.any()),
+  response_data: z6.record(z6.any()).optional(),
+  status: ConversationStatus,
+  priority: Priority,
+  created_at: z6.string().datetime(),
+  started_at: z6.string().datetime().optional(),
+  completed_at: z6.string().datetime().optional(),
+  error_message: z6.string().optional()
+});
+var InvokeAgentRequest = z6.object({
+  target_agent: z6.string(),
+  task_type: TaskType,
+  task_description: z6.string(),
+  request_data: z6.record(z6.any()),
+  priority: Priority.optional().default(3)
+});
+var DelegateTaskRequest = z6.object({
+  task_description: z6.string(),
+  context: z6.record(z6.any()),
+  priority: Priority.optional().default(3),
+  preferred_agent: z6.string().optional()
+});
+var AgentResponse = z6.object({
+  success: z6.boolean(),
+  data: z6.record(z6.any()).optional(),
+  error: z6.string().optional(),
+  agent_id: z6.string(),
+  conversation_id: z6.string().uuid(),
+  execution_time_ms: z6.number().optional()
+});
+var CapabilitiesResponse = z6.object({
+  agents: z6.array(Agent),
+  total_count: z6.number()
+});
+var getAgentByCapability = (agents, capability) => {
+  return agents.find((agent) => agent.capabilities.includes(capability)) || null;
+};
+var getAgentsByTaskType = (agents, taskType) => {
+  const taskCapabilityMap = {
+    "database_issue": ["database_design", "supabase", "postgresql"],
+    "api_bug_fix": ["api_development", "supabase"],
+    "performance_optimization": ["performance_optimization", "database_design"],
+    "ui_improvement": ["react", "nextjs", "user_experience"],
+    "ai_integration": ["openai_integration", "embeddings", "ai_optimization"],
+    "deployment_issue": ["vercel_deployment", "ci_cd", "infrastructure"],
+    "security_review": ["security"],
+    "code_review": ["api_development", "react"],
+    "architecture_design": ["database_design", "user_experience"],
+    "data_analysis": ["data_modeling", "postgresql"],
+    "user_research": ["user_experience", "recruitment_processes"],
+    "testing": ["api_development", "react"],
+    "documentation": ["project_management"],
+    "troubleshooting": ["database_design", "api_development", "supabase"]
+  };
+  const requiredCapabilities = taskCapabilityMap[taskType] || [];
+  return agents.filter(
+    (agent) => requiredCapabilities.some(
+      (capability) => agent.capabilities.includes(capability)
+    )
+  ).sort((a, b) => b.hierarchy_level - a.hierarchy_level);
+};
+var canAgentInvoke = (fromAgent, toAgentId) => {
+  return fromAgent.can_invoke.includes(toAgentId) || fromAgent.hierarchy_level >= 4;
+};
 export {
   AdminBatchEnrichmentRequestSchema,
   AdminEnrichmentStatsSchema,
+  Agent,
+  AgentCapability,
+  AgentConversation,
+  AgentResponse,
   AppRoleEnum,
   AppUserSchema,
   BatchCreateRequestSchema,
@@ -540,12 +695,15 @@ export {
   CVSkillSchema,
   CVUploadRequestSchema,
   CandidateProfileSchema,
+  CapabilitiesResponse,
   CompanySchema,
   ConfidenceScoreSchema,
   ConfidenceScoresSchema,
   ContractTypeEnum,
+  ConversationStatus,
   DegreeClassificationSchema,
   DegreeRequirementSchema,
+  DelegateTaskRequest,
   EnrichedLanguageSchema,
   EnrichedSkillSchema,
   EnrichmentHistoryItemSchema,
@@ -554,6 +712,7 @@ export {
   EnrichmentResponseSchema,
   ErrorResponseSchema,
   IngestOffersRequestSchema,
+  InvokeAgentRequest,
   LanguageDetectionSchema,
   LanguageRequirementSchema,
   LocationSchema,
@@ -568,6 +727,7 @@ export {
   PaginationSchema,
   PasswordResetRequestSchema,
   PasswordResetSchema,
+  Priority,
   RegistrationSchema,
   SSEEventSchema,
   SSEEventTypeEnum,
@@ -579,5 +739,9 @@ export {
   SkillSchema,
   SortOrderEnum,
   SuccessResponseSchema,
-  WorkModeEnum
+  TaskType,
+  WorkModeEnum,
+  canAgentInvoke,
+  getAgentByCapability,
+  getAgentsByTaskType
 };

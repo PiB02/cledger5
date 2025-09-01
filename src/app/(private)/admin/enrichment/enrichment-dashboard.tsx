@@ -290,7 +290,7 @@ export default function EnrichmentDashboard() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Faible (<60%)</span>
+                    <span className="text-sm">Faible (&lt;60%)</span>
                     <Badge variant="destructive">{stats.confidence_distribution.low_confidence}</Badge>
                   </div>
                   <Progress 

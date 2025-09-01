@@ -1,0 +1,12 @@
+{
+  "target_agent": "cledger-backend-architect",
+  "task_type": "database_issue", 
+  "task_description": "Problème de sauvegarde Supabase mentionné par l'utilisateur. Analyser et proposer une solution technique complète.",
+  "request_data": {
+    "context": "Validation technique du système d'agents",
+    "reported_issue": "sauvegarde Supabase",
+    "severity": "medium",
+    "affected_components": ["database", "backup_system"]
+  },
+  "priority": 2
+}

@@ -2373,4 +2373,212 @@ interface Database {
     };
 }
 
-export { type AdminBatchEnrichmentRequest, AdminBatchEnrichmentRequestSchema, type AdminEnrichmentStats, AdminEnrichmentStatsSchema, type AppRole, AppRoleEnum, type AppUser, AppUserSchema, type Batch, type BatchCreateRequest, BatchCreateRequestSchema, BatchSchema, type BatchStatus, BatchStatusEnum, type CEFRLevel, CEFRLevelEnum, type CVDegree, CVDegreeSchema, type CVDocument, CVDocumentSchema, type CVEmbedding, CVEmbeddingSchema, type CVEnrichment, CVEnrichmentSchema, type CVExperience, CVExperienceSchema, type CVLanguage, CVLanguageSchema, type CVParseStatus, CVParseStatusEnum, type CVSkill, CVSkillSchema, type CVUploadRequest, CVUploadRequestSchema, type CandidateProfile, CandidateProfileSchema, type Company, CompanySchema, type ConfidenceScore, ConfidenceScoreSchema, type ConfidenceScores, ConfidenceScoresSchema, type ContractType, ContractTypeEnum, type Database, type DegreeClassification, DegreeClassificationSchema, type DegreeRequirement, DegreeRequirementSchema, type EnrichedLanguage, EnrichedLanguageSchema, type EnrichedSkill, EnrichedSkillSchema, type EnrichmentHistoryItem, EnrichmentHistoryItemSchema, type EnrichmentHistoryResponse, EnrichmentHistoryResponseSchema, type EnrichmentRequest, EnrichmentRequestSchema, type EnrichmentResponse, EnrichmentResponseSchema, type ErrorResponse, ErrorResponseSchema, type IngestOffersRequest, IngestOffersRequestSchema, type LanguageDetection, LanguageDetectionSchema, type LanguageRequirement, LanguageRequirementSchema, type Location, LocationSchema, type LoginCredentials, LoginSchema, type MatchRequest, MatchRequestSchema, type MatchResult, MatchResultSchema, type Offer, type OfferEmbedding, OfferEmbeddingSchema, type OfferEnrichment, OfferEnrichmentSchema, OfferSchema, type OfferSource, OfferSourceEnum, type OfferStatus, OfferStatusEnum, type Pagination, PaginationSchema, type PasswordReset, type PasswordResetRequest, PasswordResetRequestSchema, PasswordResetSchema, type Registration, RegistrationSchema, type SSEEvent, SSEEventSchema, type SSEEventType, SSEEventTypeEnum, type SearchOffersRequest, SearchOffersRequestSchema, type SeniorityLevel, SeniorityLevelEnum, type Session, SessionSchema, type Skill, type SkillCategory, SkillCategoryEnum, type SkillExtraction, SkillExtractionSchema, SkillSchema, type SortOrder, SortOrderEnum, type SuccessResponse, SuccessResponseSchema, type WorkMode, WorkModeEnum };
+declare const AgentCapability: z.ZodEnum<["project_management", "task_delegation", "team_coordination", "decision_making", "conflict_resolution", "database_design", "api_development", "supabase", "postgresql", "performance_optimization", "data_modeling", "react", "nextjs", "tailwind", "shadcn_ui", "user_experience", "responsive_design", "job_matching", "rome_codes", "france_travail", "lba_api", "recruitment_processes", "candidate_profiling", "openai_integration", "embeddings", "vector_search", "pgvector", "prompt_engineering", "ai_optimization", "vercel_deployment", "ci_cd", "monitoring", "performance", "security", "infrastructure"]>;
+type AgentCapabilityType = z.infer<typeof AgentCapability>;
+declare const TaskType: z.ZodEnum<["database_issue", "api_bug_fix", "performance_optimization", "ui_improvement", "ai_integration", "deployment_issue", "security_review", "code_review", "architecture_design", "data_analysis", "user_research", "testing", "documentation", "troubleshooting"]>;
+type TaskTypeType = z.infer<typeof TaskType>;
+declare const ConversationStatus: z.ZodEnum<["pending", "in_progress", "completed", "failed", "escalated"]>;
+type ConversationStatusType = z.infer<typeof ConversationStatus>;
+declare const Priority: z.ZodNumber;
+declare const Agent: z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    role: z.ZodString;
+    capabilities: z.ZodArray<z.ZodEnum<["project_management", "task_delegation", "team_coordination", "decision_making", "conflict_resolution", "database_design", "api_development", "supabase", "postgresql", "performance_optimization", "data_modeling", "react", "nextjs", "tailwind", "shadcn_ui", "user_experience", "responsive_design", "job_matching", "rome_codes", "france_travail", "lba_api", "recruitment_processes", "candidate_profiling", "openai_integration", "embeddings", "vector_search", "pgvector", "prompt_engineering", "ai_optimization", "vercel_deployment", "ci_cd", "monitoring", "performance", "security", "infrastructure"]>, "many">;
+    system_prompt: z.ZodString;
+    hierarchy_level: z.ZodNumber;
+    can_invoke: z.ZodArray<z.ZodString, "many">;
+    created_at: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodString]>>;
+    updated_at: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodString]>>;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+    id: string;
+    role: string;
+    capabilities: ("france_travail" | "rome_codes" | "project_management" | "task_delegation" | "team_coordination" | "decision_making" | "conflict_resolution" | "database_design" | "api_development" | "supabase" | "postgresql" | "performance_optimization" | "data_modeling" | "react" | "nextjs" | "tailwind" | "shadcn_ui" | "user_experience" | "responsive_design" | "job_matching" | "lba_api" | "recruitment_processes" | "candidate_profiling" | "openai_integration" | "embeddings" | "vector_search" | "pgvector" | "prompt_engineering" | "ai_optimization" | "vercel_deployment" | "ci_cd" | "monitoring" | "performance" | "security" | "infrastructure")[];
+    system_prompt: string;
+    hierarchy_level: number;
+    can_invoke: string[];
+    created_at?: string | undefined;
+    updated_at?: string | undefined;
+}, {
+    name: string;
+    id: string;
+    role: string;
+    capabilities: ("france_travail" | "rome_codes" | "project_management" | "task_delegation" | "team_coordination" | "decision_making" | "conflict_resolution" | "database_design" | "api_development" | "supabase" | "postgresql" | "performance_optimization" | "data_modeling" | "react" | "nextjs" | "tailwind" | "shadcn_ui" | "user_experience" | "responsive_design" | "job_matching" | "lba_api" | "recruitment_processes" | "candidate_profiling" | "openai_integration" | "embeddings" | "vector_search" | "pgvector" | "prompt_engineering" | "ai_optimization" | "vercel_deployment" | "ci_cd" | "monitoring" | "performance" | "security" | "infrastructure")[];
+    system_prompt: string;
+    hierarchy_level: number;
+    can_invoke: string[];
+    created_at?: string | undefined;
+    updated_at?: string | undefined;
+}>;
+type AgentType = z.infer<typeof Agent>;
+declare const AgentConversation: z.ZodObject<{
+    id: z.ZodString;
+    from_agent: z.ZodString;
+    to_agent: z.ZodString;
+    task_type: z.ZodEnum<["database_issue", "api_bug_fix", "performance_optimization", "ui_improvement", "ai_integration", "deployment_issue", "security_review", "code_review", "architecture_design", "data_analysis", "user_research", "testing", "documentation", "troubleshooting"]>;
+    task_description: z.ZodString;
+    request_data: z.ZodRecord<z.ZodString, z.ZodAny>;
+    response_data: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
+    status: z.ZodEnum<["pending", "in_progress", "completed", "failed", "escalated"]>;
+    priority: z.ZodNumber;
+    created_at: z.ZodString;
+    started_at: z.ZodOptional<z.ZodString>;
+    completed_at: z.ZodOptional<z.ZodString>;
+    error_message: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    status: "pending" | "completed" | "failed" | "in_progress" | "escalated";
+    id: string;
+    created_at: string;
+    priority: number;
+    from_agent: string;
+    to_agent: string;
+    task_type: "performance_optimization" | "database_issue" | "api_bug_fix" | "ui_improvement" | "ai_integration" | "deployment_issue" | "security_review" | "code_review" | "architecture_design" | "data_analysis" | "user_research" | "testing" | "documentation" | "troubleshooting";
+    task_description: string;
+    request_data: Record<string, any>;
+    error_message?: string | undefined;
+    started_at?: string | undefined;
+    completed_at?: string | undefined;
+    response_data?: Record<string, any> | undefined;
+}, {
+    status: "pending" | "completed" | "failed" | "in_progress" | "escalated";
+    id: string;
+    created_at: string;
+    priority: number;
+    from_agent: string;
+    to_agent: string;
+    task_type: "performance_optimization" | "database_issue" | "api_bug_fix" | "ui_improvement" | "ai_integration" | "deployment_issue" | "security_review" | "code_review" | "architecture_design" | "data_analysis" | "user_research" | "testing" | "documentation" | "troubleshooting";
+    task_description: string;
+    request_data: Record<string, any>;
+    error_message?: string | undefined;
+    started_at?: string | undefined;
+    completed_at?: string | undefined;
+    response_data?: Record<string, any> | undefined;
+}>;
+type AgentConversationType = z.infer<typeof AgentConversation>;
+declare const InvokeAgentRequest: z.ZodObject<{
+    target_agent: z.ZodString;
+    task_type: z.ZodEnum<["database_issue", "api_bug_fix", "performance_optimization", "ui_improvement", "ai_integration", "deployment_issue", "security_review", "code_review", "architecture_design", "data_analysis", "user_research", "testing", "documentation", "troubleshooting"]>;
+    task_description: z.ZodString;
+    request_data: z.ZodRecord<z.ZodString, z.ZodAny>;
+    priority: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+}, "strip", z.ZodTypeAny, {
+    priority: number;
+    task_type: "performance_optimization" | "database_issue" | "api_bug_fix" | "ui_improvement" | "ai_integration" | "deployment_issue" | "security_review" | "code_review" | "architecture_design" | "data_analysis" | "user_research" | "testing" | "documentation" | "troubleshooting";
+    task_description: string;
+    request_data: Record<string, any>;
+    target_agent: string;
+}, {
+    task_type: "performance_optimization" | "database_issue" | "api_bug_fix" | "ui_improvement" | "ai_integration" | "deployment_issue" | "security_review" | "code_review" | "architecture_design" | "data_analysis" | "user_research" | "testing" | "documentation" | "troubleshooting";
+    task_description: string;
+    request_data: Record<string, any>;
+    target_agent: string;
+    priority?: number | undefined;
+}>;
+type InvokeAgentRequestType = z.infer<typeof InvokeAgentRequest>;
+declare const DelegateTaskRequest: z.ZodObject<{
+    task_description: z.ZodString;
+    context: z.ZodRecord<z.ZodString, z.ZodAny>;
+    priority: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    preferred_agent: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    context: Record<string, any>;
+    priority: number;
+    task_description: string;
+    preferred_agent?: string | undefined;
+}, {
+    context: Record<string, any>;
+    task_description: string;
+    priority?: number | undefined;
+    preferred_agent?: string | undefined;
+}>;
+type DelegateTaskRequestType = z.infer<typeof DelegateTaskRequest>;
+declare const AgentResponse: z.ZodObject<{
+    success: z.ZodBoolean;
+    data: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
+    error: z.ZodOptional<z.ZodString>;
+    agent_id: z.ZodString;
+    conversation_id: z.ZodString;
+    execution_time_ms: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    success: boolean;
+    agent_id: string;
+    conversation_id: string;
+    error?: string | undefined;
+    data?: Record<string, any> | undefined;
+    execution_time_ms?: number | undefined;
+}, {
+    success: boolean;
+    agent_id: string;
+    conversation_id: string;
+    error?: string | undefined;
+    data?: Record<string, any> | undefined;
+    execution_time_ms?: number | undefined;
+}>;
+type AgentResponseType = z.infer<typeof AgentResponse>;
+declare const CapabilitiesResponse: z.ZodObject<{
+    agents: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        name: z.ZodString;
+        role: z.ZodString;
+        capabilities: z.ZodArray<z.ZodEnum<["project_management", "task_delegation", "team_coordination", "decision_making", "conflict_resolution", "database_design", "api_development", "supabase", "postgresql", "performance_optimization", "data_modeling", "react", "nextjs", "tailwind", "shadcn_ui", "user_experience", "responsive_design", "job_matching", "rome_codes", "france_travail", "lba_api", "recruitment_processes", "candidate_profiling", "openai_integration", "embeddings", "vector_search", "pgvector", "prompt_engineering", "ai_optimization", "vercel_deployment", "ci_cd", "monitoring", "performance", "security", "infrastructure"]>, "many">;
+        system_prompt: z.ZodString;
+        hierarchy_level: z.ZodNumber;
+        can_invoke: z.ZodArray<z.ZodString, "many">;
+        created_at: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodString]>>;
+        updated_at: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodString]>>;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        id: string;
+        role: string;
+        capabilities: ("france_travail" | "rome_codes" | "project_management" | "task_delegation" | "team_coordination" | "decision_making" | "conflict_resolution" | "database_design" | "api_development" | "supabase" | "postgresql" | "performance_optimization" | "data_modeling" | "react" | "nextjs" | "tailwind" | "shadcn_ui" | "user_experience" | "responsive_design" | "job_matching" | "lba_api" | "recruitment_processes" | "candidate_profiling" | "openai_integration" | "embeddings" | "vector_search" | "pgvector" | "prompt_engineering" | "ai_optimization" | "vercel_deployment" | "ci_cd" | "monitoring" | "performance" | "security" | "infrastructure")[];
+        system_prompt: string;
+        hierarchy_level: number;
+        can_invoke: string[];
+        created_at?: string | undefined;
+        updated_at?: string | undefined;
+    }, {
+        name: string;
+        id: string;
+        role: string;
+        capabilities: ("france_travail" | "rome_codes" | "project_management" | "task_delegation" | "team_coordination" | "decision_making" | "conflict_resolution" | "database_design" | "api_development" | "supabase" | "postgresql" | "performance_optimization" | "data_modeling" | "react" | "nextjs" | "tailwind" | "shadcn_ui" | "user_experience" | "responsive_design" | "job_matching" | "lba_api" | "recruitment_processes" | "candidate_profiling" | "openai_integration" | "embeddings" | "vector_search" | "pgvector" | "prompt_engineering" | "ai_optimization" | "vercel_deployment" | "ci_cd" | "monitoring" | "performance" | "security" | "infrastructure")[];
+        system_prompt: string;
+        hierarchy_level: number;
+        can_invoke: string[];
+        created_at?: string | undefined;
+        updated_at?: string | undefined;
+    }>, "many">;
+    total_count: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    agents: {
+        name: string;
+        id: string;
+        role: string;
+        capabilities: ("france_travail" | "rome_codes" | "project_management" | "task_delegation" | "team_coordination" | "decision_making" | "conflict_resolution" | "database_design" | "api_development" | "supabase" | "postgresql" | "performance_optimization" | "data_modeling" | "react" | "nextjs" | "tailwind" | "shadcn_ui" | "user_experience" | "responsive_design" | "job_matching" | "lba_api" | "recruitment_processes" | "candidate_profiling" | "openai_integration" | "embeddings" | "vector_search" | "pgvector" | "prompt_engineering" | "ai_optimization" | "vercel_deployment" | "ci_cd" | "monitoring" | "performance" | "security" | "infrastructure")[];
+        system_prompt: string;
+        hierarchy_level: number;
+        can_invoke: string[];
+        created_at?: string | undefined;
+        updated_at?: string | undefined;
+    }[];
+    total_count: number;
+}, {
+    agents: {
+        name: string;
+        id: string;
+        role: string;
+        capabilities: ("france_travail" | "rome_codes" | "project_management" | "task_delegation" | "team_coordination" | "decision_making" | "conflict_resolution" | "database_design" | "api_development" | "supabase" | "postgresql" | "performance_optimization" | "data_modeling" | "react" | "nextjs" | "tailwind" | "shadcn_ui" | "user_experience" | "responsive_design" | "job_matching" | "lba_api" | "recruitment_processes" | "candidate_profiling" | "openai_integration" | "embeddings" | "vector_search" | "pgvector" | "prompt_engineering" | "ai_optimization" | "vercel_deployment" | "ci_cd" | "monitoring" | "performance" | "security" | "infrastructure")[];
+        system_prompt: string;
+        hierarchy_level: number;
+        can_invoke: string[];
+        created_at?: string | undefined;
+        updated_at?: string | undefined;
+    }[];
+    total_count: number;
+}>;
+type CapabilitiesResponseType = z.infer<typeof CapabilitiesResponse>;
+declare const getAgentByCapability: (agents: AgentType[], capability: AgentCapabilityType) => AgentType | null;
+declare const getAgentsByTaskType: (agents: AgentType[], taskType: TaskTypeType) => AgentType[];
+declare const canAgentInvoke: (fromAgent: AgentType, toAgentId: string) => boolean;
+
+export { type AdminBatchEnrichmentRequest, AdminBatchEnrichmentRequestSchema, type AdminEnrichmentStats, AdminEnrichmentStatsSchema, Agent, AgentCapability, type AgentCapabilityType, AgentConversation, type AgentConversationType, AgentResponse, type AgentResponseType, type AgentType, type AppRole, AppRoleEnum, type AppUser, AppUserSchema, type Batch, type BatchCreateRequest, BatchCreateRequestSchema, BatchSchema, type BatchStatus, BatchStatusEnum, type CEFRLevel, CEFRLevelEnum, type CVDegree, CVDegreeSchema, type CVDocument, CVDocumentSchema, type CVEmbedding, CVEmbeddingSchema, type CVEnrichment, CVEnrichmentSchema, type CVExperience, CVExperienceSchema, type CVLanguage, CVLanguageSchema, type CVParseStatus, CVParseStatusEnum, type CVSkill, CVSkillSchema, type CVUploadRequest, CVUploadRequestSchema, type CandidateProfile, CandidateProfileSchema, CapabilitiesResponse, type CapabilitiesResponseType, type Company, CompanySchema, type ConfidenceScore, ConfidenceScoreSchema, type ConfidenceScores, ConfidenceScoresSchema, type ContractType, ContractTypeEnum, ConversationStatus, type ConversationStatusType, type Database, type DegreeClassification, DegreeClassificationSchema, type DegreeRequirement, DegreeRequirementSchema, DelegateTaskRequest, type DelegateTaskRequestType, type EnrichedLanguage, EnrichedLanguageSchema, type EnrichedSkill, EnrichedSkillSchema, type EnrichmentHistoryItem, EnrichmentHistoryItemSchema, type EnrichmentHistoryResponse, EnrichmentHistoryResponseSchema, type EnrichmentRequest, EnrichmentRequestSchema, type EnrichmentResponse, EnrichmentResponseSchema, type ErrorResponse, ErrorResponseSchema, type IngestOffersRequest, IngestOffersRequestSchema, InvokeAgentRequest, type InvokeAgentRequestType, type LanguageDetection, LanguageDetectionSchema, type LanguageRequirement, LanguageRequirementSchema, type Location, LocationSchema, type LoginCredentials, LoginSchema, type MatchRequest, MatchRequestSchema, type MatchResult, MatchResultSchema, type Offer, type OfferEmbedding, OfferEmbeddingSchema, type OfferEnrichment, OfferEnrichmentSchema, OfferSchema, type OfferSource, OfferSourceEnum, type OfferStatus, OfferStatusEnum, type Pagination, PaginationSchema, type PasswordReset, type PasswordResetRequest, PasswordResetRequestSchema, PasswordResetSchema, Priority, type Registration, RegistrationSchema, type SSEEvent, SSEEventSchema, type SSEEventType, SSEEventTypeEnum, type SearchOffersRequest, SearchOffersRequestSchema, type SeniorityLevel, SeniorityLevelEnum, type Session, SessionSchema, type Skill, type SkillCategory, SkillCategoryEnum, type SkillExtraction, SkillExtractionSchema, SkillSchema, type SortOrder, SortOrderEnum, type SuccessResponse, SuccessResponseSchema, TaskType, type TaskTypeType, type WorkMode, WorkModeEnum, canAgentInvoke, getAgentByCapability, getAgentsByTaskType };

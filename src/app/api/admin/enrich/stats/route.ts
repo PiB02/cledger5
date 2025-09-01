@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
+import { createSupabaseServiceRole } from '@/lib/supabase/route-handler'
 import { errorFactory } from '@/lib/errors'
 
 interface EnrichmentStats {
@@ -44,14 +44,14 @@ export async function GET(request: NextRequest) {
     // Note: Cette route est dans l'espace admin, donc pas de vérification de secret
     // En production, on ajouterait une vérification d'authentification admin ici
     
-    const supabase = createRouteHandlerClient()
+    const supabase = createSupabaseServiceRole()
 
     // 1. Statistiques générales
     const { data: overviewData, error: overviewError } = await supabase
       .from('offer_enrichment')
       .select(`
         enrichment_status,
-        confidence_score,
+        confidence_scores,
         tokens_used,
         processing_time_ms,
         created_at
@@ -71,12 +71,24 @@ export async function GET(request: NextRequest) {
 
     const successRate = totalOffers > 0 ? ((enrichedOffers + lowConfidenceOffers) / totalOffers) * 100 : 0
 
+    // Fonction pour extraire la confiance moyenne depuis JSONB confidence_scores
+    const getConfidenceFromScores = (confidenceScores: any): number => {
+      if (!confidenceScores) return 0
+      if (typeof confidenceScores === 'number') return confidenceScores
+      if (typeof confidenceScores === 'object') {
+        // Si c'est un objet, calculer la moyenne des valeurs
+        const values = Object.values(confidenceScores).filter(v => typeof v === 'number') as number[]
+        return values.length > 0 ? values.reduce((sum, v) => sum + v, 0) / values.length : 0
+      }
+      return 0
+    }
+
     const completedOffers = overviewData.filter(o => 
-      o.enrichment_status === 'completed' && o.confidence_score !== null
+      o.enrichment_status === 'completed' && o.confidence_scores !== null
     )
     
     const avgConfidence = completedOffers.length > 0 
-      ? completedOffers.reduce((sum, o) => sum + (o.confidence_score || 0), 0) / completedOffers.length
+      ? completedOffers.reduce((sum, o) => sum + getConfidenceFromScores(o.confidence_scores), 0) / completedOffers.length
       : 0
 
     // 3. Métriques de performance
@@ -97,12 +109,12 @@ export async function GET(request: NextRequest) {
       : 0
 
     // 4. Distribution de confidence
-    const highConfidence = completedOffers.filter(o => (o.confidence_score || 0) >= 0.80).length
+    const highConfidence = completedOffers.filter(o => getConfidenceFromScores(o.confidence_scores) >= 0.80).length
     const mediumConfidence = completedOffers.filter(o => {
-      const score = o.confidence_score || 0
+      const score = getConfidenceFromScores(o.confidence_scores)
       return score >= 0.60 && score < 0.80
     }).length
-    const lowConfidenceCount = completedOffers.filter(o => (o.confidence_score || 0) < 0.60).length
+    const lowConfidenceCount = completedOffers.filter(o => getConfidenceFromScores(o.confidence_scores) < 0.60).length
 
     // 5. Activité récente (7 derniers jours)
     const sevenDaysAgo = new Date()
@@ -137,8 +149,9 @@ export async function GET(request: NextRequest) {
       dayData.tokens_used += offer.tokens_used || 0
       dayData.cost_usd += (offer.tokens_used || 0) * 0.00000015
       
-      if (offer.confidence_score !== null) {
-        dayData.confidences.push(offer.confidence_score)
+      const confidence = getConfidenceFromScores(offer.confidence_scores)
+      if (confidence > 0) {
+        dayData.confidences.push(confidence)
       }
     })
 

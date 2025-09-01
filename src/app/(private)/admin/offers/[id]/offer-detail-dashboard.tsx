@@ -30,10 +30,13 @@ import {
   Code,
   DollarSign,
   FileText,
-  Database
+  Database,
+  Type,
+  Copy
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { enrichOfferAction } from '../enrich-actions'
+import { buildEmbeddingText } from '@cledger5/utils/embedding-text-builder'
 
 interface OfferDetail {
   id: string
@@ -269,6 +272,55 @@ export default function OfferDetailDashboard({ offerId }: Props) {
     return null
   }
 
+  const generateEmbeddingText = (): string | null => {
+    if (!offer) return null
+    
+    try {
+      // Map offer data to embedding format
+      const embeddingData = {
+        title_canonical: offer.title,
+        rome_codes: offer.rome_codes || undefined,
+        city: offer.location?.city || undefined,
+        department_code: offer.location?.department_code || undefined,
+        region_code: offer.location?.region_code || undefined,
+        career_level: offer.career_level || undefined,
+        contract_type_code: offer.contract_type_code || undefined,
+        work_mode_code: offer.work_mode_code || undefined,
+        // Languages from enrichment if available
+        languages: offer.enrichment?.languages_detected?.map((lang: any) => ({
+          code: lang.language || lang.name || '',
+          cefr: lang.cefr_level || 1
+        })) || undefined,
+        degree_min_eqf: offer.enrichment?.degree_requirements?.min_eqf || undefined,
+        // Skills from enrichment
+        skills_required: offer.enrichment?.skills_required?.map((skill: any) => 
+          typeof skill === 'string' ? skill : (skill.name || skill.skill)
+        ) || undefined,
+        skills_preferred: offer.enrichment?.skills_preferred?.map((skill: any) => 
+          typeof skill === 'string' ? skill : (skill.name || skill.skill)
+        ) || undefined,
+        salary_min: offer.salary_min || undefined,
+        salary_max: offer.salary_max || undefined,
+        salary_period: offer.salary_period || undefined,
+        contract_start_date: offer.contract_start_date || undefined
+      }
+
+      return buildEmbeddingText('offer', embeddingData)
+    } catch (error) {
+      console.error('Error generating embedding text:', error)
+      return null
+    }
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('Texte copié dans le presse-papiers')
+    } catch (error) {
+      toast.error('Erreur lors de la copie')
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -347,6 +399,7 @@ export default function OfferDetailDashboard({ offerId }: Props) {
         <TabsList>
           <TabsTrigger value="general">Informations générales</TabsTrigger>
           <TabsTrigger value="enrichment">Enrichissement IA</TabsTrigger>
+          <TabsTrigger value="embedding">Texte Embedding</TabsTrigger>
           <TabsTrigger value="sources">Sources & Données brutes</TabsTrigger>
         </TabsList>
 
@@ -789,13 +842,156 @@ export default function OfferDetailDashboard({ offerId }: Props) {
           </div>
         </TabsContent>
 
+        <TabsContent value="embedding" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Type className="h-5 w-5" />
+                Texte d'embedding pour matching vectoriel
+              </CardTitle>
+              <CardDescription>
+                Texte standardisé utilisé pour les embeddings et le matching sémantique. Format selon PRD 3.1.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(() => {
+                const embeddingText = generateEmbeddingText()
+                
+                if (!embeddingText) {
+                  return (
+                    <div className="text-center py-8">
+                      <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">
+                        Impossible de générer le texte d'embedding. 
+                        {!offer.enrichment && " Enrichissement IA requis."}
+                      </p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {embeddingText.length}/1500 caractères
+                        </Badge>
+                        <Badge variant={embeddingText.length > 1500 ? "destructive" : "default"} className="text-xs">
+                          {embeddingText.length <= 1500 ? "✓ Valide" : "⚠ Trop long"}
+                        </Badge>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => copyToClipboard(embeddingText)}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copier
+                      </Button>
+                    </div>
+
+                    <div className="rounded-lg border bg-muted/50 p-4">
+                      <ScrollArea className="h-80 w-full">
+                        <pre className="text-sm font-mono whitespace-pre-wrap">
+                          {embeddingText}
+                        </pre>
+                      </ScrollArea>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground space-y-2">
+                      <p><strong>Format standardisé :</strong></p>
+                      <ul className="space-y-1 ml-4">
+                        <li>• TITLE: Titre canonique (max 80 caractères)</li>
+                        <li>• ROME: Codes ROME triés</li>
+                        <li>• LOCATION: Ville|Département|Région|FR</li>
+                        <li>• SENIORITY: Niveau de carrière détecté par IA</li>
+                        <li>• CONTRACT/WORK_MODE: Types de contrat et travail</li>
+                        <li>• LANGUAGES: Langues détectées avec niveau CEFR</li>
+                        <li>• DEGREE_EQF_MIN: Niveau diplôme minimum requis</li>
+                        <li>• SKILLS: Compétences requises et préférées (normalisées)</li>
+                        <li>• SALARY: Fourchette salariale si disponible</li>
+                        <li>• AVAILABILITY: Date de début de contrat</li>
+                      </ul>
+                      <p className="pt-2">
+                        <strong>Note :</strong> Ce texte sera converti en embedding 1536d avec text-embedding-3-small 
+                        pour le matching vectoriel avec les CVs candidats.
+                      </p>
+                    </div>
+                  </>
+                )
+              })()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="sources" className="space-y-4">
+          {/* Métadonnées techniques */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Hash className="h-5 w-5" />
+                Métadonnées techniques
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">ID Offre</label>
+                  <p className="font-mono text-sm break-all">{offer.id}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Fingerprint canonique</label>
+                  <p className="font-mono text-sm break-all">{offer.canonical_fingerprint}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Statut</label>
+                  <Badge variant="outline">{offer.status}</Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Alternance</label>
+                  <Badge variant={offer.alternance ? "default" : "secondary"}>
+                    {offer.alternance ? "Oui" : "Non"}
+                  </Badge>
+                </div>
+              </div>
+
+              {offer.search_tsv && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Vecteur de recherche textuelle (tsvector)</label>
+                  <ScrollArea className="h-20 w-full rounded border p-3">
+                    <p className="font-mono text-xs break-all">{offer.search_tsv}</p>
+                  </ScrollArea>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Créé le</label>
+                  <p className="text-sm">{formatDate(offer.created_at)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Mis à jour le</label>
+                  <p className="text-sm">{formatDate(offer.updated_at)}</p>
+                </div>
+                {offer.expiration_at && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Expire le</label>
+                    <p className="text-sm">{formatDate(offer.expiration_at)}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Sources */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                Sources de données
+                Sources de données ({offer.sources.length})
               </CardTitle>
             </CardHeader>
             <CardContent>

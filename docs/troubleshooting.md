@@ -5,6 +5,28 @@
 
 ### 🔧 Database & Supabase
 
+#### Issue: "Error saving raw offer" - Missing Monthly Partition (RÉSOLU - 01/09/2025)
+**Error**: `error saving raw offer` during LBA ingestion, with server logs showing INSERT failures
+**Cause**: Missing monthly partition table for `offers_raw` table (partitioned by month)
+**Root Cause**: The `offers_raw` table uses monthly partitioning (e.g., `offers_raw_2025_08`, `offers_raw_2025_09`) and the current month's partition didn't exist
+**Solution Applied**:
+1. ✅ **Created missing September 2025 partition**:
+   ```sql
+   CREATE TABLE offers_raw_2025_09 PARTITION OF offers_raw
+   FOR VALUES FROM ('2025-09-01 00:00:00+00') TO ('2025-10-01 00:00:00+00');
+   ```
+2. ✅ **Implemented automated partition creation function**:
+   ```sql
+   -- Function automatically creates monthly partitions
+   SELECT ensure_offers_raw_partition(CURRENT_DATE);
+   ```
+3. ✅ **Integrated auto-partitioning into ingestion pipeline**: 
+   - Modified `/api/ingest/lba` to call `ensure_offers_raw_partition()` before processing
+   - Ensures current month partition always exists before ingestion starts
+4. ✅ **Pre-created partitions**: Created partitions for next 4 months to prevent future issues
+
+**Prevention**: The ingestion pipeline now automatically creates needed partitions, so this issue should not recur.
+
 #### Issue: Foreign key constraint violation
 **Error**: `insert or update on table "companies" violates foreign key constraint "companies_naf_code_fkey"`
 **Solution**: 
