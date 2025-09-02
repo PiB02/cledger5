@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -85,6 +86,8 @@ export default function OfferDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [applied, setApplied] = useState(false)
+  const [applyLoading, setApplyLoading] = useState(false)
+  const { user, isSignedIn } = useUser()
   
   useEffect(() => {
     const fetchOffer = async () => {
@@ -115,12 +118,112 @@ export default function OfferDetailPage() {
     }
   }, [id])
   
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    setSaved(!saved)
+  const handleSave = async () => {
+    if (!isSignedIn) {
+      router.push('/sign-in?redirect_url=' + encodeURIComponent(window.location.pathname))
+      return
+    }
+
+    if (!offer) return
+
+    if (saved) {
+      // Remove from saved (for now just toggle, can implement removal later)
+      setSaved(false)
+      return
+    }
+
+    try {
+      // Create a saved search for this specific offer
+      const response = await fetch('/api/saved-searches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `${offer.title} - ${offer.companies?.name || 'Emploi'}`,
+          description: `Recherche sauvée pour l'offre: ${offer.title}`,
+          criteria: {
+            rome_codes: offer.rome_codes,
+            contract_types: offer.contract_type ? [offer.contract_type] : undefined,
+            work_modes: offer.work_mode ? [offer.work_mode] : undefined,
+            location: offer.locations ? {
+              city: offer.locations.city,
+              department_code: offer.locations.department_code,
+            } : undefined,
+            alternance: offer.alternance,
+          },
+          alerts_enabled: true,
+          alert_frequency: 'daily',
+          min_match_score: 0.80,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSaved(true)
+        alert('Recherche sauvegardée ! Vous recevrez des alertes pour des offres similaires.')
+      } else {
+        console.error('Error saving search:', data.error)
+        alert('Erreur lors de la sauvegarde. Veuillez réessayer.')
+      }
+    } catch (error) {
+      console.error('Error saving search:', error)
+      alert('Erreur lors de la sauvegarde. Veuillez réessayer.')
+    }
   }
   
-  const handleApply = () => {
+  const handleApply = async () => {
+    if (!isSignedIn) {
+      // Redirect to sign-in page
+      router.push('/sign-in?redirect_url=' + encodeURIComponent(window.location.pathname))
+      return
+    }
+
+    if (!offer) return
+
+    setApplyLoading(true)
+    
+    try {
+      // Try to apply through our internal system first
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          offerId: offer.id,
+          source: 'direct'
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setApplied(true)
+        // Show success message or redirect to dashboard
+        alert('Candidature envoyée avec succès ! Vous pouvez suivre son évolution dans votre dashboard.')
+      } else {
+        // If internal application fails (e.g., no CV profile), fall back to external links
+        if (data.error?.includes('CV profile required')) {
+          alert('Vous devez d\'abord analyser votre CV pour postuler via notre système. Redirection vers l\'analyse CV...')
+          router.push('/cv/upload')
+          return
+        }
+        
+        // Fall back to external application methods
+        handleExternalApply()
+      }
+    } catch (error) {
+      console.error('Error applying to job:', error)
+      // Fall back to external application methods
+      handleExternalApply()
+    } finally {
+      setApplyLoading(false)
+    }
+  }
+
+  const handleExternalApply = () => {
     if (offer?.apply_url) {
       window.open(offer.apply_url, '_blank')
       setApplied(true)
@@ -216,10 +319,21 @@ export default function OfferDetailPage() {
             {saved ? 'Sauvegardée' : 'Sauvegarder'}
           </Button>
           
-          {!isExpired && (offer.apply_url || offer.apply_phone || offer.apply_email) && (
-            <Button onClick={handleApply}>
+          {!isExpired && (
+            <Button 
+              onClick={handleApply}
+              disabled={applyLoading || applied}
+              className={applied ? "bg-green-600 hover:bg-green-700" : ""}
+            >
               <Send className="h-4 w-4 mr-2" />
-              {applied ? 'Candidature envoyée' : 'Postuler'}
+              {applyLoading 
+                ? 'Candidature...' 
+                : applied 
+                ? 'Candidature envoyée' 
+                : isSignedIn 
+                ? 'Postuler' 
+                : 'Se connecter pour postuler'
+              }
             </Button>
           )}
         </div>

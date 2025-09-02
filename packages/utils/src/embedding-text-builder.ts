@@ -19,6 +19,8 @@ interface CanonicalizedInput {
   degree_top_eqf?: number  // Pour CV
   skills_required?: string[]
   skills_preferred?: string[]
+  skills_mastered?: string[]  // Pour CV - compétences maîtrisées
+  skills_learning?: string[]  // Pour CV - compétences en apprentissage
   salary_min?: number
   salary_max?: number
   salary_period?: string
@@ -100,13 +102,18 @@ export function buildEmbeddingText(
     : (data.degree_top_eqf?.toString() ?? 'unknown')
   
   // SKILLS: normalisation, dédupe, limite à 50
-  const req = (data.skills_required || [])
-    .map(normSkill)
-    .filter(Boolean)
+  // Pour les offres: skills_required/skills_preferred
+  // Pour les CVs: skills_mastered/skills_learning
+  let req: string[], pref: string[]
   
-  const pref = (data.skills_preferred || [])
-    .map(normSkill)
-    .filter(Boolean)
+  if (ctx === 'offer') {
+    req = (data.skills_required || []).map(normSkill).filter(Boolean)
+    pref = (data.skills_preferred || []).map(normSkill).filter(Boolean)
+  } else {
+    // CV context: use mastered/learning
+    req = (data.skills_mastered || []).map(normSkill).filter(Boolean)
+    pref = (data.skills_learning || []).map(normSkill).filter(Boolean)
+  }
   
   // Dédupe
   const dedup = (arr: string[]) => Array.from(new Set(arr))
@@ -136,8 +143,8 @@ export function buildEmbeddingText(
     `WORK_MODE: ${workMode}`,
     `LANGUAGES: ${langs}`,
     `${ctx === 'offer' ? 'DEGREE_EQF_MIN' : 'DEGREE_EQF_TOP'}: ${degree}`,
-    `SKILLS_REQUIRED: ${reqF.join('|')}`,
-    `SKILLS_PREFERRED: ${prefF.join('|')}`,
+    `${ctx === 'offer' ? 'SKILLS_REQUIRED' : 'SKILLS_MASTERED'}: ${reqF.join('|')}`,
+    `${ctx === 'offer' ? 'SKILLS_PREFERRED' : 'SKILLS_LEARNING'}: ${prefF.join('|')}`,
     `SALARY: ${salary}`,
     `AVAILABILITY: ${avail}`
   ]

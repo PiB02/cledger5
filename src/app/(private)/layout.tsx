@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { 
@@ -18,8 +20,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { UserButton, useUser } from '@clerk/nextjs'
 import { SignOutButton } from '@clerk/nextjs'
-
-'use client'
 
 export default function PrivateLayout({
   children,

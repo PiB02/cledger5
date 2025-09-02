@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/health',
   '/api/search/(.*)',
   '/api/offers/(.*)',
+  '/api/france-travail/test',
   '/sign-in(.*)',
   '/sign-up(.*)',
 ])
@@ -23,17 +24,17 @@ const isAdminRoute = createRouteMatcher([
   '/api/agents/(.*)',
 ])
 
-export default clerkMiddleware((auth, request) => {
+export default clerkMiddleware(async (auth, request) => {
   // Protect admin routes
   if (isAdminRoute(request)) {
-    auth().protect({
+    await auth.protect({
       role: 'admin',
     })
   }
 
   // Protect all other routes except public ones
   if (!isPublicRoute(request)) {
-    auth().protect()
+    await auth.protect()
   }
 })
 
