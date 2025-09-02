@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = createRouteHandlerClient();
 
-    let query = supabase
+    const query = supabase
       .from('saved_searches')
       .select(`
         *,

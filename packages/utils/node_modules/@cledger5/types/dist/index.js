@@ -20,27 +20,59 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  ANONYMOUS_CV_CONSTRAINTS: () => ANONYMOUS_CV_CONSTRAINTS,
+  ANONYMOUS_SESSION_CONSTANTS: () => ANONYMOUS_SESSION_CONSTANTS,
   AdminBatchEnrichmentRequestSchema: () => AdminBatchEnrichmentRequestSchema,
   AdminEnrichmentStatsSchema: () => AdminEnrichmentStatsSchema,
   Agent: () => Agent,
   AgentCapability: () => AgentCapability,
   AgentConversation: () => AgentConversation,
   AgentResponse: () => AgentResponse,
+  AnonymousCVMigrationSchema: () => AnonymousCVMigrationSchema,
+  AnonymousCVProcessingRequestSchema: () => AnonymousCVProcessingRequestSchema,
+  AnonymousCVProcessingStatusSchema: () => AnonymousCVProcessingStatusSchema,
+  AnonymousCVResultSchema: () => AnonymousCVResultSchema,
+  AnonymousCVSessionSchema: () => AnonymousCVSessionSchema,
+  AnonymousCVUploadInitRequestSchema: () => AnonymousCVUploadInitRequestSchema,
+  AnonymousCVUploadInitResponseSchema: () => AnonymousCVUploadInitResponseSchema,
+  AnonymousSessionErrorCodes: () => AnonymousSessionErrorCodes,
+  AnonymousSessionErrorSchema: () => AnonymousSessionErrorSchema,
+  AnonymousSessionRateLimitSchema: () => AnonymousSessionRateLimitSchema,
+  AnonymousSessionSchema: () => AnonymousSessionSchema,
   AppRoleEnum: () => AppRoleEnum,
   AppUserSchema: () => AppUserSchema,
   BatchCreateRequestSchema: () => BatchCreateRequestSchema,
   BatchSchema: () => BatchSchema,
   BatchStatusEnum: () => BatchStatusEnum,
   CEFRLevelEnum: () => CEFRLevelEnum,
+  CVAIExtractionSchema: () => CVAIExtractionSchema,
   CVDegreeSchema: () => CVDegreeSchema,
   CVDocumentSchema: () => CVDocumentSchema,
+  CVEmbeddingContextSchema: () => CVEmbeddingContextSchema,
   CVEmbeddingSchema: () => CVEmbeddingSchema,
   CVEnrichmentSchema: () => CVEnrichmentSchema,
   CVExperienceSchema: () => CVExperienceSchema,
+  CVJobMatchSchema: () => CVJobMatchSchema,
   CVLanguageSchema: () => CVLanguageSchema,
+  CVMigrationRequestSchema: () => CVMigrationRequestSchema,
   CVParseStatusEnum: () => CVParseStatusEnum,
+  CVProcessStatusResponseSchema: () => CVProcessStatusResponseSchema,
+  CVProcessingErrorSchema: () => CVProcessingErrorSchema,
+  CVProcessingMetricSchema: () => CVProcessingMetricSchema,
+  CVProcessingProgressSchema: () => CVProcessingProgressSchema,
+  CVProcessingQueueSchema: () => CVProcessingQueueSchema,
+  CVProcessingStageSchema: () => CVProcessingStageSchema,
   CVSkillSchema: () => CVSkillSchema,
+  CVUploadInitRequestSchema: () => CVUploadInitRequestSchema,
+  CVUploadInitResponseSchema: () => CVUploadInitResponseSchema,
   CVUploadRequestSchema: () => CVUploadRequestSchema,
+  CVUploadSessionSchema: () => CVUploadSessionSchema,
+  CVValidationResultSchema: () => CVValidationResultSchema,
+  CV_CONSTRAINTS: () => CV_CONSTRAINTS,
+  CV_PROCESSING_PRIORITIES: () => CV_PROCESSING_PRIORITIES,
+  CV_PROCESSING_STAGES: () => CV_PROCESSING_STAGES,
+  CV_UPLOAD_STATUS: () => CV_UPLOAD_STATUS,
+  CV_VALIDATION_TYPES: () => CV_VALIDATION_TYPES,
   CandidateProfileSchema: () => CandidateProfileSchema,
   CapabilitiesResponse: () => CapabilitiesResponse,
   CompanySchema: () => CompanySchema,
@@ -48,6 +80,8 @@ __export(index_exports, {
   ConfidenceScoresSchema: () => ConfidenceScoresSchema,
   ContractTypeEnum: () => ContractTypeEnum,
   ConversationStatus: () => ConversationStatus,
+  CreateAnonymousSessionRequestSchema: () => CreateAnonymousSessionRequestSchema,
+  CreateAnonymousSessionResponseSchema: () => CreateAnonymousSessionResponseSchema,
   DegreeClassificationSchema: () => DegreeClassificationSchema,
   DegreeRequirementSchema: () => DegreeRequirementSchema,
   DelegateTaskRequest: () => DelegateTaskRequest,
@@ -72,14 +106,19 @@ __export(index_exports, {
   OfferSourceEnum: () => OfferSourceEnum,
   OfferStatusEnum: () => OfferStatusEnum,
   PaginationSchema: () => PaginationSchema,
+  PartialCVResultsResponseSchema: () => PartialCVResultsResponseSchema,
   PasswordResetRequestSchema: () => PasswordResetRequestSchema,
   PasswordResetSchema: () => PasswordResetSchema,
   Priority: () => Priority,
+  RateLimitConfigSchema: () => RateLimitConfigSchema,
   RegistrationSchema: () => RegistrationSchema,
   SSEEventSchema: () => SSEEventSchema,
   SSEEventTypeEnum: () => SSEEventTypeEnum,
   SearchOffersRequestSchema: () => SearchOffersRequestSchema,
+  SecurityConfigSchema: () => SecurityConfigSchema,
   SeniorityLevelEnum: () => SeniorityLevelEnum,
+  SessionCookieConfigSchema: () => SessionCookieConfigSchema,
+  SessionDetectionResponseSchema: () => SessionDetectionResponseSchema,
   SessionSchema: () => SessionSchema,
   SkillCategoryEnum: () => SkillCategoryEnum,
   SkillExtractionSchema: () => SkillExtractionSchema,
@@ -87,6 +126,7 @@ __export(index_exports, {
   SortOrderEnum: () => SortOrderEnum,
   SuccessResponseSchema: () => SuccessResponseSchema,
   TaskType: () => TaskType,
+  ValidateAnonymousSessionResponseSchema: () => ValidateAnonymousSessionResponseSchema,
   WorkModeEnum: () => WorkModeEnum,
   canAgentInvoke: () => canAgentInvoke,
   getAgentByCapability: () => getAgentByCapability,
@@ -768,29 +808,661 @@ var getAgentsByTaskType = (agents, taskType) => {
 var canAgentInvoke = (fromAgent, toAgentId) => {
   return fromAgent.can_invoke.includes(toAgentId) || fromAgent.hierarchy_level >= 4;
 };
+
+// src/cv.ts
+var import_zod7 = require("zod");
+var CVUploadSessionSchema = import_zod7.z.object({
+  id: import_zod7.z.string().uuid(),
+  user_id: import_zod7.z.string().uuid().nullable(),
+  // Made nullable for anonymous sessions
+  anonymous_session_id: import_zod7.z.string().uuid().nullable(),
+  // New: for anonymous sessions
+  filename: import_zod7.z.string().max(500),
+  file_size_bytes: import_zod7.z.number().int().min(0),
+  file_hash: import_zod7.z.string().length(64),
+  // SHA256 hash
+  upload_status: import_zod7.z.enum(["initiated", "uploading", "uploaded", "processing", "completed", "failed"]),
+  storage_path: import_zod7.z.string().nullable(),
+  processing_started_at: import_zod7.z.string().datetime().nullable(),
+  processing_completed_at: import_zod7.z.string().datetime().nullable(),
+  error_message: import_zod7.z.string().nullable(),
+  metadata: import_zod7.z.record(import_zod7.z.unknown()).default({}),
+  // New Phase 2 fields
+  session_type: import_zod7.z.enum(["authenticated", "anonymous"]).default("authenticated"),
+  partial_results_shown: import_zod7.z.boolean().default(false),
+  full_access_available: import_zod7.z.boolean().default(false),
+  conversion_attempted: import_zod7.z.boolean().default(false),
+  converted_user_id: import_zod7.z.string().uuid().nullable(),
+  created_at: import_zod7.z.string().datetime(),
+  updated_at: import_zod7.z.string().datetime()
+});
+var CVProcessingQueueSchema = import_zod7.z.object({
+  id: import_zod7.z.string().uuid(),
+  upload_session_id: import_zod7.z.string().uuid(),
+  queue_status: import_zod7.z.enum(["pending", "processing", "completed", "failed", "retry"]),
+  priority: import_zod7.z.number().int().min(1).max(10).default(5),
+  retry_count: import_zod7.z.number().int().min(0).default(0),
+  max_retries: import_zod7.z.number().int().min(0).default(3),
+  processing_started_at: import_zod7.z.string().datetime().nullable(),
+  processing_completed_at: import_zod7.z.string().datetime().nullable(),
+  worker_id: import_zod7.z.string().max(100).nullable(),
+  error_message: import_zod7.z.string().nullable(),
+  stage_details: import_zod7.z.record(import_zod7.z.unknown()).default({}),
+  created_at: import_zod7.z.string().datetime(),
+  updated_at: import_zod7.z.string().datetime()
+});
+var CVValidationResultSchema = import_zod7.z.object({
+  id: import_zod7.z.string().uuid(),
+  upload_session_id: import_zod7.z.string().uuid(),
+  validation_type: import_zod7.z.enum(["format", "content", "security", "quality"]),
+  validation_status: import_zod7.z.enum(["passed", "failed", "warning"]),
+  validation_score: import_zod7.z.number().min(0).max(1).nullable(),
+  validation_details: import_zod7.z.record(import_zod7.z.unknown()).default({}),
+  validation_errors: import_zod7.z.array(import_zod7.z.string()).default([]),
+  created_at: import_zod7.z.string().datetime()
+});
+var CVProcessingMetricSchema = import_zod7.z.object({
+  id: import_zod7.z.string().uuid(),
+  upload_session_id: import_zod7.z.string().uuid(),
+  metric_type: import_zod7.z.enum(["processing_time", "api_cost", "extraction_accuracy", "tokens_used"]),
+  metric_value: import_zod7.z.number(),
+  metric_unit: import_zod7.z.enum(["seconds", "dollars", "percentage", "tokens"]).nullable(),
+  processing_stage: import_zod7.z.enum(["text_extraction", "ai_parsing", "embedding_generation", "total"]).nullable(),
+  metadata: import_zod7.z.record(import_zod7.z.unknown()).default({}),
+  created_at: import_zod7.z.string().datetime()
+});
+var CVEmbeddingContextSchema = import_zod7.z.object({
+  profile_title: import_zod7.z.string(),
+  rome_codes: import_zod7.z.array(import_zod7.z.string()),
+  location: import_zod7.z.object({
+    city: import_zod7.z.string(),
+    department_code: import_zod7.z.string(),
+    region_code: import_zod7.z.string(),
+    country: import_zod7.z.string().default("FR")
+  }),
+  seniority_level: import_zod7.z.enum(["intern", "junior", "mid", "senior", "lead", "manager"]),
+  contract_preferences: import_zod7.z.array(import_zod7.z.enum(["CDI", "CDD", "APP", "PRO", "INTERIM", "STAGE", "FLEXIBLE"])),
+  work_mode_preferences: import_zod7.z.array(import_zod7.z.enum(["onsite", "remote", "hybrid", "flexible"])),
+  languages: import_zod7.z.array(import_zod7.z.object({
+    code: import_zod7.z.string().length(2),
+    cefr_level: import_zod7.z.number().int().min(1).max(6),
+    confidence: import_zod7.z.number().min(0).max(1)
+  })),
+  degree_eqf_top: import_zod7.z.number().int().min(1).max(8).nullable(),
+  skills_mastered: import_zod7.z.array(import_zod7.z.object({
+    name: import_zod7.z.string(),
+    normalized_name: import_zod7.z.string(),
+    years_experience: import_zod7.z.number().min(0).nullable(),
+    confidence: import_zod7.z.number().min(0).max(1)
+  })),
+  skills_learning: import_zod7.z.array(import_zod7.z.object({
+    name: import_zod7.z.string(),
+    normalized_name: import_zod7.z.string(),
+    confidence: import_zod7.z.number().min(0).max(1)
+  })),
+  salary_expectation: import_zod7.z.object({
+    min: import_zod7.z.number().int().min(0),
+    max: import_zod7.z.number().int().min(0),
+    period: import_zod7.z.enum(["annual", "monthly", "daily"]),
+    currency: import_zod7.z.string().default("EUR")
+  }).nullable(),
+  availability: import_zod7.z.string().nullable()
+  // Format: 'YYYY-MM' or 'ASAP'
+});
+var CVAIExtractionSchema = import_zod7.z.object({
+  profile: import_zod7.z.object({
+    title_canonical: import_zod7.z.string(),
+    location_preferred: import_zod7.z.object({
+      city: import_zod7.z.string(),
+      department_code: import_zod7.z.string(),
+      region_code: import_zod7.z.string()
+    }),
+    availability: import_zod7.z.string().nullable(),
+    seniority_level: import_zod7.z.enum(["intern", "junior", "mid", "senior", "lead", "manager"])
+  }),
+  skills_mastered: import_zod7.z.array(import_zod7.z.object({
+    name: import_zod7.z.string(),
+    normalized_name: import_zod7.z.string(),
+    years_experience: import_zod7.z.number().min(0).nullable(),
+    confidence: import_zod7.z.number().min(0).max(1)
+  })),
+  skills_learning: import_zod7.z.array(import_zod7.z.object({
+    name: import_zod7.z.string(),
+    normalized_name: import_zod7.z.string(),
+    confidence: import_zod7.z.number().min(0).max(1)
+  })),
+  experience: import_zod7.z.object({
+    total_years: import_zod7.z.number().min(0),
+    rome_codes_detected: import_zod7.z.array(import_zod7.z.string()),
+    previous_roles: import_zod7.z.array(import_zod7.z.object({
+      title: import_zod7.z.string(),
+      duration_months: import_zod7.z.number().int().min(0),
+      company: import_zod7.z.string(),
+      responsibilities: import_zod7.z.array(import_zod7.z.string()).optional()
+    }))
+  }),
+  education: import_zod7.z.object({
+    highest_degree: import_zod7.z.object({
+      level_eqf: import_zod7.z.number().int().min(1).max(8),
+      degree_type: import_zod7.z.string(),
+      confidence: import_zod7.z.number().min(0).max(1)
+    }).nullable()
+  }),
+  languages: import_zod7.z.array(import_zod7.z.object({
+    code: import_zod7.z.string().length(2),
+    cefr_level: import_zod7.z.number().int().min(1).max(6),
+    confidence: import_zod7.z.number().min(0).max(1)
+  })),
+  preferences: import_zod7.z.object({
+    contract_types: import_zod7.z.array(import_zod7.z.enum(["CDI", "CDD", "APP", "PRO", "INTERIM", "STAGE"])),
+    work_modes: import_zod7.z.array(import_zod7.z.enum(["onsite", "remote", "hybrid"])),
+    salary_expectation: import_zod7.z.object({
+      min: import_zod7.z.number().int().min(0),
+      max: import_zod7.z.number().int().min(0),
+      period: import_zod7.z.enum(["annual", "monthly"])
+    }).nullable()
+  }),
+  confidence_scores: import_zod7.z.object({
+    profile: import_zod7.z.number().min(0).max(1),
+    skills: import_zod7.z.number().min(0).max(1),
+    experience: import_zod7.z.number().min(0).max(1),
+    education: import_zod7.z.number().min(0).max(1),
+    global: import_zod7.z.number().min(0).max(1)
+  })
+});
+var CVUploadInitRequestSchema = import_zod7.z.object({
+  filename: import_zod7.z.string().min(1).max(500),
+  file_size: import_zod7.z.number().int().min(1).max(10 * 1024 * 1024),
+  // 10MB max
+  file_hash: import_zod7.z.string().length(64),
+  // SHA256
+  content_type: import_zod7.z.enum(["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"])
+});
+var CVUploadInitResponseSchema = import_zod7.z.object({
+  session_id: import_zod7.z.string().uuid(),
+  upload_url: import_zod7.z.string().url(),
+  success: import_zod7.z.boolean(),
+  message: import_zod7.z.string().optional()
+});
+var CVProcessStatusResponseSchema = import_zod7.z.object({
+  session_id: import_zod7.z.string().uuid(),
+  status: import_zod7.z.enum(["initiated", "uploading", "uploaded", "processing", "completed", "failed"]),
+  progress_percentage: import_zod7.z.number().min(0).max(100),
+  current_stage: import_zod7.z.string().optional(),
+  estimated_time_remaining: import_zod7.z.number().nullable(),
+  // seconds
+  error_message: import_zod7.z.string().nullable(),
+  validation_results: import_zod7.z.array(CVValidationResultSchema).optional(),
+  processing_metrics: import_zod7.z.array(CVProcessingMetricSchema).optional()
+});
+var CVProcessingStageSchema = import_zod7.z.object({
+  stage_name: import_zod7.z.string(),
+  stage_order: import_zod7.z.number().int().min(1),
+  status: import_zod7.z.enum(["pending", "processing", "completed", "failed", "skipped"]),
+  progress_percentage: import_zod7.z.number().min(0).max(100),
+  started_at: import_zod7.z.string().datetime().nullable(),
+  completed_at: import_zod7.z.string().datetime().nullable(),
+  duration_ms: import_zod7.z.number().int().min(0).nullable(),
+  error_message: import_zod7.z.string().nullable(),
+  stage_data: import_zod7.z.record(import_zod7.z.unknown()).default({})
+});
+var CVProcessingProgressSchema = import_zod7.z.object({
+  session_id: import_zod7.z.string().uuid(),
+  overall_status: import_zod7.z.enum(["initiated", "uploading", "uploaded", "processing", "completed", "failed"]),
+  overall_progress: import_zod7.z.number().min(0).max(100),
+  estimated_completion: import_zod7.z.string().datetime().nullable(),
+  stages: import_zod7.z.array(CVProcessingStageSchema),
+  quality_score: import_zod7.z.number().min(0).max(1).nullable(),
+  cost_estimate: import_zod7.z.number().min(0).nullable()
+  // in dollars
+});
+var CVJobMatchSchema = import_zod7.z.object({
+  offer_id: import_zod7.z.string(),
+  match_score: import_zod7.z.number().min(0).max(1),
+  explanation: import_zod7.z.object({
+    semantic_similarity: import_zod7.z.number().min(0).max(1),
+    skills_coverage: import_zod7.z.number().min(0).max(1),
+    seniority_compatibility: import_zod7.z.number().min(0).max(1),
+    location_match: import_zod7.z.number().min(0).max(1),
+    preferences_alignment: import_zod7.z.number().min(0).max(1),
+    reasons: import_zod7.z.array(import_zod7.z.string()),
+    skill_gaps: import_zod7.z.array(import_zod7.z.string())
+  }),
+  offer_summary: import_zod7.z.object({
+    title: import_zod7.z.string(),
+    company_name: import_zod7.z.string(),
+    location: import_zod7.z.string(),
+    contract_type: import_zod7.z.string(),
+    salary_range: import_zod7.z.string().nullable()
+  })
+});
+var CVProcessingErrorSchema = import_zod7.z.object({
+  error_code: import_zod7.z.string(),
+  error_message: import_zod7.z.string(),
+  error_details: import_zod7.z.record(import_zod7.z.unknown()).optional(),
+  session_id: import_zod7.z.string().uuid().optional(),
+  recovery_suggestions: import_zod7.z.array(import_zod7.z.string()).optional()
+});
+var CV_UPLOAD_STATUS = {
+  INITIATED: "initiated",
+  UPLOADING: "uploading",
+  UPLOADED: "uploaded",
+  PROCESSING: "processing",
+  COMPLETED: "completed",
+  FAILED: "failed"
+};
+var CV_PROCESSING_STAGES = {
+  FILE_VALIDATION: "file_validation",
+  TEXT_EXTRACTION: "text_extraction",
+  AI_PARSING: "ai_parsing",
+  DATA_VALIDATION: "data_validation",
+  EMBEDDING_GENERATION: "embedding_generation",
+  PROFILE_CREATION: "profile_creation",
+  MATCHING_PREPARATION: "matching_preparation"
+};
+var CV_VALIDATION_TYPES = {
+  FORMAT: "format",
+  CONTENT: "content",
+  SECURITY: "security",
+  QUALITY: "quality"
+};
+var CV_PROCESSING_PRIORITIES = {
+  HIGH: 1,
+  NORMAL: 5,
+  LOW: 10
+};
+var CV_CONSTRAINTS = {
+  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024,
+  // 10MB
+  SUPPORTED_FORMATS: ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+  MAX_FILENAME_LENGTH: 500,
+  MIN_CONFIDENCE_THRESHOLD: 0.8,
+  MAX_PROCESSING_TIME_SECONDS: 300
+  // 5 minutes
+};
+var AnonymousCVResultSchema = import_zod7.z.object({
+  id: import_zod7.z.string().uuid(),
+  anonymous_session_id: import_zod7.z.string().uuid(),
+  upload_session_id: import_zod7.z.string().uuid(),
+  // Partial results data (limited information)
+  skills_count: import_zod7.z.number().int().min(0).default(0),
+  experience_level: import_zod7.z.string().nullable(),
+  job_matches_count: import_zod7.z.number().int().min(0).default(0),
+  confidence_score: import_zod7.z.number().min(0).max(1).nullable(),
+  // Limited skills preview (max 5 skills)
+  skills_preview: import_zod7.z.array(import_zod7.z.object({
+    name: import_zod7.z.string(),
+    normalized_name: import_zod7.z.string(),
+    confidence: import_zod7.z.number().min(0).max(1)
+  })).default([]),
+  // Teaser information to encourage registration
+  additional_skills_available: import_zod7.z.number().int().min(0).default(0),
+  detailed_matches_available: import_zod7.z.number().int().min(0).default(0),
+  ai_insights_available: import_zod7.z.boolean().default(false),
+  // Access tracking
+  viewed_count: import_zod7.z.number().int().min(0).default(0),
+  last_viewed_at: import_zod7.z.string().datetime().nullable(),
+  // Expiration and cleanup
+  created_at: import_zod7.z.string().datetime(),
+  expires_at: import_zod7.z.string().datetime(),
+  // Metadata
+  metadata: import_zod7.z.record(import_zod7.z.unknown()).default({})
+});
+var AnonymousCVMigrationSchema = import_zod7.z.object({
+  id: import_zod7.z.string().uuid(),
+  // Source anonymous data
+  anonymous_session_id: import_zod7.z.string().uuid(),
+  original_upload_session_id: import_zod7.z.string().uuid(),
+  // Target authenticated data
+  new_user_id: import_zod7.z.string().uuid(),
+  new_upload_session_id: import_zod7.z.string().uuid(),
+  new_cv_profile_id: import_zod7.z.string().uuid().nullable(),
+  // Migration details
+  migration_status: import_zod7.z.enum(["pending", "completed", "failed"]).default("pending"),
+  migrated_data_types: import_zod7.z.array(import_zod7.z.enum(["upload_session", "cv_profile", "cv_embeddings", "results"])).default([]),
+  // Audit trail
+  migration_started_at: import_zod7.z.string().datetime(),
+  migration_completed_at: import_zod7.z.string().datetime().nullable(),
+  error_message: import_zod7.z.string().nullable(),
+  // Metadata
+  metadata: import_zod7.z.record(import_zod7.z.unknown()).default({})
+});
+var SessionDetectionResponseSchema = import_zod7.z.object({
+  session_type: import_zod7.z.enum(["authenticated", "anonymous", "invalid"]),
+  user_id: import_zod7.z.string().uuid().nullable(),
+  anonymous_session_id: import_zod7.z.string().uuid().nullable(),
+  session_token: import_zod7.z.string().nullable(),
+  requires_auth: import_zod7.z.boolean(),
+  can_access_cv_processing: import_zod7.z.boolean(),
+  upload_attempts_remaining: import_zod7.z.number().int().min(0).nullable(),
+  session_expires_at: import_zod7.z.string().datetime().nullable()
+});
+var PartialCVResultsResponseSchema = import_zod7.z.object({
+  success: import_zod7.z.boolean(),
+  session_id: import_zod7.z.string().uuid(),
+  access_level: import_zod7.z.enum(["partial", "full"]),
+  // Partial data
+  summary: import_zod7.z.object({
+    skills_found: import_zod7.z.number().int().min(0),
+    experience_level: import_zod7.z.string(),
+    job_opportunities_estimated: import_zod7.z.number().int().min(0),
+    analysis_confidence: import_zod7.z.number().min(0).max(1)
+  }),
+  // Limited preview data
+  skills_preview: import_zod7.z.array(import_zod7.z.object({
+    name: import_zod7.z.string(),
+    confidence: import_zod7.z.enum(["high", "medium", "low"])
+  })).max(5),
+  location_detected: import_zod7.z.object({
+    city: import_zod7.z.string().nullable(),
+    region: import_zod7.z.string().nullable()
+  }).nullable(),
+  // Upgrade incentives
+  full_results_available: import_zod7.z.object({
+    complete_skills_analysis: import_zod7.z.number().int().min(0),
+    detailed_job_matches: import_zod7.z.number().int().min(0),
+    ai_powered_insights: import_zod7.z.boolean(),
+    personalized_recommendations: import_zod7.z.boolean()
+  }),
+  // Next steps
+  call_to_action: import_zod7.z.object({
+    title: import_zod7.z.string(),
+    description: import_zod7.z.string(),
+    action_url: import_zod7.z.string(),
+    expires_at: import_zod7.z.string().datetime()
+  }),
+  // Metadata
+  processed_at: import_zod7.z.string().datetime(),
+  expires_at: import_zod7.z.string().datetime()
+});
+var AnonymousCVProcessingRequestSchema = import_zod7.z.object({
+  session_token: import_zod7.z.string().min(16),
+  session_id: import_zod7.z.string().uuid(),
+  generate_partial_results: import_zod7.z.boolean().default(true)
+});
+var CVMigrationRequestSchema = import_zod7.z.object({
+  anonymous_session_token: import_zod7.z.string().min(16),
+  new_user_id: import_zod7.z.string().uuid(),
+  migrate_all_data: import_zod7.z.boolean().default(true),
+  migrate_data_types: import_zod7.z.array(import_zod7.z.enum(["upload_session", "cv_profile", "cv_embeddings", "results"])).optional()
+});
+var ANONYMOUS_CV_CONSTRAINTS = {
+  MAX_SKILLS_PREVIEW: 5,
+  SESSION_DURATION_MINUTES: 60,
+  PARTIAL_RESULTS_EXPIRY_MINUTES: 60,
+  MAX_ANONYMOUS_UPLOADS_PER_SESSION: 3,
+  MIN_CONFIDENCE_FOR_PARTIAL_RESULTS: 0.6,
+  // Lower threshold for anonymous
+  PARTIAL_RESULTS_REFRESH_INTERVAL_MS: 3e4
+  // 30 seconds
+};
+
+// src/anonymous.ts
+var import_zod8 = require("zod");
+var AnonymousSessionSchema = import_zod8.z.object({
+  id: import_zod8.z.string().uuid(),
+  session_token: import_zod8.z.string(),
+  // Security and fingerprinting
+  client_ip: import_zod8.z.string(),
+  user_agent_hash: import_zod8.z.string(),
+  browser_fingerprint: import_zod8.z.string().optional(),
+  // Session lifecycle
+  created_at: import_zod8.z.string().datetime(),
+  last_accessed_at: import_zod8.z.string().datetime(),
+  expires_at: import_zod8.z.string().datetime(),
+  is_active: import_zod8.z.boolean(),
+  // Rate limiting
+  upload_attempts: import_zod8.z.number().int().min(0),
+  max_upload_attempts: import_zod8.z.number().int().min(1),
+  // Conversion tracking
+  converted_to_user_id: import_zod8.z.string().uuid().nullable(),
+  converted_at: import_zod8.z.string().datetime().nullable(),
+  // Metadata
+  security_flags: import_zod8.z.record(import_zod8.z.unknown()).optional(),
+  metadata: import_zod8.z.record(import_zod8.z.unknown()).optional()
+});
+var AnonymousCVSessionSchema = import_zod8.z.object({
+  id: import_zod8.z.string().uuid(),
+  anonymous_session_id: import_zod8.z.string().uuid(),
+  // File information
+  filename: import_zod8.z.string(),
+  file_size_bytes: import_zod8.z.number().int().positive(),
+  file_hash: import_zod8.z.string(),
+  storage_path: import_zod8.z.string(),
+  // Status tracking
+  upload_status: import_zod8.z.enum(["initiated", "uploading", "uploaded", "processing", "completed", "failed"]),
+  processing_status: import_zod8.z.enum(["pending", "processing", "completed", "failed"]).nullable(),
+  // Processing lifecycle
+  processing_started_at: import_zod8.z.string().datetime().nullable(),
+  processing_completed_at: import_zod8.z.string().datetime().nullable(),
+  // Results (partial for anonymous users)
+  partial_results: import_zod8.z.record(import_zod8.z.unknown()).nullable(),
+  full_results_available: import_zod8.z.boolean(),
+  // Error handling
+  error_message: import_zod8.z.string().nullable(),
+  retry_count: import_zod8.z.number().int().min(0),
+  max_retries: import_zod8.z.number().int().min(0),
+  // Timestamps
+  created_at: import_zod8.z.string().datetime(),
+  updated_at: import_zod8.z.string().datetime(),
+  expires_at: import_zod8.z.string().datetime(),
+  // Metadata
+  metadata: import_zod8.z.record(import_zod8.z.unknown()).optional()
+});
+var AnonymousSessionRateLimitSchema = import_zod8.z.object({
+  id: import_zod8.z.string().uuid(),
+  anonymous_session_id: import_zod8.z.string().uuid(),
+  // Rate limiting window
+  window_start: import_zod8.z.string().datetime(),
+  window_duration: import_zod8.z.string(),
+  // PostgreSQL interval
+  // Counters
+  api_calls_count: import_zod8.z.number().int().min(0),
+  upload_attempts: import_zod8.z.number().int().min(0),
+  // Limits
+  max_api_calls: import_zod8.z.number().int().min(1),
+  max_uploads: import_zod8.z.number().int().min(1),
+  // Blocking
+  is_blocked: import_zod8.z.boolean(),
+  blocked_until: import_zod8.z.string().datetime().nullable(),
+  block_reason: import_zod8.z.string().nullable(),
+  // Timestamps
+  created_at: import_zod8.z.string().datetime(),
+  updated_at: import_zod8.z.string().datetime()
+});
+var CreateAnonymousSessionRequestSchema = import_zod8.z.object({
+  browser_fingerprint: import_zod8.z.string().optional()
+});
+var CreateAnonymousSessionResponseSchema = import_zod8.z.object({
+  success: import_zod8.z.boolean(),
+  session_token: import_zod8.z.string(),
+  session_id: import_zod8.z.string().uuid(),
+  expires_at: import_zod8.z.string().datetime(),
+  remaining_uploads: import_zod8.z.number().int().min(0),
+  message: import_zod8.z.string().optional()
+});
+var ValidateAnonymousSessionResponseSchema = import_zod8.z.object({
+  session_id: import_zod8.z.string().uuid(),
+  is_valid: import_zod8.z.boolean(),
+  remaining_uploads: import_zod8.z.number().int().min(0),
+  rate_limited: import_zod8.z.boolean(),
+  session_expires_at: import_zod8.z.string().datetime()
+});
+var AnonymousCVUploadInitRequestSchema = import_zod8.z.object({
+  filename: import_zod8.z.string().min(1).max(255),
+  file_size: import_zod8.z.number().int().positive().max(10 * 1024 * 1024),
+  // 10MB max
+  content_type: import_zod8.z.enum(["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]),
+  file_hash: import_zod8.z.string().length(64)
+  // SHA-256 hash
+});
+var AnonymousCVUploadInitResponseSchema = import_zod8.z.object({
+  success: import_zod8.z.boolean(),
+  session_id: import_zod8.z.string().uuid(),
+  cv_session_id: import_zod8.z.string().uuid(),
+  upload_url: import_zod8.z.string().url(),
+  expires_at: import_zod8.z.string().datetime(),
+  message: import_zod8.z.string().optional()
+});
+var AnonymousCVProcessingStatusSchema = import_zod8.z.object({
+  cv_session_id: import_zod8.z.string().uuid(),
+  upload_status: import_zod8.z.enum(["initiated", "uploading", "uploaded", "processing", "completed", "failed"]),
+  processing_status: import_zod8.z.enum(["pending", "processing", "completed", "failed"]).nullable(),
+  // Progress information
+  progress_percentage: import_zod8.z.number().int().min(0).max(100),
+  current_stage: import_zod8.z.string(),
+  estimated_time_remaining: import_zod8.z.number().int().nullable(),
+  // seconds
+  // Partial results (limited for anonymous users)
+  partial_results: import_zod8.z.object({
+    job_title: import_zod8.z.string().optional(),
+    experience_level: import_zod8.z.enum(["intern", "junior", "mid", "senior", "lead", "manager"]).optional(),
+    key_skills: import_zod8.z.array(import_zod8.z.string()).max(5),
+    // Limited to 5 skills for anonymous
+    location_preference: import_zod8.z.string().optional(),
+    education_level: import_zod8.z.string().optional()
+  }).nullable(),
+  // Call to action for full results
+  full_results_available: import_zod8.z.boolean(),
+  registration_required: import_zod8.z.boolean(),
+  // Error information
+  error_message: import_zod8.z.string().nullable()
+});
+var SessionCookieConfigSchema = import_zod8.z.object({
+  name: import_zod8.z.string(),
+  maxAge: import_zod8.z.number().int().positive(),
+  // seconds
+  httpOnly: import_zod8.z.boolean(),
+  secure: import_zod8.z.boolean(),
+  sameSite: import_zod8.z.enum(["strict", "lax", "none"]),
+  domain: import_zod8.z.string().optional(),
+  path: import_zod8.z.string()
+});
+var RateLimitConfigSchema = import_zod8.z.object({
+  max_uploads_per_session: import_zod8.z.number().int().positive(),
+  max_api_calls_per_hour: import_zod8.z.number().int().positive(),
+  upload_window_minutes: import_zod8.z.number().int().positive(),
+  block_duration_minutes: import_zod8.z.number().int().positive(),
+  cleanup_interval_minutes: import_zod8.z.number().int().positive()
+});
+var SecurityConfigSchema = import_zod8.z.object({
+  require_ip_consistency: import_zod8.z.boolean(),
+  require_user_agent_consistency: import_zod8.z.boolean(),
+  enable_browser_fingerprinting: import_zod8.z.boolean(),
+  max_session_lifetime_minutes: import_zod8.z.number().int().positive(),
+  enable_cleanup_job: import_zod8.z.boolean()
+});
+var AnonymousSessionErrorCodes = {
+  SESSION_EXPIRED: "SESSION_EXPIRED",
+  SESSION_NOT_FOUND: "SESSION_NOT_FOUND",
+  SESSION_RATE_LIMITED: "SESSION_RATE_LIMITED",
+  SESSION_BLOCKED: "SESSION_BLOCKED",
+  INVALID_SESSION_TOKEN: "INVALID_SESSION_TOKEN",
+  SECURITY_VIOLATION: "SECURITY_VIOLATION",
+  UPLOAD_LIMIT_EXCEEDED: "UPLOAD_LIMIT_EXCEEDED",
+  FILE_TOO_LARGE: "FILE_TOO_LARGE",
+  INVALID_FILE_TYPE: "INVALID_FILE_TYPE",
+  PROCESSING_FAILED: "PROCESSING_FAILED"
+};
+var AnonymousSessionErrorSchema = import_zod8.z.object({
+  code: import_zod8.z.enum([
+    "SESSION_EXPIRED",
+    "SESSION_NOT_FOUND",
+    "SESSION_RATE_LIMITED",
+    "SESSION_BLOCKED",
+    "INVALID_SESSION_TOKEN",
+    "SECURITY_VIOLATION",
+    "UPLOAD_LIMIT_EXCEEDED",
+    "FILE_TOO_LARGE",
+    "INVALID_FILE_TYPE",
+    "PROCESSING_FAILED"
+  ]),
+  message: import_zod8.z.string(),
+  details: import_zod8.z.record(import_zod8.z.unknown()).optional(),
+  retry_after: import_zod8.z.number().int().optional()
+  // seconds until retry allowed
+});
+var ANONYMOUS_SESSION_CONSTANTS = {
+  // Session Configuration
+  SESSION_LIFETIME_MINUTES: 60,
+  CV_SESSION_LIFETIME_HOURS: 2,
+  SESSION_COOKIE_NAME: "cledger_anonymous_session",
+  // Rate Limiting
+  MAX_UPLOADS_PER_SESSION: 3,
+  MAX_API_CALLS_PER_HOUR: 100,
+  RATE_LIMIT_WINDOW_MINUTES: 60,
+  BLOCK_DURATION_MINUTES: 30,
+  // File Limits
+  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024,
+  // 10MB
+  ALLOWED_MIME_TYPES: [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ],
+  // Security
+  SESSION_TOKEN_LENGTH: 32,
+  // bytes (256 bits)
+  CLEANUP_INTERVAL_MINUTES: 15,
+  // Partial Results Limits
+  MAX_SKILLS_SHOWN: 5,
+  MAX_EXPERIENCE_DETAIL: "basic"
+  // vs 'detailed' for registered users
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  ANONYMOUS_CV_CONSTRAINTS,
+  ANONYMOUS_SESSION_CONSTANTS,
   AdminBatchEnrichmentRequestSchema,
   AdminEnrichmentStatsSchema,
   Agent,
   AgentCapability,
   AgentConversation,
   AgentResponse,
+  AnonymousCVMigrationSchema,
+  AnonymousCVProcessingRequestSchema,
+  AnonymousCVProcessingStatusSchema,
+  AnonymousCVResultSchema,
+  AnonymousCVSessionSchema,
+  AnonymousCVUploadInitRequestSchema,
+  AnonymousCVUploadInitResponseSchema,
+  AnonymousSessionErrorCodes,
+  AnonymousSessionErrorSchema,
+  AnonymousSessionRateLimitSchema,
+  AnonymousSessionSchema,
   AppRoleEnum,
   AppUserSchema,
   BatchCreateRequestSchema,
   BatchSchema,
   BatchStatusEnum,
   CEFRLevelEnum,
+  CVAIExtractionSchema,
   CVDegreeSchema,
   CVDocumentSchema,
+  CVEmbeddingContextSchema,
   CVEmbeddingSchema,
   CVEnrichmentSchema,
   CVExperienceSchema,
+  CVJobMatchSchema,
   CVLanguageSchema,
+  CVMigrationRequestSchema,
   CVParseStatusEnum,
+  CVProcessStatusResponseSchema,
+  CVProcessingErrorSchema,
+  CVProcessingMetricSchema,
+  CVProcessingProgressSchema,
+  CVProcessingQueueSchema,
+  CVProcessingStageSchema,
   CVSkillSchema,
+  CVUploadInitRequestSchema,
+  CVUploadInitResponseSchema,
   CVUploadRequestSchema,
+  CVUploadSessionSchema,
+  CVValidationResultSchema,
+  CV_CONSTRAINTS,
+  CV_PROCESSING_PRIORITIES,
+  CV_PROCESSING_STAGES,
+  CV_UPLOAD_STATUS,
+  CV_VALIDATION_TYPES,
   CandidateProfileSchema,
   CapabilitiesResponse,
   CompanySchema,
@@ -798,6 +1470,8 @@ var canAgentInvoke = (fromAgent, toAgentId) => {
   ConfidenceScoresSchema,
   ContractTypeEnum,
   ConversationStatus,
+  CreateAnonymousSessionRequestSchema,
+  CreateAnonymousSessionResponseSchema,
   DegreeClassificationSchema,
   DegreeRequirementSchema,
   DelegateTaskRequest,
@@ -822,14 +1496,19 @@ var canAgentInvoke = (fromAgent, toAgentId) => {
   OfferSourceEnum,
   OfferStatusEnum,
   PaginationSchema,
+  PartialCVResultsResponseSchema,
   PasswordResetRequestSchema,
   PasswordResetSchema,
   Priority,
+  RateLimitConfigSchema,
   RegistrationSchema,
   SSEEventSchema,
   SSEEventTypeEnum,
   SearchOffersRequestSchema,
+  SecurityConfigSchema,
   SeniorityLevelEnum,
+  SessionCookieConfigSchema,
+  SessionDetectionResponseSchema,
   SessionSchema,
   SkillCategoryEnum,
   SkillExtractionSchema,
@@ -837,6 +1516,7 @@ var canAgentInvoke = (fromAgent, toAgentId) => {
   SortOrderEnum,
   SuccessResponseSchema,
   TaskType,
+  ValidateAnonymousSessionResponseSchema,
   WorkModeEnum,
   canAgentInvoke,
   getAgentByCapability,

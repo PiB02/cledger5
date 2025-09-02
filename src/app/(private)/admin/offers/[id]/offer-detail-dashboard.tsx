@@ -36,7 +36,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { enrichOfferAction } from '../enrich-actions'
-import { buildEmbeddingText } from '@cledger5/utils/embedding-text-builder'
+import { buildEmbeddingText } from '@cledger5/utils'
 
 interface OfferDetail {
   id: string

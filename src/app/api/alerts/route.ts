@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
       userAlerts = createdAlerts || [];
     }
 
-    let responseData: any = { alerts: userAlerts };
+    const responseData: any = { alerts: userAlerts };
 
     // Include delivery history if requested
     if (includeHistory) {

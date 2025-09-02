@@ -27,14 +27,6 @@
         "CONTEXT7_API_KEY": "ctx7sk-9015df71-fa7c-4b14-81f9-723ecc2e0009"
       }
     },
-    "postgres": {
-      "type": "stdio",
-      "command": "mcp-postgres-full-access",
-      "args": [],
-      "env": {
-        "DATABASE_URL": "postgresql://postgres.kdgqyejbtfcqunwloxwu:Iletait1x$@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
-      }
-    },
     "supabase": {
       "command": "npx",
       "args": [

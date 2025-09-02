@@ -105,10 +105,11 @@ interface OfferDetail {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const offerId = params.id
+    const resolvedParams = await params
+    const offerId = resolvedParams.id
     
     if (!offerId) {
       throw errorFactory.BAD_REQUEST('Offer ID is required')
@@ -151,7 +152,7 @@ export async function GET(
     // First, get the source IDs and offer IDs to search for
     const sourceOfferIds = (sources || []).map(s => s.source_offer_id)
     
-    let rawData: any[] = []
+    const rawData: any[] = []
     
     if (sourceOfferIds.length > 0) {
       // Query recent partitions (last 3 months)

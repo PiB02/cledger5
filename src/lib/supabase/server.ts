@@ -26,4 +26,20 @@ export async function createSupabaseServer() {
       },
     }
   )
+}
+
+export async function createSupabaseAdmin() {
+  // Service role client doesn't need cookies - use createClient directly
+  const { createClient } = await import('@supabase/supabase-js')
+  
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
 } 

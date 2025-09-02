@@ -9,6 +9,7 @@
       "Bash(ls:*)",
       "Bash(gh:*)", 
       "Bash(powershell:*)",
+      "Bash(netstat:*)",
       "Bash(curl:*)",
       "Bash(git:*)",
       "Bash(cmd:*)",

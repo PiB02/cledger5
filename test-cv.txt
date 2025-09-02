@@ -1,0 +1,22 @@
+CV Test
+
+Jean Dupont
+Développeur Web Full-Stack
+Paris, France
+
+EXPÉRIENCE PROFESSIONNELLE
+• Développeur Frontend - TechCorp (2022-2024)
+• Stage développement - StartupXYZ (2021)
+
+COMPÉTENCES
+• JavaScript, React, Node.js
+• HTML, CSS, TypeScript
+• SQL, MongoDB
+
+FORMATION
+• Master Informatique - Université Paris (2021)
+• Licence Informatique - Université Lyon (2019)
+
+LANGUES
+• Français : Natif
+• Anglais : Courant

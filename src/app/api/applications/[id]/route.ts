@@ -13,7 +13,7 @@ const UpdateApplicationSchema = z.object({
 // GET /api/applications/[id] - Get specific application
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -22,7 +22,8 @@ export async function GET(
       throw errorFactory.UNAUTHORIZED("Authentication required");
     }
 
-    const applicationId = params.id;
+    const resolvedParams = await params;
+    const applicationId = resolvedParams.id;
 
     const supabase = createRouteHandlerClient();
 
@@ -100,7 +101,7 @@ export async function GET(
 // PATCH /api/applications/[id] - Update application
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -109,7 +110,8 @@ export async function PATCH(
       throw errorFactory.UNAUTHORIZED("Authentication required");
     }
 
-    const applicationId = params.id;
+    const resolvedParams = await params;
+    const applicationId = resolvedParams.id;
     const body = await request.json();
     const validatedData = UpdateApplicationSchema.parse(body);
 
@@ -214,7 +216,7 @@ export async function PATCH(
 // DELETE /api/applications/[id] - Withdraw application
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -223,7 +225,8 @@ export async function DELETE(
       throw errorFactory.UNAUTHORIZED("Authentication required");
     }
 
-    const applicationId = params.id;
+    const resolvedParams = await params;
+    const applicationId = resolvedParams.id;
 
     const supabase = createRouteHandlerClient();
 

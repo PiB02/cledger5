@@ -2,16 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🤖 AUTO-CONTEXT LOADING PROTOCOL
+## 🤖 UNIFIED CONTEXT LOADING PROTOCOL
 **CRITICAL**: At the start of EVERY conversation, automatically read these files in order:
-1. **`docs/current-context.md`** - Current project state, active phase, and priority tasks
-2. **`docs/development-history.md`** - Complete development history and phase details  
-3. **`docs/troubleshooting.md`** - If user mentions errors, issues, or debugging
-4. **`docs/task-roadmap.md`** - For roadmap questions or task planning
-5. **`docs/developer-quickstart.md`** - For onboarding or setup questions
-6. **`docs/architecture-diagrams.md`** - For system architecture or visual diagram needs
+1. **`docs/project-state.md`** - Complete project state, phases, roadmap, and recent sessions
+2. **`docs/technical-reference.md`** - Architecture, APIs, database schema, and configuration
+3. **`docs/troubleshooting.md`** - Only if user mentions errors, issues, or debugging
 
-This auto-loading protocol replaces the manual "look in memory.md" command and ensures you always have current project context.
+This unified protocol consolidates all project context into 2 core files (3 if debugging), eliminating redundancy and ensuring efficient context loading.
 
 ## Development Commands
 
@@ -134,15 +131,37 @@ Batch processing uses Server-Sent Events via `/api/batch/:id/stream` for real-ti
 - `docs/02-DB-SQL-Queries.md` - Essential SQL queries
 - `docs/05-Cursor-Dev-Rules.md` - Development rules and constraints
 
+## 💾 GITHUB BACKUP PROTOCOL
+**MANDATORY**: Save progress to GitHub regularly with this workflow:
+```bash
+# After every major task completion
+git add .
+git commit -m "feat: description of changes
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+git push origin [current-branch]
+
+# Update project-state.md with session summary
+# Include: what was done, issues resolved, next steps
+```
+
+**Trigger GitHub backup automatically:**
+- After completing any significant development task
+- When resolving bugs or errors
+- At end of each development session
+- When adding new features or endpoints
+
 ## Important Notes for Development
-- PowerShell does not accept `&&` in commands - use `;` or separate commands
-- Always follow the auto-context loading protocol above
-- All critical project information is maintained in the docs/ folder structure
+- **Windows Environment**: PowerShell does not accept `&&` - use `;` or separate commands
+- **Port Management**: Always check for existing localhost servers before starting new ones
+- **Context Loading**: Follow unified protocol above - only 2-3 files to load
+- **Documentation**: All project information consolidated in `docs/project-state.md` + `docs/technical-reference.md`
 
 ## MCP Servers Available
-- **Context7** : Library documentation and best practices lookup
-- **Supabase** : Direct database operations, schema management, migrations
-- **Vercel** : Deployment management and project operations  
-- **Playwright** : Browser automation and E2E testing
-- always use the PostgreSQL MCP server each time you need to write a complex query or do something with supabase
-- nous sommes dans un environnement de dev windows. powershell n'accepta pas les & et &&
+- **Context7**: Library documentation and best practices lookup
+- **Supabase**: Direct database operations, schema management, migrations
+- **Vercel**: Deployment management and project operations  
+- **Playwright**: Browser automation and E2E testing
+- **Sequential Thinking**: Complex problem analysis and planning

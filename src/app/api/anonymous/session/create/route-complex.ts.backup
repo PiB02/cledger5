@@ -1,0 +1,109 @@
+/**
+ * Anonymous Session Creation API
+ * POST /api/anonymous/session/create
+ * 
+ * Creates a new anonymous session for "try before you buy" CV upload experience.
+ * Returns session token and sets secure HTTP-only cookie.
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { 
+  createSessionWithCookie,
+  generateBrowserFingerprint 
+} from '@/lib/anonymous-sessions'
+import {
+  CreateAnonymousSessionRequestSchema,
+  AnonymousSessionErrorCodes,
+} from '@cledger5/types'
+import { errorFactory } from '@/lib/errors'
+
+/**
+ * POST /api/anonymous/session/create
+ * Create new anonymous session
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Parse request body (optional browser fingerprint)
+    let browserFingerprint: string | undefined
+    
+    try {
+      const rawBody = await request.json()
+      const validatedRequest = CreateAnonymousSessionRequestSchema.parse(rawBody)
+      browserFingerprint = validatedRequest.browser_fingerprint
+    } catch (parseError) {
+      // Body parsing is optional - we can work without browser fingerprint
+      browserFingerprint = undefined
+    }
+
+    // If no browser fingerprint provided, generate one from headers
+    if (!browserFingerprint) {
+      browserFingerprint = generateBrowserFingerprint(request)
+    }
+
+    // Create session and return response with cookie
+    return await createSessionWithCookie(request, browserFingerprint)
+
+  } catch (error: any) {
+    console.error('Anonymous session creation error:', error)
+    
+    // Handle specific error types
+    if (error.name === 'ZodError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: AnonymousSessionErrorCodes.INVALID_SESSION_TOKEN,
+          message: 'Invalid request data',
+          details: error.errors
+        },
+        { status: 400 }
+      )
+    }
+
+    // Handle app errors
+    if (error.statusCode) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.code || 'UNKNOWN_ERROR',
+          message: error.message,
+          details: error.details
+        },
+        { status: error.statusCode }
+      )
+    }
+
+    // Fallback error response
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'SESSION_CREATION_FAILED',
+        message: 'Failed to create anonymous session'
+      },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * GET /api/anonymous/session/create
+ * Not supported - sessions must be created via POST
+ */
+export async function GET() {
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'METHOD_NOT_ALLOWED',
+      message: 'Use POST to create anonymous sessions',
+      details: {
+        allowed_methods: ['POST'],
+        example_request: {
+          method: 'POST',
+          body: {
+            browser_fingerprint: 'optional-fingerprint-string'
+          }
+        }
+      }
+    },
+    { status: 405 }
+  )
+}

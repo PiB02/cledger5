@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
-// Base upload session schema
+// Base upload session schema (extended for Phase 2 anonymous support)
 export const CVUploadSessionSchema = z.object({
   id: z.string().uuid(),
-  user_id: z.string(),
+  user_id: z.string().uuid().nullable(), // Made nullable for anonymous sessions
+  anonymous_session_id: z.string().uuid().nullable(), // New: for anonymous sessions
   filename: z.string().max(500),
   file_size_bytes: z.number().int().min(0),
   file_hash: z.string().length(64), // SHA256 hash
@@ -13,6 +14,12 @@ export const CVUploadSessionSchema = z.object({
   processing_completed_at: z.string().datetime().nullable(),
   error_message: z.string().nullable(),
   metadata: z.record(z.unknown()).default({}),
+  // New Phase 2 fields
+  session_type: z.enum(['authenticated', 'anonymous']).default('authenticated'),
+  partial_results_shown: z.boolean().default(false),
+  full_access_available: z.boolean().default(false),
+  conversion_attempted: z.boolean().default(false),
+  converted_user_id: z.string().uuid().nullable(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
 });
@@ -309,6 +316,167 @@ export const CV_CONSTRAINTS = {
   MAX_PROCESSING_TIME_SECONDS: 300, // 5 minutes
 } as const;
 
+// ================================================================================
+// PHASE 2: ANONYMOUS CV PROCESSING SCHEMAS
+// ================================================================================
+
+// Anonymous CV Results Schema - partial results shown to anonymous users
+export const AnonymousCVResultSchema = z.object({
+  id: z.string().uuid(),
+  anonymous_session_id: z.string().uuid(),
+  upload_session_id: z.string().uuid(),
+  
+  // Partial results data (limited information)
+  skills_count: z.number().int().min(0).default(0),
+  experience_level: z.string().nullable(),
+  job_matches_count: z.number().int().min(0).default(0),
+  confidence_score: z.number().min(0).max(1).nullable(),
+  
+  // Limited skills preview (max 5 skills)
+  skills_preview: z.array(z.object({
+    name: z.string(),
+    normalized_name: z.string(),
+    confidence: z.number().min(0).max(1)
+  })).default([]),
+  
+  // Teaser information to encourage registration
+  additional_skills_available: z.number().int().min(0).default(0),
+  detailed_matches_available: z.number().int().min(0).default(0),
+  ai_insights_available: z.boolean().default(false),
+  
+  // Access tracking
+  viewed_count: z.number().int().min(0).default(0),
+  last_viewed_at: z.string().datetime().nullable(),
+  
+  // Expiration and cleanup
+  created_at: z.string().datetime(),
+  expires_at: z.string().datetime(),
+  
+  // Metadata
+  metadata: z.record(z.unknown()).default({})
+});
+
+export type AnonymousCVResult = z.infer<typeof AnonymousCVResultSchema>;
+
+// Anonymous CV Migration Schema - tracks data migration when user registers
+export const AnonymousCVMigrationSchema = z.object({
+  id: z.string().uuid(),
+  
+  // Source anonymous data
+  anonymous_session_id: z.string().uuid(),
+  original_upload_session_id: z.string().uuid(),
+  
+  // Target authenticated data
+  new_user_id: z.string().uuid(),
+  new_upload_session_id: z.string().uuid(),
+  new_cv_profile_id: z.string().uuid().nullable(),
+  
+  // Migration details
+  migration_status: z.enum(['pending', 'completed', 'failed']).default('pending'),
+  migrated_data_types: z.array(z.enum(['upload_session', 'cv_profile', 'cv_embeddings', 'results'])).default([]),
+  
+  // Audit trail
+  migration_started_at: z.string().datetime(),
+  migration_completed_at: z.string().datetime().nullable(),
+  error_message: z.string().nullable(),
+  
+  // Metadata
+  metadata: z.record(z.unknown()).default({})
+});
+
+export type AnonymousCVMigration = z.infer<typeof AnonymousCVMigrationSchema>;
+
+// Anonymous Session Detection Response Schema
+export const SessionDetectionResponseSchema = z.object({
+  session_type: z.enum(['authenticated', 'anonymous', 'invalid']),
+  user_id: z.string().uuid().nullable(),
+  anonymous_session_id: z.string().uuid().nullable(),
+  session_token: z.string().nullable(),
+  requires_auth: z.boolean(),
+  can_access_cv_processing: z.boolean(),
+  upload_attempts_remaining: z.number().int().min(0).nullable(),
+  session_expires_at: z.string().datetime().nullable()
+});
+
+export type SessionDetectionResponse = z.infer<typeof SessionDetectionResponseSchema>;
+
+// Partial CV Results Response Schema - what anonymous users see
+export const PartialCVResultsResponseSchema = z.object({
+  success: z.boolean(),
+  session_id: z.string().uuid(),
+  access_level: z.enum(['partial', 'full']),
+  
+  // Partial data
+  summary: z.object({
+    skills_found: z.number().int().min(0),
+    experience_level: z.string(),
+    job_opportunities_estimated: z.number().int().min(0),
+    analysis_confidence: z.number().min(0).max(1)
+  }),
+  
+  // Limited preview data
+  skills_preview: z.array(z.object({
+    name: z.string(),
+    confidence: z.enum(['high', 'medium', 'low'])
+  })).max(5),
+  
+  location_detected: z.object({
+    city: z.string().nullable(),
+    region: z.string().nullable()
+  }).nullable(),
+  
+  // Upgrade incentives
+  full_results_available: z.object({
+    complete_skills_analysis: z.number().int().min(0),
+    detailed_job_matches: z.number().int().min(0),
+    ai_powered_insights: z.boolean(),
+    personalized_recommendations: z.boolean()
+  }),
+  
+  // Next steps
+  call_to_action: z.object({
+    title: z.string(),
+    description: z.string(),
+    action_url: z.string(),
+    expires_at: z.string().datetime()
+  }),
+  
+  // Metadata
+  processed_at: z.string().datetime(),
+  expires_at: z.string().datetime()
+});
+
+export type PartialCVResultsResponse = z.infer<typeof PartialCVResultsResponseSchema>;
+
+// Anonymous CV Processing Request Schema
+export const AnonymousCVProcessingRequestSchema = z.object({
+  session_token: z.string().min(16),
+  session_id: z.string().uuid(),
+  generate_partial_results: z.boolean().default(true)
+});
+
+export type AnonymousCVProcessingRequest = z.infer<typeof AnonymousCVProcessingRequestSchema>;
+
+// CV Migration Request Schema - when anonymous user registers
+export const CVMigrationRequestSchema = z.object({
+  anonymous_session_token: z.string().min(16),
+  new_user_id: z.string().uuid(),
+  migrate_all_data: z.boolean().default(true),
+  migrate_data_types: z.array(z.enum(['upload_session', 'cv_profile', 'cv_embeddings', 'results'])).optional()
+});
+
+export type CVMigrationRequest = z.infer<typeof CVMigrationRequestSchema>;
+
+// Phase 2 Constants
+export const ANONYMOUS_CV_CONSTRAINTS = {
+  MAX_SKILLS_PREVIEW: 5,
+  SESSION_DURATION_MINUTES: 60,
+  PARTIAL_RESULTS_EXPIRY_MINUTES: 60,
+  MAX_ANONYMOUS_UPLOADS_PER_SESSION: 3,
+  MIN_CONFIDENCE_FOR_PARTIAL_RESULTS: 0.60, // Lower threshold for anonymous
+  PARTIAL_RESULTS_REFRESH_INTERVAL_MS: 30000 // 30 seconds
+} as const;
+
 export default {
   CVUploadSessionSchema,
   CVProcessingQueueSchema,
@@ -323,9 +491,17 @@ export default {
   CVProcessingProgressSchema,
   CVJobMatchSchema,
   CVProcessingErrorSchema,
+  // Phase 2: Anonymous CV Processing
+  AnonymousCVResultSchema,
+  AnonymousCVMigrationSchema,
+  SessionDetectionResponseSchema,
+  PartialCVResultsResponseSchema,
+  AnonymousCVProcessingRequestSchema,
+  CVMigrationRequestSchema,
   CV_UPLOAD_STATUS,
   CV_PROCESSING_STAGES,
   CV_VALIDATION_TYPES,
   CV_PROCESSING_PRIORITIES,
   CV_CONSTRAINTS,
+  ANONYMOUS_CV_CONSTRAINTS,
 };

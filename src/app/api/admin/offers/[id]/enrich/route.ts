@@ -4,10 +4,11 @@ import { errorFactory } from '@/lib/errors'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const offerId = params.id
+    const resolvedParams = await params
+    const offerId = resolvedParams.id
     
     if (!offerId) {
       throw errorFactory.BAD_REQUEST('Offer ID is required')

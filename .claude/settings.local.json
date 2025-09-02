@@ -1,23 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "mcp__playwright__browser_resize",
-      "mcp__playwright__browser_navigate",
-      "Bash(Invoke-RestMethod -Uri \"http://localhost:3006/api/health\")",
-      "mcp__playwright__browser_take_screenshot",
-      "mcp__playwright__browser_click",
-      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/health\" -Method GET)",
-      "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_evaluate",
-      "mcp__playwright__browser_press_key",
-      "mcp__playwright__browser_snapshot",
-      "mcp__playwright__browser_type",
-      "WebSearch",
-      "WebFetch(domain:francetravail.io)",
+      "Bash(dir:*)",
+      "Bash(Remove-Item -Recurse -Force .next)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3005/api/cv/upload/init?create_anonymous_session=true\" -Method POST -ContentType \"application/json\" -Body '{\"\"test\"\": true}')",
+      "Bash(wget:*)",
+      "Bash(taskkill:*)",
+      "Bash(Start-Sleep 10)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3010/api/cv/upload/init\" -Method POST -ContentType \"application/json\" -Body '{\"\"test\"\": true}')",
+      "mcp__supabase__search_docs",
       "mcp__supabase__list_tables",
-      "Bash(npx shadcn@latest add:*)",
       "mcp__supabase__execute_sql",
-      "mcp__supabase__apply_migration"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(Remove-Item \"C:\\Users\\Admin\\odrive\\Pierre@Barreaud\\AI\\cledger5.claude\\cledger5\\docs\\current-context.md\" -Force)"
     ],
     "deny": [],
     "ask": []

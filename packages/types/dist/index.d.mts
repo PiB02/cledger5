@@ -2581,4 +2581,1845 @@ declare const getAgentByCapability: (agents: AgentType[], capability: AgentCapab
 declare const getAgentsByTaskType: (agents: AgentType[], taskType: TaskTypeType) => AgentType[];
 declare const canAgentInvoke: (fromAgent: AgentType, toAgentId: string) => boolean;
 
-export { type AdminBatchEnrichmentRequest, AdminBatchEnrichmentRequestSchema, type AdminEnrichmentStats, AdminEnrichmentStatsSchema, Agent, AgentCapability, type AgentCapabilityType, AgentConversation, type AgentConversationType, AgentResponse, type AgentResponseType, type AgentType, type AppRole, AppRoleEnum, type AppUser, AppUserSchema, type Batch, type BatchCreateRequest, BatchCreateRequestSchema, BatchSchema, type BatchStatus, BatchStatusEnum, type CEFRLevel, CEFRLevelEnum, type CVDegree, CVDegreeSchema, type CVDocument, CVDocumentSchema, type CVEmbedding, CVEmbeddingSchema, type CVEnrichment, CVEnrichmentSchema, type CVExperience, CVExperienceSchema, type CVLanguage, CVLanguageSchema, type CVParseStatus, CVParseStatusEnum, type CVSkill, CVSkillSchema, type CVUploadRequest, CVUploadRequestSchema, type CandidateProfile, CandidateProfileSchema, CapabilitiesResponse, type CapabilitiesResponseType, type Company, CompanySchema, type ConfidenceScore, ConfidenceScoreSchema, type ConfidenceScores, ConfidenceScoresSchema, type ContractType, ContractTypeEnum, ConversationStatus, type ConversationStatusType, type Database, type DegreeClassification, DegreeClassificationSchema, type DegreeRequirement, DegreeRequirementSchema, DelegateTaskRequest, type DelegateTaskRequestType, type EnrichedLanguage, EnrichedLanguageSchema, type EnrichedSkill, EnrichedSkillSchema, type EnrichmentHistoryItem, EnrichmentHistoryItemSchema, type EnrichmentHistoryResponse, EnrichmentHistoryResponseSchema, type EnrichmentRequest, EnrichmentRequestSchema, type EnrichmentResponse, EnrichmentResponseSchema, type ErrorResponse, ErrorResponseSchema, type IngestOffersRequest, IngestOffersRequestSchema, InvokeAgentRequest, type InvokeAgentRequestType, type LanguageDetection, LanguageDetectionSchema, type LanguageRequirement, LanguageRequirementSchema, type Location, LocationSchema, type LoginCredentials, LoginSchema, type MatchRequest, MatchRequestSchema, type MatchResult, MatchResultSchema, type Offer, type OfferEmbedding, OfferEmbeddingSchema, type OfferEnrichment, OfferEnrichmentSchema, OfferSchema, type OfferSource, OfferSourceEnum, type OfferStatus, OfferStatusEnum, type Pagination, PaginationSchema, type PasswordReset, type PasswordResetRequest, PasswordResetRequestSchema, PasswordResetSchema, Priority, type Registration, RegistrationSchema, type SSEEvent, SSEEventSchema, type SSEEventType, SSEEventTypeEnum, type SearchOffersRequest, SearchOffersRequestSchema, type SeniorityLevel, SeniorityLevelEnum, type Session, SessionSchema, type Skill, type SkillCategory, SkillCategoryEnum, type SkillExtraction, SkillExtractionSchema, SkillSchema, type SortOrder, SortOrderEnum, type SuccessResponse, SuccessResponseSchema, TaskType, type TaskTypeType, type WorkMode, WorkModeEnum, canAgentInvoke, getAgentByCapability, getAgentsByTaskType };
+declare const CVUploadSessionSchema: z.ZodObject<{
+    id: z.ZodString;
+    user_id: z.ZodNullable<z.ZodString>;
+    anonymous_session_id: z.ZodNullable<z.ZodString>;
+    filename: z.ZodString;
+    file_size_bytes: z.ZodNumber;
+    file_hash: z.ZodString;
+    upload_status: z.ZodEnum<["initiated", "uploading", "uploaded", "processing", "completed", "failed"]>;
+    storage_path: z.ZodNullable<z.ZodString>;
+    processing_started_at: z.ZodNullable<z.ZodString>;
+    processing_completed_at: z.ZodNullable<z.ZodString>;
+    error_message: z.ZodNullable<z.ZodString>;
+    metadata: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    session_type: z.ZodDefault<z.ZodEnum<["authenticated", "anonymous"]>>;
+    partial_results_shown: z.ZodDefault<z.ZodBoolean>;
+    full_access_available: z.ZodDefault<z.ZodBoolean>;
+    conversion_attempted: z.ZodDefault<z.ZodBoolean>;
+    converted_user_id: z.ZodNullable<z.ZodString>;
+    created_at: z.ZodString;
+    updated_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    error_message: string | null;
+    user_id: string | null;
+    anonymous_session_id: string | null;
+    filename: string;
+    file_size_bytes: number;
+    file_hash: string;
+    upload_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    storage_path: string | null;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    metadata: Record<string, unknown>;
+    session_type: "authenticated" | "anonymous";
+    partial_results_shown: boolean;
+    full_access_available: boolean;
+    conversion_attempted: boolean;
+    converted_user_id: string | null;
+}, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    error_message: string | null;
+    user_id: string | null;
+    anonymous_session_id: string | null;
+    filename: string;
+    file_size_bytes: number;
+    file_hash: string;
+    upload_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    storage_path: string | null;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    converted_user_id: string | null;
+    metadata?: Record<string, unknown> | undefined;
+    session_type?: "authenticated" | "anonymous" | undefined;
+    partial_results_shown?: boolean | undefined;
+    full_access_available?: boolean | undefined;
+    conversion_attempted?: boolean | undefined;
+}>;
+type CVUploadSession = z.infer<typeof CVUploadSessionSchema>;
+declare const CVProcessingQueueSchema: z.ZodObject<{
+    id: z.ZodString;
+    upload_session_id: z.ZodString;
+    queue_status: z.ZodEnum<["pending", "processing", "completed", "failed", "retry"]>;
+    priority: z.ZodDefault<z.ZodNumber>;
+    retry_count: z.ZodDefault<z.ZodNumber>;
+    max_retries: z.ZodDefault<z.ZodNumber>;
+    processing_started_at: z.ZodNullable<z.ZodString>;
+    processing_completed_at: z.ZodNullable<z.ZodString>;
+    worker_id: z.ZodNullable<z.ZodString>;
+    error_message: z.ZodNullable<z.ZodString>;
+    stage_details: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    created_at: z.ZodString;
+    updated_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    error_message: string | null;
+    retry_count: number;
+    priority: number;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    upload_session_id: string;
+    queue_status: "pending" | "processing" | "completed" | "failed" | "retry";
+    max_retries: number;
+    worker_id: string | null;
+    stage_details: Record<string, unknown>;
+}, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    error_message: string | null;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    upload_session_id: string;
+    queue_status: "pending" | "processing" | "completed" | "failed" | "retry";
+    worker_id: string | null;
+    retry_count?: number | undefined;
+    priority?: number | undefined;
+    max_retries?: number | undefined;
+    stage_details?: Record<string, unknown> | undefined;
+}>;
+type CVProcessingQueue = z.infer<typeof CVProcessingQueueSchema>;
+declare const CVValidationResultSchema: z.ZodObject<{
+    id: z.ZodString;
+    upload_session_id: z.ZodString;
+    validation_type: z.ZodEnum<["format", "content", "security", "quality"]>;
+    validation_status: z.ZodEnum<["passed", "failed", "warning"]>;
+    validation_score: z.ZodNullable<z.ZodNumber>;
+    validation_details: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    validation_errors: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+    created_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    upload_session_id: string;
+    validation_type: "security" | "format" | "content" | "quality";
+    validation_status: "failed" | "passed" | "warning";
+    validation_score: number | null;
+    validation_details: Record<string, unknown>;
+    validation_errors: string[];
+}, {
+    id: string;
+    created_at: string;
+    upload_session_id: string;
+    validation_type: "security" | "format" | "content" | "quality";
+    validation_status: "failed" | "passed" | "warning";
+    validation_score: number | null;
+    validation_details?: Record<string, unknown> | undefined;
+    validation_errors?: string[] | undefined;
+}>;
+type CVValidationResult = z.infer<typeof CVValidationResultSchema>;
+declare const CVProcessingMetricSchema: z.ZodObject<{
+    id: z.ZodString;
+    upload_session_id: z.ZodString;
+    metric_type: z.ZodEnum<["processing_time", "api_cost", "extraction_accuracy", "tokens_used"]>;
+    metric_value: z.ZodNumber;
+    metric_unit: z.ZodNullable<z.ZodEnum<["seconds", "dollars", "percentage", "tokens"]>>;
+    processing_stage: z.ZodNullable<z.ZodEnum<["text_extraction", "ai_parsing", "embedding_generation", "total"]>>;
+    metadata: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    created_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    metadata: Record<string, unknown>;
+    upload_session_id: string;
+    metric_type: "tokens_used" | "processing_time" | "api_cost" | "extraction_accuracy";
+    metric_value: number;
+    metric_unit: "seconds" | "dollars" | "percentage" | "tokens" | null;
+    processing_stage: "total" | "text_extraction" | "ai_parsing" | "embedding_generation" | null;
+}, {
+    id: string;
+    created_at: string;
+    upload_session_id: string;
+    metric_type: "tokens_used" | "processing_time" | "api_cost" | "extraction_accuracy";
+    metric_value: number;
+    metric_unit: "seconds" | "dollars" | "percentage" | "tokens" | null;
+    processing_stage: "total" | "text_extraction" | "ai_parsing" | "embedding_generation" | null;
+    metadata?: Record<string, unknown> | undefined;
+}>;
+type CVProcessingMetric = z.infer<typeof CVProcessingMetricSchema>;
+declare const CVEmbeddingContextSchema: z.ZodObject<{
+    profile_title: z.ZodString;
+    rome_codes: z.ZodArray<z.ZodString, "many">;
+    location: z.ZodObject<{
+        city: z.ZodString;
+        department_code: z.ZodString;
+        region_code: z.ZodString;
+        country: z.ZodDefault<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        city: string;
+        department_code: string;
+        region_code: string;
+        country: string;
+    }, {
+        city: string;
+        department_code: string;
+        region_code: string;
+        country?: string | undefined;
+    }>;
+    seniority_level: z.ZodEnum<["intern", "junior", "mid", "senior", "lead", "manager"]>;
+    contract_preferences: z.ZodArray<z.ZodEnum<["CDI", "CDD", "APP", "PRO", "INTERIM", "STAGE", "FLEXIBLE"]>, "many">;
+    work_mode_preferences: z.ZodArray<z.ZodEnum<["onsite", "remote", "hybrid", "flexible"]>, "many">;
+    languages: z.ZodArray<z.ZodObject<{
+        code: z.ZodString;
+        cefr_level: z.ZodNumber;
+        confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }, {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }>, "many">;
+    degree_eqf_top: z.ZodNullable<z.ZodNumber>;
+    skills_mastered: z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        normalized_name: z.ZodString;
+        years_experience: z.ZodNullable<z.ZodNumber>;
+        confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }>, "many">;
+    skills_learning: z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        normalized_name: z.ZodString;
+        confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }>, "many">;
+    salary_expectation: z.ZodNullable<z.ZodObject<{
+        min: z.ZodNumber;
+        max: z.ZodNumber;
+        period: z.ZodEnum<["annual", "monthly", "daily"]>;
+        currency: z.ZodDefault<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        min: number;
+        max: number;
+        period: "annual" | "monthly" | "daily";
+        currency: string;
+    }, {
+        min: number;
+        max: number;
+        period: "annual" | "monthly" | "daily";
+        currency?: string | undefined;
+    }>>;
+    availability: z.ZodNullable<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    seniority_level: "intern" | "junior" | "mid" | "senior" | "lead" | "manager";
+    rome_codes: string[];
+    languages: {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }[];
+    profile_title: string;
+    availability: string | null;
+    location: {
+        city: string;
+        department_code: string;
+        region_code: string;
+        country: string;
+    };
+    contract_preferences: ("CDI" | "CDD" | "INTERIM" | "APP" | "PRO" | "STAGE" | "FLEXIBLE")[];
+    work_mode_preferences: ("onsite" | "remote" | "hybrid" | "flexible")[];
+    degree_eqf_top: number | null;
+    skills_mastered: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }[];
+    skills_learning: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }[];
+    salary_expectation: {
+        min: number;
+        max: number;
+        period: "annual" | "monthly" | "daily";
+        currency: string;
+    } | null;
+}, {
+    seniority_level: "intern" | "junior" | "mid" | "senior" | "lead" | "manager";
+    rome_codes: string[];
+    languages: {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }[];
+    profile_title: string;
+    availability: string | null;
+    location: {
+        city: string;
+        department_code: string;
+        region_code: string;
+        country?: string | undefined;
+    };
+    contract_preferences: ("CDI" | "CDD" | "INTERIM" | "APP" | "PRO" | "STAGE" | "FLEXIBLE")[];
+    work_mode_preferences: ("onsite" | "remote" | "hybrid" | "flexible")[];
+    degree_eqf_top: number | null;
+    skills_mastered: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }[];
+    skills_learning: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }[];
+    salary_expectation: {
+        min: number;
+        max: number;
+        period: "annual" | "monthly" | "daily";
+        currency?: string | undefined;
+    } | null;
+}>;
+type CVEmbeddingContext = z.infer<typeof CVEmbeddingContextSchema>;
+declare const CVAIExtractionSchema: z.ZodObject<{
+    profile: z.ZodObject<{
+        title_canonical: z.ZodString;
+        location_preferred: z.ZodObject<{
+            city: z.ZodString;
+            department_code: z.ZodString;
+            region_code: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            city: string;
+            department_code: string;
+            region_code: string;
+        }, {
+            city: string;
+            department_code: string;
+            region_code: string;
+        }>;
+        availability: z.ZodNullable<z.ZodString>;
+        seniority_level: z.ZodEnum<["intern", "junior", "mid", "senior", "lead", "manager"]>;
+    }, "strip", z.ZodTypeAny, {
+        seniority_level: "intern" | "junior" | "mid" | "senior" | "lead" | "manager";
+        availability: string | null;
+        title_canonical: string;
+        location_preferred: {
+            city: string;
+            department_code: string;
+            region_code: string;
+        };
+    }, {
+        seniority_level: "intern" | "junior" | "mid" | "senior" | "lead" | "manager";
+        availability: string | null;
+        title_canonical: string;
+        location_preferred: {
+            city: string;
+            department_code: string;
+            region_code: string;
+        };
+    }>;
+    skills_mastered: z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        normalized_name: z.ZodString;
+        years_experience: z.ZodNullable<z.ZodNumber>;
+        confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }>, "many">;
+    skills_learning: z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        normalized_name: z.ZodString;
+        confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }>, "many">;
+    experience: z.ZodObject<{
+        total_years: z.ZodNumber;
+        rome_codes_detected: z.ZodArray<z.ZodString, "many">;
+        previous_roles: z.ZodArray<z.ZodObject<{
+            title: z.ZodString;
+            duration_months: z.ZodNumber;
+            company: z.ZodString;
+            responsibilities: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        }, "strip", z.ZodTypeAny, {
+            title: string;
+            duration_months: number;
+            company: string;
+            responsibilities?: string[] | undefined;
+        }, {
+            title: string;
+            duration_months: number;
+            company: string;
+            responsibilities?: string[] | undefined;
+        }>, "many">;
+    }, "strip", z.ZodTypeAny, {
+        total_years: number;
+        rome_codes_detected: string[];
+        previous_roles: {
+            title: string;
+            duration_months: number;
+            company: string;
+            responsibilities?: string[] | undefined;
+        }[];
+    }, {
+        total_years: number;
+        rome_codes_detected: string[];
+        previous_roles: {
+            title: string;
+            duration_months: number;
+            company: string;
+            responsibilities?: string[] | undefined;
+        }[];
+    }>;
+    education: z.ZodObject<{
+        highest_degree: z.ZodNullable<z.ZodObject<{
+            level_eqf: z.ZodNumber;
+            degree_type: z.ZodString;
+            confidence: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }, {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        }>>;
+    }, "strip", z.ZodTypeAny, {
+        highest_degree: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        } | null;
+    }, {
+        highest_degree: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        } | null;
+    }>;
+    languages: z.ZodArray<z.ZodObject<{
+        code: z.ZodString;
+        cefr_level: z.ZodNumber;
+        confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }, {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }>, "many">;
+    preferences: z.ZodObject<{
+        contract_types: z.ZodArray<z.ZodEnum<["CDI", "CDD", "APP", "PRO", "INTERIM", "STAGE"]>, "many">;
+        work_modes: z.ZodArray<z.ZodEnum<["onsite", "remote", "hybrid"]>, "many">;
+        salary_expectation: z.ZodNullable<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodNumber;
+            period: z.ZodEnum<["annual", "monthly"]>;
+        }, "strip", z.ZodTypeAny, {
+            min: number;
+            max: number;
+            period: "annual" | "monthly";
+        }, {
+            min: number;
+            max: number;
+            period: "annual" | "monthly";
+        }>>;
+    }, "strip", z.ZodTypeAny, {
+        contract_types: ("CDI" | "CDD" | "INTERIM" | "APP" | "PRO" | "STAGE")[];
+        work_modes: ("onsite" | "remote" | "hybrid")[];
+        salary_expectation: {
+            min: number;
+            max: number;
+            period: "annual" | "monthly";
+        } | null;
+    }, {
+        contract_types: ("CDI" | "CDD" | "INTERIM" | "APP" | "PRO" | "STAGE")[];
+        work_modes: ("onsite" | "remote" | "hybrid")[];
+        salary_expectation: {
+            min: number;
+            max: number;
+            period: "annual" | "monthly";
+        } | null;
+    }>;
+    confidence_scores: z.ZodObject<{
+        profile: z.ZodNumber;
+        skills: z.ZodNumber;
+        experience: z.ZodNumber;
+        education: z.ZodNumber;
+        global: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        skills: number;
+        global: number;
+        profile: number;
+        experience: number;
+        education: number;
+    }, {
+        skills: number;
+        global: number;
+        profile: number;
+        experience: number;
+        education: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    languages: {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }[];
+    confidence_scores: {
+        skills: number;
+        global: number;
+        profile: number;
+        experience: number;
+        education: number;
+    };
+    skills_mastered: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }[];
+    skills_learning: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }[];
+    profile: {
+        seniority_level: "intern" | "junior" | "mid" | "senior" | "lead" | "manager";
+        availability: string | null;
+        title_canonical: string;
+        location_preferred: {
+            city: string;
+            department_code: string;
+            region_code: string;
+        };
+    };
+    experience: {
+        total_years: number;
+        rome_codes_detected: string[];
+        previous_roles: {
+            title: string;
+            duration_months: number;
+            company: string;
+            responsibilities?: string[] | undefined;
+        }[];
+    };
+    education: {
+        highest_degree: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        } | null;
+    };
+    preferences: {
+        contract_types: ("CDI" | "CDD" | "INTERIM" | "APP" | "PRO" | "STAGE")[];
+        work_modes: ("onsite" | "remote" | "hybrid")[];
+        salary_expectation: {
+            min: number;
+            max: number;
+            period: "annual" | "monthly";
+        } | null;
+    };
+}, {
+    languages: {
+        code: string;
+        confidence: number;
+        cefr_level: number;
+    }[];
+    confidence_scores: {
+        skills: number;
+        global: number;
+        profile: number;
+        experience: number;
+        education: number;
+    };
+    skills_mastered: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+        years_experience: number | null;
+    }[];
+    skills_learning: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }[];
+    profile: {
+        seniority_level: "intern" | "junior" | "mid" | "senior" | "lead" | "manager";
+        availability: string | null;
+        title_canonical: string;
+        location_preferred: {
+            city: string;
+            department_code: string;
+            region_code: string;
+        };
+    };
+    experience: {
+        total_years: number;
+        rome_codes_detected: string[];
+        previous_roles: {
+            title: string;
+            duration_months: number;
+            company: string;
+            responsibilities?: string[] | undefined;
+        }[];
+    };
+    education: {
+        highest_degree: {
+            confidence: number;
+            level_eqf: number;
+            degree_type: string;
+        } | null;
+    };
+    preferences: {
+        contract_types: ("CDI" | "CDD" | "INTERIM" | "APP" | "PRO" | "STAGE")[];
+        work_modes: ("onsite" | "remote" | "hybrid")[];
+        salary_expectation: {
+            min: number;
+            max: number;
+            period: "annual" | "monthly";
+        } | null;
+    };
+}>;
+type CVAIExtraction = z.infer<typeof CVAIExtractionSchema>;
+declare const CVUploadInitRequestSchema: z.ZodObject<{
+    filename: z.ZodString;
+    file_size: z.ZodNumber;
+    file_hash: z.ZodString;
+    content_type: z.ZodEnum<["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]>;
+}, "strip", z.ZodTypeAny, {
+    file_size: number;
+    filename: string;
+    file_hash: string;
+    content_type: "application/pdf" | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+}, {
+    file_size: number;
+    filename: string;
+    file_hash: string;
+    content_type: "application/pdf" | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+}>;
+type CVUploadInitRequest = z.infer<typeof CVUploadInitRequestSchema>;
+declare const CVUploadInitResponseSchema: z.ZodObject<{
+    session_id: z.ZodString;
+    upload_url: z.ZodString;
+    success: z.ZodBoolean;
+    message: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    success: boolean;
+    session_id: string;
+    upload_url: string;
+    message?: string | undefined;
+}, {
+    success: boolean;
+    session_id: string;
+    upload_url: string;
+    message?: string | undefined;
+}>;
+type CVUploadInitResponse = z.infer<typeof CVUploadInitResponseSchema>;
+declare const CVProcessStatusResponseSchema: z.ZodObject<{
+    session_id: z.ZodString;
+    status: z.ZodEnum<["initiated", "uploading", "uploaded", "processing", "completed", "failed"]>;
+    progress_percentage: z.ZodNumber;
+    current_stage: z.ZodOptional<z.ZodString>;
+    estimated_time_remaining: z.ZodNullable<z.ZodNumber>;
+    error_message: z.ZodNullable<z.ZodString>;
+    validation_results: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        upload_session_id: z.ZodString;
+        validation_type: z.ZodEnum<["format", "content", "security", "quality"]>;
+        validation_status: z.ZodEnum<["passed", "failed", "warning"]>;
+        validation_score: z.ZodNullable<z.ZodNumber>;
+        validation_details: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+        validation_errors: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+        created_at: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        created_at: string;
+        upload_session_id: string;
+        validation_type: "security" | "format" | "content" | "quality";
+        validation_status: "failed" | "passed" | "warning";
+        validation_score: number | null;
+        validation_details: Record<string, unknown>;
+        validation_errors: string[];
+    }, {
+        id: string;
+        created_at: string;
+        upload_session_id: string;
+        validation_type: "security" | "format" | "content" | "quality";
+        validation_status: "failed" | "passed" | "warning";
+        validation_score: number | null;
+        validation_details?: Record<string, unknown> | undefined;
+        validation_errors?: string[] | undefined;
+    }>, "many">>;
+    processing_metrics: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        upload_session_id: z.ZodString;
+        metric_type: z.ZodEnum<["processing_time", "api_cost", "extraction_accuracy", "tokens_used"]>;
+        metric_value: z.ZodNumber;
+        metric_unit: z.ZodNullable<z.ZodEnum<["seconds", "dollars", "percentage", "tokens"]>>;
+        processing_stage: z.ZodNullable<z.ZodEnum<["text_extraction", "ai_parsing", "embedding_generation", "total"]>>;
+        metadata: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+        created_at: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        created_at: string;
+        metadata: Record<string, unknown>;
+        upload_session_id: string;
+        metric_type: "tokens_used" | "processing_time" | "api_cost" | "extraction_accuracy";
+        metric_value: number;
+        metric_unit: "seconds" | "dollars" | "percentage" | "tokens" | null;
+        processing_stage: "total" | "text_extraction" | "ai_parsing" | "embedding_generation" | null;
+    }, {
+        id: string;
+        created_at: string;
+        upload_session_id: string;
+        metric_type: "tokens_used" | "processing_time" | "api_cost" | "extraction_accuracy";
+        metric_value: number;
+        metric_unit: "seconds" | "dollars" | "percentage" | "tokens" | null;
+        processing_stage: "total" | "text_extraction" | "ai_parsing" | "embedding_generation" | null;
+        metadata?: Record<string, unknown> | undefined;
+    }>, "many">>;
+}, "strip", z.ZodTypeAny, {
+    status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    error_message: string | null;
+    session_id: string;
+    progress_percentage: number;
+    estimated_time_remaining: number | null;
+    current_stage?: string | undefined;
+    validation_results?: {
+        id: string;
+        created_at: string;
+        upload_session_id: string;
+        validation_type: "security" | "format" | "content" | "quality";
+        validation_status: "failed" | "passed" | "warning";
+        validation_score: number | null;
+        validation_details: Record<string, unknown>;
+        validation_errors: string[];
+    }[] | undefined;
+    processing_metrics?: {
+        id: string;
+        created_at: string;
+        metadata: Record<string, unknown>;
+        upload_session_id: string;
+        metric_type: "tokens_used" | "processing_time" | "api_cost" | "extraction_accuracy";
+        metric_value: number;
+        metric_unit: "seconds" | "dollars" | "percentage" | "tokens" | null;
+        processing_stage: "total" | "text_extraction" | "ai_parsing" | "embedding_generation" | null;
+    }[] | undefined;
+}, {
+    status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    error_message: string | null;
+    session_id: string;
+    progress_percentage: number;
+    estimated_time_remaining: number | null;
+    current_stage?: string | undefined;
+    validation_results?: {
+        id: string;
+        created_at: string;
+        upload_session_id: string;
+        validation_type: "security" | "format" | "content" | "quality";
+        validation_status: "failed" | "passed" | "warning";
+        validation_score: number | null;
+        validation_details?: Record<string, unknown> | undefined;
+        validation_errors?: string[] | undefined;
+    }[] | undefined;
+    processing_metrics?: {
+        id: string;
+        created_at: string;
+        upload_session_id: string;
+        metric_type: "tokens_used" | "processing_time" | "api_cost" | "extraction_accuracy";
+        metric_value: number;
+        metric_unit: "seconds" | "dollars" | "percentage" | "tokens" | null;
+        processing_stage: "total" | "text_extraction" | "ai_parsing" | "embedding_generation" | null;
+        metadata?: Record<string, unknown> | undefined;
+    }[] | undefined;
+}>;
+type CVProcessStatusResponse = z.infer<typeof CVProcessStatusResponseSchema>;
+declare const CVProcessingStageSchema: z.ZodObject<{
+    stage_name: z.ZodString;
+    stage_order: z.ZodNumber;
+    status: z.ZodEnum<["pending", "processing", "completed", "failed", "skipped"]>;
+    progress_percentage: z.ZodNumber;
+    started_at: z.ZodNullable<z.ZodString>;
+    completed_at: z.ZodNullable<z.ZodString>;
+    duration_ms: z.ZodNullable<z.ZodNumber>;
+    error_message: z.ZodNullable<z.ZodString>;
+    stage_data: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, "strip", z.ZodTypeAny, {
+    status: "pending" | "processing" | "completed" | "failed" | "skipped";
+    error_message: string | null;
+    started_at: string | null;
+    completed_at: string | null;
+    progress_percentage: number;
+    stage_name: string;
+    stage_order: number;
+    duration_ms: number | null;
+    stage_data: Record<string, unknown>;
+}, {
+    status: "pending" | "processing" | "completed" | "failed" | "skipped";
+    error_message: string | null;
+    started_at: string | null;
+    completed_at: string | null;
+    progress_percentage: number;
+    stage_name: string;
+    stage_order: number;
+    duration_ms: number | null;
+    stage_data?: Record<string, unknown> | undefined;
+}>;
+type CVProcessingStage = z.infer<typeof CVProcessingStageSchema>;
+declare const CVProcessingProgressSchema: z.ZodObject<{
+    session_id: z.ZodString;
+    overall_status: z.ZodEnum<["initiated", "uploading", "uploaded", "processing", "completed", "failed"]>;
+    overall_progress: z.ZodNumber;
+    estimated_completion: z.ZodNullable<z.ZodString>;
+    stages: z.ZodArray<z.ZodObject<{
+        stage_name: z.ZodString;
+        stage_order: z.ZodNumber;
+        status: z.ZodEnum<["pending", "processing", "completed", "failed", "skipped"]>;
+        progress_percentage: z.ZodNumber;
+        started_at: z.ZodNullable<z.ZodString>;
+        completed_at: z.ZodNullable<z.ZodString>;
+        duration_ms: z.ZodNullable<z.ZodNumber>;
+        error_message: z.ZodNullable<z.ZodString>;
+        stage_data: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    }, "strip", z.ZodTypeAny, {
+        status: "pending" | "processing" | "completed" | "failed" | "skipped";
+        error_message: string | null;
+        started_at: string | null;
+        completed_at: string | null;
+        progress_percentage: number;
+        stage_name: string;
+        stage_order: number;
+        duration_ms: number | null;
+        stage_data: Record<string, unknown>;
+    }, {
+        status: "pending" | "processing" | "completed" | "failed" | "skipped";
+        error_message: string | null;
+        started_at: string | null;
+        completed_at: string | null;
+        progress_percentage: number;
+        stage_name: string;
+        stage_order: number;
+        duration_ms: number | null;
+        stage_data?: Record<string, unknown> | undefined;
+    }>, "many">;
+    quality_score: z.ZodNullable<z.ZodNumber>;
+    cost_estimate: z.ZodNullable<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    cost_estimate: number | null;
+    session_id: string;
+    overall_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    overall_progress: number;
+    estimated_completion: string | null;
+    stages: {
+        status: "pending" | "processing" | "completed" | "failed" | "skipped";
+        error_message: string | null;
+        started_at: string | null;
+        completed_at: string | null;
+        progress_percentage: number;
+        stage_name: string;
+        stage_order: number;
+        duration_ms: number | null;
+        stage_data: Record<string, unknown>;
+    }[];
+    quality_score: number | null;
+}, {
+    cost_estimate: number | null;
+    session_id: string;
+    overall_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    overall_progress: number;
+    estimated_completion: string | null;
+    stages: {
+        status: "pending" | "processing" | "completed" | "failed" | "skipped";
+        error_message: string | null;
+        started_at: string | null;
+        completed_at: string | null;
+        progress_percentage: number;
+        stage_name: string;
+        stage_order: number;
+        duration_ms: number | null;
+        stage_data?: Record<string, unknown> | undefined;
+    }[];
+    quality_score: number | null;
+}>;
+type CVProcessingProgress = z.infer<typeof CVProcessingProgressSchema>;
+declare const CVJobMatchSchema: z.ZodObject<{
+    offer_id: z.ZodString;
+    match_score: z.ZodNumber;
+    explanation: z.ZodObject<{
+        semantic_similarity: z.ZodNumber;
+        skills_coverage: z.ZodNumber;
+        seniority_compatibility: z.ZodNumber;
+        location_match: z.ZodNumber;
+        preferences_alignment: z.ZodNumber;
+        reasons: z.ZodArray<z.ZodString, "many">;
+        skill_gaps: z.ZodArray<z.ZodString, "many">;
+    }, "strip", z.ZodTypeAny, {
+        semantic_similarity: number;
+        location_match: number;
+        skills_coverage: number;
+        seniority_compatibility: number;
+        preferences_alignment: number;
+        reasons: string[];
+        skill_gaps: string[];
+    }, {
+        semantic_similarity: number;
+        location_match: number;
+        skills_coverage: number;
+        seniority_compatibility: number;
+        preferences_alignment: number;
+        reasons: string[];
+        skill_gaps: string[];
+    }>;
+    offer_summary: z.ZodObject<{
+        title: z.ZodString;
+        company_name: z.ZodString;
+        location: z.ZodString;
+        contract_type: z.ZodString;
+        salary_range: z.ZodNullable<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        title: string;
+        company_name: string;
+        location: string;
+        contract_type: string;
+        salary_range: string | null;
+    }, {
+        title: string;
+        company_name: string;
+        location: string;
+        contract_type: string;
+        salary_range: string | null;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    offer_id: string;
+    match_score: number;
+    explanation: {
+        semantic_similarity: number;
+        location_match: number;
+        skills_coverage: number;
+        seniority_compatibility: number;
+        preferences_alignment: number;
+        reasons: string[];
+        skill_gaps: string[];
+    };
+    offer_summary: {
+        title: string;
+        company_name: string;
+        location: string;
+        contract_type: string;
+        salary_range: string | null;
+    };
+}, {
+    offer_id: string;
+    match_score: number;
+    explanation: {
+        semantic_similarity: number;
+        location_match: number;
+        skills_coverage: number;
+        seniority_compatibility: number;
+        preferences_alignment: number;
+        reasons: string[];
+        skill_gaps: string[];
+    };
+    offer_summary: {
+        title: string;
+        company_name: string;
+        location: string;
+        contract_type: string;
+        salary_range: string | null;
+    };
+}>;
+type CVJobMatch = z.infer<typeof CVJobMatchSchema>;
+declare const CVProcessingErrorSchema: z.ZodObject<{
+    error_code: z.ZodString;
+    error_message: z.ZodString;
+    error_details: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    session_id: z.ZodOptional<z.ZodString>;
+    recovery_suggestions: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+}, "strip", z.ZodTypeAny, {
+    error_message: string;
+    error_code: string;
+    session_id?: string | undefined;
+    error_details?: Record<string, unknown> | undefined;
+    recovery_suggestions?: string[] | undefined;
+}, {
+    error_message: string;
+    error_code: string;
+    session_id?: string | undefined;
+    error_details?: Record<string, unknown> | undefined;
+    recovery_suggestions?: string[] | undefined;
+}>;
+type CVProcessingError = z.infer<typeof CVProcessingErrorSchema>;
+declare const CV_UPLOAD_STATUS: {
+    readonly INITIATED: "initiated";
+    readonly UPLOADING: "uploading";
+    readonly UPLOADED: "uploaded";
+    readonly PROCESSING: "processing";
+    readonly COMPLETED: "completed";
+    readonly FAILED: "failed";
+};
+declare const CV_PROCESSING_STAGES: {
+    readonly FILE_VALIDATION: "file_validation";
+    readonly TEXT_EXTRACTION: "text_extraction";
+    readonly AI_PARSING: "ai_parsing";
+    readonly DATA_VALIDATION: "data_validation";
+    readonly EMBEDDING_GENERATION: "embedding_generation";
+    readonly PROFILE_CREATION: "profile_creation";
+    readonly MATCHING_PREPARATION: "matching_preparation";
+};
+declare const CV_VALIDATION_TYPES: {
+    readonly FORMAT: "format";
+    readonly CONTENT: "content";
+    readonly SECURITY: "security";
+    readonly QUALITY: "quality";
+};
+declare const CV_PROCESSING_PRIORITIES: {
+    readonly HIGH: 1;
+    readonly NORMAL: 5;
+    readonly LOW: 10;
+};
+declare const CV_CONSTRAINTS: {
+    readonly MAX_FILE_SIZE_BYTES: number;
+    readonly SUPPORTED_FORMATS: readonly ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    readonly MAX_FILENAME_LENGTH: 500;
+    readonly MIN_CONFIDENCE_THRESHOLD: 0.8;
+    readonly MAX_PROCESSING_TIME_SECONDS: 300;
+};
+declare const AnonymousCVResultSchema: z.ZodObject<{
+    id: z.ZodString;
+    anonymous_session_id: z.ZodString;
+    upload_session_id: z.ZodString;
+    skills_count: z.ZodDefault<z.ZodNumber>;
+    experience_level: z.ZodNullable<z.ZodString>;
+    job_matches_count: z.ZodDefault<z.ZodNumber>;
+    confidence_score: z.ZodNullable<z.ZodNumber>;
+    skills_preview: z.ZodDefault<z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        normalized_name: z.ZodString;
+        confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }, {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }>, "many">>;
+    additional_skills_available: z.ZodDefault<z.ZodNumber>;
+    detailed_matches_available: z.ZodDefault<z.ZodNumber>;
+    ai_insights_available: z.ZodDefault<z.ZodBoolean>;
+    viewed_count: z.ZodDefault<z.ZodNumber>;
+    last_viewed_at: z.ZodNullable<z.ZodString>;
+    created_at: z.ZodString;
+    expires_at: z.ZodString;
+    metadata: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    expires_at: string;
+    skills_count: number;
+    anonymous_session_id: string;
+    metadata: Record<string, unknown>;
+    upload_session_id: string;
+    experience_level: string | null;
+    job_matches_count: number;
+    confidence_score: number | null;
+    skills_preview: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }[];
+    additional_skills_available: number;
+    detailed_matches_available: number;
+    ai_insights_available: boolean;
+    viewed_count: number;
+    last_viewed_at: string | null;
+}, {
+    id: string;
+    created_at: string;
+    expires_at: string;
+    anonymous_session_id: string;
+    upload_session_id: string;
+    experience_level: string | null;
+    confidence_score: number | null;
+    last_viewed_at: string | null;
+    skills_count?: number | undefined;
+    metadata?: Record<string, unknown> | undefined;
+    job_matches_count?: number | undefined;
+    skills_preview?: {
+        name: string;
+        confidence: number;
+        normalized_name: string;
+    }[] | undefined;
+    additional_skills_available?: number | undefined;
+    detailed_matches_available?: number | undefined;
+    ai_insights_available?: boolean | undefined;
+    viewed_count?: number | undefined;
+}>;
+type AnonymousCVResult = z.infer<typeof AnonymousCVResultSchema>;
+declare const AnonymousCVMigrationSchema: z.ZodObject<{
+    id: z.ZodString;
+    anonymous_session_id: z.ZodString;
+    original_upload_session_id: z.ZodString;
+    new_user_id: z.ZodString;
+    new_upload_session_id: z.ZodString;
+    new_cv_profile_id: z.ZodNullable<z.ZodString>;
+    migration_status: z.ZodDefault<z.ZodEnum<["pending", "completed", "failed"]>>;
+    migrated_data_types: z.ZodDefault<z.ZodArray<z.ZodEnum<["upload_session", "cv_profile", "cv_embeddings", "results"]>, "many">>;
+    migration_started_at: z.ZodString;
+    migration_completed_at: z.ZodNullable<z.ZodString>;
+    error_message: z.ZodNullable<z.ZodString>;
+    metadata: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    error_message: string | null;
+    anonymous_session_id: string;
+    metadata: Record<string, unknown>;
+    original_upload_session_id: string;
+    new_user_id: string;
+    new_upload_session_id: string;
+    new_cv_profile_id: string | null;
+    migration_status: "pending" | "completed" | "failed";
+    migrated_data_types: ("upload_session" | "cv_profile" | "cv_embeddings" | "results")[];
+    migration_started_at: string;
+    migration_completed_at: string | null;
+}, {
+    id: string;
+    error_message: string | null;
+    anonymous_session_id: string;
+    original_upload_session_id: string;
+    new_user_id: string;
+    new_upload_session_id: string;
+    new_cv_profile_id: string | null;
+    migration_started_at: string;
+    migration_completed_at: string | null;
+    metadata?: Record<string, unknown> | undefined;
+    migration_status?: "pending" | "completed" | "failed" | undefined;
+    migrated_data_types?: ("upload_session" | "cv_profile" | "cv_embeddings" | "results")[] | undefined;
+}>;
+type AnonymousCVMigration = z.infer<typeof AnonymousCVMigrationSchema>;
+declare const SessionDetectionResponseSchema: z.ZodObject<{
+    session_type: z.ZodEnum<["authenticated", "anonymous", "invalid"]>;
+    user_id: z.ZodNullable<z.ZodString>;
+    anonymous_session_id: z.ZodNullable<z.ZodString>;
+    session_token: z.ZodNullable<z.ZodString>;
+    requires_auth: z.ZodBoolean;
+    can_access_cv_processing: z.ZodBoolean;
+    upload_attempts_remaining: z.ZodNullable<z.ZodNumber>;
+    session_expires_at: z.ZodNullable<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    user_id: string | null;
+    anonymous_session_id: string | null;
+    session_type: "authenticated" | "anonymous" | "invalid";
+    session_token: string | null;
+    requires_auth: boolean;
+    can_access_cv_processing: boolean;
+    upload_attempts_remaining: number | null;
+    session_expires_at: string | null;
+}, {
+    user_id: string | null;
+    anonymous_session_id: string | null;
+    session_type: "authenticated" | "anonymous" | "invalid";
+    session_token: string | null;
+    requires_auth: boolean;
+    can_access_cv_processing: boolean;
+    upload_attempts_remaining: number | null;
+    session_expires_at: string | null;
+}>;
+type SessionDetectionResponse = z.infer<typeof SessionDetectionResponseSchema>;
+declare const PartialCVResultsResponseSchema: z.ZodObject<{
+    success: z.ZodBoolean;
+    session_id: z.ZodString;
+    access_level: z.ZodEnum<["partial", "full"]>;
+    summary: z.ZodObject<{
+        skills_found: z.ZodNumber;
+        experience_level: z.ZodString;
+        job_opportunities_estimated: z.ZodNumber;
+        analysis_confidence: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        experience_level: string;
+        skills_found: number;
+        job_opportunities_estimated: number;
+        analysis_confidence: number;
+    }, {
+        experience_level: string;
+        skills_found: number;
+        job_opportunities_estimated: number;
+        analysis_confidence: number;
+    }>;
+    skills_preview: z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        confidence: z.ZodEnum<["high", "medium", "low"]>;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        confidence: "low" | "high" | "medium";
+    }, {
+        name: string;
+        confidence: "low" | "high" | "medium";
+    }>, "many">;
+    location_detected: z.ZodNullable<z.ZodObject<{
+        city: z.ZodNullable<z.ZodString>;
+        region: z.ZodNullable<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        city: string | null;
+        region: string | null;
+    }, {
+        city: string | null;
+        region: string | null;
+    }>>;
+    full_results_available: z.ZodObject<{
+        complete_skills_analysis: z.ZodNumber;
+        detailed_job_matches: z.ZodNumber;
+        ai_powered_insights: z.ZodBoolean;
+        personalized_recommendations: z.ZodBoolean;
+    }, "strip", z.ZodTypeAny, {
+        complete_skills_analysis: number;
+        detailed_job_matches: number;
+        ai_powered_insights: boolean;
+        personalized_recommendations: boolean;
+    }, {
+        complete_skills_analysis: number;
+        detailed_job_matches: number;
+        ai_powered_insights: boolean;
+        personalized_recommendations: boolean;
+    }>;
+    call_to_action: z.ZodObject<{
+        title: z.ZodString;
+        description: z.ZodString;
+        action_url: z.ZodString;
+        expires_at: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        title: string;
+        description: string;
+        expires_at: string;
+        action_url: string;
+    }, {
+        title: string;
+        description: string;
+        expires_at: string;
+        action_url: string;
+    }>;
+    processed_at: z.ZodString;
+    expires_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    processed_at: string;
+    expires_at: string;
+    success: boolean;
+    session_id: string;
+    skills_preview: {
+        name: string;
+        confidence: "low" | "high" | "medium";
+    }[];
+    access_level: "partial" | "full";
+    summary: {
+        experience_level: string;
+        skills_found: number;
+        job_opportunities_estimated: number;
+        analysis_confidence: number;
+    };
+    location_detected: {
+        city: string | null;
+        region: string | null;
+    } | null;
+    full_results_available: {
+        complete_skills_analysis: number;
+        detailed_job_matches: number;
+        ai_powered_insights: boolean;
+        personalized_recommendations: boolean;
+    };
+    call_to_action: {
+        title: string;
+        description: string;
+        expires_at: string;
+        action_url: string;
+    };
+}, {
+    processed_at: string;
+    expires_at: string;
+    success: boolean;
+    session_id: string;
+    skills_preview: {
+        name: string;
+        confidence: "low" | "high" | "medium";
+    }[];
+    access_level: "partial" | "full";
+    summary: {
+        experience_level: string;
+        skills_found: number;
+        job_opportunities_estimated: number;
+        analysis_confidence: number;
+    };
+    location_detected: {
+        city: string | null;
+        region: string | null;
+    } | null;
+    full_results_available: {
+        complete_skills_analysis: number;
+        detailed_job_matches: number;
+        ai_powered_insights: boolean;
+        personalized_recommendations: boolean;
+    };
+    call_to_action: {
+        title: string;
+        description: string;
+        expires_at: string;
+        action_url: string;
+    };
+}>;
+type PartialCVResultsResponse = z.infer<typeof PartialCVResultsResponseSchema>;
+declare const AnonymousCVProcessingRequestSchema: z.ZodObject<{
+    session_token: z.ZodString;
+    session_id: z.ZodString;
+    generate_partial_results: z.ZodDefault<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    session_id: string;
+    session_token: string;
+    generate_partial_results: boolean;
+}, {
+    session_id: string;
+    session_token: string;
+    generate_partial_results?: boolean | undefined;
+}>;
+type AnonymousCVProcessingRequest = z.infer<typeof AnonymousCVProcessingRequestSchema>;
+declare const CVMigrationRequestSchema: z.ZodObject<{
+    anonymous_session_token: z.ZodString;
+    new_user_id: z.ZodString;
+    migrate_all_data: z.ZodDefault<z.ZodBoolean>;
+    migrate_data_types: z.ZodOptional<z.ZodArray<z.ZodEnum<["upload_session", "cv_profile", "cv_embeddings", "results"]>, "many">>;
+}, "strip", z.ZodTypeAny, {
+    new_user_id: string;
+    anonymous_session_token: string;
+    migrate_all_data: boolean;
+    migrate_data_types?: ("upload_session" | "cv_profile" | "cv_embeddings" | "results")[] | undefined;
+}, {
+    new_user_id: string;
+    anonymous_session_token: string;
+    migrate_all_data?: boolean | undefined;
+    migrate_data_types?: ("upload_session" | "cv_profile" | "cv_embeddings" | "results")[] | undefined;
+}>;
+type CVMigrationRequest = z.infer<typeof CVMigrationRequestSchema>;
+declare const ANONYMOUS_CV_CONSTRAINTS: {
+    readonly MAX_SKILLS_PREVIEW: 5;
+    readonly SESSION_DURATION_MINUTES: 60;
+    readonly PARTIAL_RESULTS_EXPIRY_MINUTES: 60;
+    readonly MAX_ANONYMOUS_UPLOADS_PER_SESSION: 3;
+    readonly MIN_CONFIDENCE_FOR_PARTIAL_RESULTS: 0.6;
+    readonly PARTIAL_RESULTS_REFRESH_INTERVAL_MS: 30000;
+};
+
+/**
+ * Anonymous Session Foundation System Types
+ *
+ * Types and schemas for anonymous user sessions, CV processing,
+ * and partial results display for the "try before you buy" experience.
+ */
+
+/**
+ * Anonymous Session Schema
+ * Secure cookie-based session tracking for anonymous users
+ */
+declare const AnonymousSessionSchema: z.ZodObject<{
+    id: z.ZodString;
+    session_token: z.ZodString;
+    client_ip: z.ZodString;
+    user_agent_hash: z.ZodString;
+    browser_fingerprint: z.ZodOptional<z.ZodString>;
+    created_at: z.ZodString;
+    last_accessed_at: z.ZodString;
+    expires_at: z.ZodString;
+    is_active: z.ZodBoolean;
+    upload_attempts: z.ZodNumber;
+    max_upload_attempts: z.ZodNumber;
+    converted_to_user_id: z.ZodNullable<z.ZodString>;
+    converted_at: z.ZodNullable<z.ZodString>;
+    security_flags: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    is_active: boolean;
+    expires_at: string;
+    session_token: string;
+    client_ip: string;
+    user_agent_hash: string;
+    last_accessed_at: string;
+    upload_attempts: number;
+    max_upload_attempts: number;
+    converted_to_user_id: string | null;
+    converted_at: string | null;
+    metadata?: Record<string, unknown> | undefined;
+    browser_fingerprint?: string | undefined;
+    security_flags?: Record<string, unknown> | undefined;
+}, {
+    id: string;
+    created_at: string;
+    is_active: boolean;
+    expires_at: string;
+    session_token: string;
+    client_ip: string;
+    user_agent_hash: string;
+    last_accessed_at: string;
+    upload_attempts: number;
+    max_upload_attempts: number;
+    converted_to_user_id: string | null;
+    converted_at: string | null;
+    metadata?: Record<string, unknown> | undefined;
+    browser_fingerprint?: string | undefined;
+    security_flags?: Record<string, unknown> | undefined;
+}>;
+type AnonymousSession = z.infer<typeof AnonymousSessionSchema>;
+/**
+ * Anonymous CV Session Schema
+ * Links anonymous sessions to CV processing pipeline
+ */
+declare const AnonymousCVSessionSchema: z.ZodObject<{
+    id: z.ZodString;
+    anonymous_session_id: z.ZodString;
+    filename: z.ZodString;
+    file_size_bytes: z.ZodNumber;
+    file_hash: z.ZodString;
+    storage_path: z.ZodString;
+    upload_status: z.ZodEnum<["initiated", "uploading", "uploaded", "processing", "completed", "failed"]>;
+    processing_status: z.ZodNullable<z.ZodEnum<["pending", "processing", "completed", "failed"]>>;
+    processing_started_at: z.ZodNullable<z.ZodString>;
+    processing_completed_at: z.ZodNullable<z.ZodString>;
+    partial_results: z.ZodNullable<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    full_results_available: z.ZodBoolean;
+    error_message: z.ZodNullable<z.ZodString>;
+    retry_count: z.ZodNumber;
+    max_retries: z.ZodNumber;
+    created_at: z.ZodString;
+    updated_at: z.ZodString;
+    expires_at: z.ZodString;
+    metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    error_message: string | null;
+    retry_count: number;
+    expires_at: string;
+    anonymous_session_id: string;
+    filename: string;
+    file_size_bytes: number;
+    file_hash: string;
+    upload_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    storage_path: string;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    max_retries: number;
+    full_results_available: boolean;
+    processing_status: "pending" | "processing" | "completed" | "failed" | null;
+    partial_results: Record<string, unknown> | null;
+    metadata?: Record<string, unknown> | undefined;
+}, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    error_message: string | null;
+    retry_count: number;
+    expires_at: string;
+    anonymous_session_id: string;
+    filename: string;
+    file_size_bytes: number;
+    file_hash: string;
+    upload_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    storage_path: string;
+    processing_started_at: string | null;
+    processing_completed_at: string | null;
+    max_retries: number;
+    full_results_available: boolean;
+    processing_status: "pending" | "processing" | "completed" | "failed" | null;
+    partial_results: Record<string, unknown> | null;
+    metadata?: Record<string, unknown> | undefined;
+}>;
+type AnonymousCVSession = z.infer<typeof AnonymousCVSessionSchema>;
+/**
+ * Anonymous Session Rate Limits Schema
+ * Rate limiting and abuse prevention
+ */
+declare const AnonymousSessionRateLimitSchema: z.ZodObject<{
+    id: z.ZodString;
+    anonymous_session_id: z.ZodString;
+    window_start: z.ZodString;
+    window_duration: z.ZodString;
+    api_calls_count: z.ZodNumber;
+    upload_attempts: z.ZodNumber;
+    max_api_calls: z.ZodNumber;
+    max_uploads: z.ZodNumber;
+    is_blocked: z.ZodBoolean;
+    blocked_until: z.ZodNullable<z.ZodString>;
+    block_reason: z.ZodNullable<z.ZodString>;
+    created_at: z.ZodString;
+    updated_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    anonymous_session_id: string;
+    upload_attempts: number;
+    window_start: string;
+    window_duration: string;
+    api_calls_count: number;
+    max_api_calls: number;
+    max_uploads: number;
+    is_blocked: boolean;
+    blocked_until: string | null;
+    block_reason: string | null;
+}, {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    anonymous_session_id: string;
+    upload_attempts: number;
+    window_start: string;
+    window_duration: string;
+    api_calls_count: number;
+    max_api_calls: number;
+    max_uploads: number;
+    is_blocked: boolean;
+    blocked_until: string | null;
+    block_reason: string | null;
+}>;
+type AnonymousSessionRateLimit = z.infer<typeof AnonymousSessionRateLimitSchema>;
+/**
+ * Anonymous Session Creation Request
+ */
+declare const CreateAnonymousSessionRequestSchema: z.ZodObject<{
+    browser_fingerprint: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    browser_fingerprint?: string | undefined;
+}, {
+    browser_fingerprint?: string | undefined;
+}>;
+type CreateAnonymousSessionRequest = z.infer<typeof CreateAnonymousSessionRequestSchema>;
+/**
+ * Anonymous Session Creation Response
+ */
+declare const CreateAnonymousSessionResponseSchema: z.ZodObject<{
+    success: z.ZodBoolean;
+    session_token: z.ZodString;
+    session_id: z.ZodString;
+    expires_at: z.ZodString;
+    remaining_uploads: z.ZodNumber;
+    message: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    expires_at: string;
+    success: boolean;
+    session_id: string;
+    session_token: string;
+    remaining_uploads: number;
+    message?: string | undefined;
+}, {
+    expires_at: string;
+    success: boolean;
+    session_id: string;
+    session_token: string;
+    remaining_uploads: number;
+    message?: string | undefined;
+}>;
+type CreateAnonymousSessionResponse = z.infer<typeof CreateAnonymousSessionResponseSchema>;
+/**
+ * Anonymous Session Validation Response
+ */
+declare const ValidateAnonymousSessionResponseSchema: z.ZodObject<{
+    session_id: z.ZodString;
+    is_valid: z.ZodBoolean;
+    remaining_uploads: z.ZodNumber;
+    rate_limited: z.ZodBoolean;
+    session_expires_at: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    session_id: string;
+    session_expires_at: string;
+    remaining_uploads: number;
+    is_valid: boolean;
+    rate_limited: boolean;
+}, {
+    session_id: string;
+    session_expires_at: string;
+    remaining_uploads: number;
+    is_valid: boolean;
+    rate_limited: boolean;
+}>;
+type ValidateAnonymousSessionResponse = z.infer<typeof ValidateAnonymousSessionResponseSchema>;
+/**
+ * Anonymous CV Upload Init Request
+ */
+declare const AnonymousCVUploadInitRequestSchema: z.ZodObject<{
+    filename: z.ZodString;
+    file_size: z.ZodNumber;
+    content_type: z.ZodEnum<["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]>;
+    file_hash: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    file_size: number;
+    filename: string;
+    file_hash: string;
+    content_type: "application/pdf" | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+}, {
+    file_size: number;
+    filename: string;
+    file_hash: string;
+    content_type: "application/pdf" | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+}>;
+type AnonymousCVUploadInitRequest = z.infer<typeof AnonymousCVUploadInitRequestSchema>;
+/**
+ * Anonymous CV Upload Init Response
+ */
+declare const AnonymousCVUploadInitResponseSchema: z.ZodObject<{
+    success: z.ZodBoolean;
+    session_id: z.ZodString;
+    cv_session_id: z.ZodString;
+    upload_url: z.ZodString;
+    expires_at: z.ZodString;
+    message: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    expires_at: string;
+    success: boolean;
+    session_id: string;
+    upload_url: string;
+    cv_session_id: string;
+    message?: string | undefined;
+}, {
+    expires_at: string;
+    success: boolean;
+    session_id: string;
+    upload_url: string;
+    cv_session_id: string;
+    message?: string | undefined;
+}>;
+type AnonymousCVUploadInitResponse = z.infer<typeof AnonymousCVUploadInitResponseSchema>;
+/**
+ * Anonymous CV Processing Status Response
+ */
+declare const AnonymousCVProcessingStatusSchema: z.ZodObject<{
+    cv_session_id: z.ZodString;
+    upload_status: z.ZodEnum<["initiated", "uploading", "uploaded", "processing", "completed", "failed"]>;
+    processing_status: z.ZodNullable<z.ZodEnum<["pending", "processing", "completed", "failed"]>>;
+    progress_percentage: z.ZodNumber;
+    current_stage: z.ZodString;
+    estimated_time_remaining: z.ZodNullable<z.ZodNumber>;
+    partial_results: z.ZodNullable<z.ZodObject<{
+        job_title: z.ZodOptional<z.ZodString>;
+        experience_level: z.ZodOptional<z.ZodEnum<["intern", "junior", "mid", "senior", "lead", "manager"]>>;
+        key_skills: z.ZodArray<z.ZodString, "many">;
+        location_preference: z.ZodOptional<z.ZodString>;
+        education_level: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        key_skills: string[];
+        job_title?: string | undefined;
+        experience_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+        location_preference?: string | undefined;
+        education_level?: string | undefined;
+    }, {
+        key_skills: string[];
+        job_title?: string | undefined;
+        experience_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+        location_preference?: string | undefined;
+        education_level?: string | undefined;
+    }>>;
+    full_results_available: z.ZodBoolean;
+    registration_required: z.ZodBoolean;
+    error_message: z.ZodNullable<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    error_message: string | null;
+    upload_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    progress_percentage: number;
+    current_stage: string;
+    estimated_time_remaining: number | null;
+    full_results_available: boolean;
+    processing_status: "pending" | "processing" | "completed" | "failed" | null;
+    partial_results: {
+        key_skills: string[];
+        job_title?: string | undefined;
+        experience_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+        location_preference?: string | undefined;
+        education_level?: string | undefined;
+    } | null;
+    cv_session_id: string;
+    registration_required: boolean;
+}, {
+    error_message: string | null;
+    upload_status: "processing" | "completed" | "failed" | "initiated" | "uploading" | "uploaded";
+    progress_percentage: number;
+    current_stage: string;
+    estimated_time_remaining: number | null;
+    full_results_available: boolean;
+    processing_status: "pending" | "processing" | "completed" | "failed" | null;
+    partial_results: {
+        key_skills: string[];
+        job_title?: string | undefined;
+        experience_level?: "intern" | "junior" | "mid" | "senior" | "lead" | "manager" | undefined;
+        location_preference?: string | undefined;
+        education_level?: string | undefined;
+    } | null;
+    cv_session_id: string;
+    registration_required: boolean;
+}>;
+type AnonymousCVProcessingStatus = z.infer<typeof AnonymousCVProcessingStatusSchema>;
+/**
+ * Session Cookie Configuration
+ */
+declare const SessionCookieConfigSchema: z.ZodObject<{
+    name: z.ZodString;
+    maxAge: z.ZodNumber;
+    httpOnly: z.ZodBoolean;
+    secure: z.ZodBoolean;
+    sameSite: z.ZodEnum<["strict", "lax", "none"]>;
+    domain: z.ZodOptional<z.ZodString>;
+    path: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    path: string;
+    name: string;
+    maxAge: number;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "strict" | "lax" | "none";
+    domain?: string | undefined;
+}, {
+    path: string;
+    name: string;
+    maxAge: number;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "strict" | "lax" | "none";
+    domain?: string | undefined;
+}>;
+type SessionCookieConfig = z.infer<typeof SessionCookieConfigSchema>;
+/**
+ * Rate Limiting Configuration
+ */
+declare const RateLimitConfigSchema: z.ZodObject<{
+    max_uploads_per_session: z.ZodNumber;
+    max_api_calls_per_hour: z.ZodNumber;
+    upload_window_minutes: z.ZodNumber;
+    block_duration_minutes: z.ZodNumber;
+    cleanup_interval_minutes: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    max_uploads_per_session: number;
+    max_api_calls_per_hour: number;
+    upload_window_minutes: number;
+    block_duration_minutes: number;
+    cleanup_interval_minutes: number;
+}, {
+    max_uploads_per_session: number;
+    max_api_calls_per_hour: number;
+    upload_window_minutes: number;
+    block_duration_minutes: number;
+    cleanup_interval_minutes: number;
+}>;
+type RateLimitConfig = z.infer<typeof RateLimitConfigSchema>;
+/**
+ * Security Configuration
+ */
+declare const SecurityConfigSchema: z.ZodObject<{
+    require_ip_consistency: z.ZodBoolean;
+    require_user_agent_consistency: z.ZodBoolean;
+    enable_browser_fingerprinting: z.ZodBoolean;
+    max_session_lifetime_minutes: z.ZodNumber;
+    enable_cleanup_job: z.ZodBoolean;
+}, "strip", z.ZodTypeAny, {
+    require_ip_consistency: boolean;
+    require_user_agent_consistency: boolean;
+    enable_browser_fingerprinting: boolean;
+    max_session_lifetime_minutes: number;
+    enable_cleanup_job: boolean;
+}, {
+    require_ip_consistency: boolean;
+    require_user_agent_consistency: boolean;
+    enable_browser_fingerprinting: boolean;
+    max_session_lifetime_minutes: number;
+    enable_cleanup_job: boolean;
+}>;
+type SecurityConfig = z.infer<typeof SecurityConfigSchema>;
+/**
+ * Anonymous Session Error Codes
+ */
+declare const AnonymousSessionErrorCodes: {
+    readonly SESSION_EXPIRED: "SESSION_EXPIRED";
+    readonly SESSION_NOT_FOUND: "SESSION_NOT_FOUND";
+    readonly SESSION_RATE_LIMITED: "SESSION_RATE_LIMITED";
+    readonly SESSION_BLOCKED: "SESSION_BLOCKED";
+    readonly INVALID_SESSION_TOKEN: "INVALID_SESSION_TOKEN";
+    readonly SECURITY_VIOLATION: "SECURITY_VIOLATION";
+    readonly UPLOAD_LIMIT_EXCEEDED: "UPLOAD_LIMIT_EXCEEDED";
+    readonly FILE_TOO_LARGE: "FILE_TOO_LARGE";
+    readonly INVALID_FILE_TYPE: "INVALID_FILE_TYPE";
+    readonly PROCESSING_FAILED: "PROCESSING_FAILED";
+};
+type AnonymousSessionErrorCode = typeof AnonymousSessionErrorCodes[keyof typeof AnonymousSessionErrorCodes];
+/**
+ * Anonymous Session Error Schema
+ */
+declare const AnonymousSessionErrorSchema: z.ZodObject<{
+    code: z.ZodEnum<["SESSION_EXPIRED", "SESSION_NOT_FOUND", "SESSION_RATE_LIMITED", "SESSION_BLOCKED", "INVALID_SESSION_TOKEN", "SECURITY_VIOLATION", "UPLOAD_LIMIT_EXCEEDED", "FILE_TOO_LARGE", "INVALID_FILE_TYPE", "PROCESSING_FAILED"]>;
+    message: z.ZodString;
+    details: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+    retry_after: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    code: "SESSION_EXPIRED" | "SESSION_NOT_FOUND" | "SESSION_RATE_LIMITED" | "SESSION_BLOCKED" | "INVALID_SESSION_TOKEN" | "SECURITY_VIOLATION" | "UPLOAD_LIMIT_EXCEEDED" | "FILE_TOO_LARGE" | "INVALID_FILE_TYPE" | "PROCESSING_FAILED";
+    message: string;
+    details?: Record<string, unknown> | undefined;
+    retry_after?: number | undefined;
+}, {
+    code: "SESSION_EXPIRED" | "SESSION_NOT_FOUND" | "SESSION_RATE_LIMITED" | "SESSION_BLOCKED" | "INVALID_SESSION_TOKEN" | "SECURITY_VIOLATION" | "UPLOAD_LIMIT_EXCEEDED" | "FILE_TOO_LARGE" | "INVALID_FILE_TYPE" | "PROCESSING_FAILED";
+    message: string;
+    details?: Record<string, unknown> | undefined;
+    retry_after?: number | undefined;
+}>;
+type AnonymousSessionError = z.infer<typeof AnonymousSessionErrorSchema>;
+declare const ANONYMOUS_SESSION_CONSTANTS: {
+    readonly SESSION_LIFETIME_MINUTES: 60;
+    readonly CV_SESSION_LIFETIME_HOURS: 2;
+    readonly SESSION_COOKIE_NAME: "cledger_anonymous_session";
+    readonly MAX_UPLOADS_PER_SESSION: 3;
+    readonly MAX_API_CALLS_PER_HOUR: 100;
+    readonly RATE_LIMIT_WINDOW_MINUTES: 60;
+    readonly BLOCK_DURATION_MINUTES: 30;
+    readonly MAX_FILE_SIZE_BYTES: number;
+    readonly ALLOWED_MIME_TYPES: readonly ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    readonly SESSION_TOKEN_LENGTH: 32;
+    readonly CLEANUP_INTERVAL_MINUTES: 15;
+    readonly MAX_SKILLS_SHOWN: 5;
+    readonly MAX_EXPERIENCE_DETAIL: "basic";
+};
+type AnonymousSessionConstants = typeof ANONYMOUS_SESSION_CONSTANTS;
+
+export { ANONYMOUS_CV_CONSTRAINTS, ANONYMOUS_SESSION_CONSTANTS, type AdminBatchEnrichmentRequest, AdminBatchEnrichmentRequestSchema, type AdminEnrichmentStats, AdminEnrichmentStatsSchema, Agent, AgentCapability, type AgentCapabilityType, AgentConversation, type AgentConversationType, AgentResponse, type AgentResponseType, type AgentType, type AnonymousCVMigration, AnonymousCVMigrationSchema, type AnonymousCVProcessingRequest, AnonymousCVProcessingRequestSchema, type AnonymousCVProcessingStatus, AnonymousCVProcessingStatusSchema, type AnonymousCVResult, AnonymousCVResultSchema, type AnonymousCVSession, AnonymousCVSessionSchema, type AnonymousCVUploadInitRequest, AnonymousCVUploadInitRequestSchema, type AnonymousCVUploadInitResponse, AnonymousCVUploadInitResponseSchema, type AnonymousSession, type AnonymousSessionConstants, type AnonymousSessionError, type AnonymousSessionErrorCode, AnonymousSessionErrorCodes, AnonymousSessionErrorSchema, type AnonymousSessionRateLimit, AnonymousSessionRateLimitSchema, AnonymousSessionSchema, type AppRole, AppRoleEnum, type AppUser, AppUserSchema, type Batch, type BatchCreateRequest, BatchCreateRequestSchema, BatchSchema, type BatchStatus, BatchStatusEnum, type CEFRLevel, CEFRLevelEnum, type CVAIExtraction, CVAIExtractionSchema, type CVDegree, CVDegreeSchema, type CVDocument, CVDocumentSchema, type CVEmbedding, type CVEmbeddingContext, CVEmbeddingContextSchema, CVEmbeddingSchema, type CVEnrichment, CVEnrichmentSchema, type CVExperience, CVExperienceSchema, type CVJobMatch, CVJobMatchSchema, type CVLanguage, CVLanguageSchema, type CVMigrationRequest, CVMigrationRequestSchema, type CVParseStatus, CVParseStatusEnum, type CVProcessStatusResponse, CVProcessStatusResponseSchema, type CVProcessingError, CVProcessingErrorSchema, type CVProcessingMetric, CVProcessingMetricSchema, type CVProcessingProgress, CVProcessingProgressSchema, type CVProcessingQueue, CVProcessingQueueSchema, type CVProcessingStage, CVProcessingStageSchema, type CVSkill, CVSkillSchema, type CVUploadInitRequest, CVUploadInitRequestSchema, type CVUploadInitResponse, CVUploadInitResponseSchema, type CVUploadRequest, CVUploadRequestSchema, type CVUploadSession, CVUploadSessionSchema, type CVValidationResult, CVValidationResultSchema, CV_CONSTRAINTS, CV_PROCESSING_PRIORITIES, CV_PROCESSING_STAGES, CV_UPLOAD_STATUS, CV_VALIDATION_TYPES, type CandidateProfile, CandidateProfileSchema, CapabilitiesResponse, type CapabilitiesResponseType, type Company, CompanySchema, type ConfidenceScore, ConfidenceScoreSchema, type ConfidenceScores, ConfidenceScoresSchema, type ContractType, ContractTypeEnum, ConversationStatus, type ConversationStatusType, type CreateAnonymousSessionRequest, CreateAnonymousSessionRequestSchema, type CreateAnonymousSessionResponse, CreateAnonymousSessionResponseSchema, type Database, type DegreeClassification, DegreeClassificationSchema, type DegreeRequirement, DegreeRequirementSchema, DelegateTaskRequest, type DelegateTaskRequestType, type EnrichedLanguage, EnrichedLanguageSchema, type EnrichedSkill, EnrichedSkillSchema, type EnrichmentHistoryItem, EnrichmentHistoryItemSchema, type EnrichmentHistoryResponse, EnrichmentHistoryResponseSchema, type EnrichmentRequest, EnrichmentRequestSchema, type EnrichmentResponse, EnrichmentResponseSchema, type ErrorResponse, ErrorResponseSchema, type IngestOffersRequest, IngestOffersRequestSchema, InvokeAgentRequest, type InvokeAgentRequestType, type LanguageDetection, LanguageDetectionSchema, type LanguageRequirement, LanguageRequirementSchema, type Location, LocationSchema, type LoginCredentials, LoginSchema, type MatchRequest, MatchRequestSchema, type MatchResult, MatchResultSchema, type Offer, type OfferEmbedding, OfferEmbeddingSchema, type OfferEnrichment, OfferEnrichmentSchema, OfferSchema, type OfferSource, OfferSourceEnum, type OfferStatus, OfferStatusEnum, type Pagination, PaginationSchema, type PartialCVResultsResponse, PartialCVResultsResponseSchema, type PasswordReset, type PasswordResetRequest, PasswordResetRequestSchema, PasswordResetSchema, Priority, type RateLimitConfig, RateLimitConfigSchema, type Registration, RegistrationSchema, type SSEEvent, SSEEventSchema, type SSEEventType, SSEEventTypeEnum, type SearchOffersRequest, SearchOffersRequestSchema, type SecurityConfig, SecurityConfigSchema, type SeniorityLevel, SeniorityLevelEnum, type Session, type SessionCookieConfig, SessionCookieConfigSchema, type SessionDetectionResponse, SessionDetectionResponseSchema, SessionSchema, type Skill, type SkillCategory, SkillCategoryEnum, type SkillExtraction, SkillExtractionSchema, SkillSchema, type SortOrder, SortOrderEnum, type SuccessResponse, SuccessResponseSchema, TaskType, type TaskTypeType, type ValidateAnonymousSessionResponse, ValidateAnonymousSessionResponseSchema, type WorkMode, WorkModeEnum, canAgentInvoke, getAgentByCapability, getAgentsByTaskType };

@@ -32,7 +32,7 @@ const UpdateSavedSearchSchema = z.object({
 // GET /api/saved-searches/[id] - Get specific saved search with results
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -41,7 +41,8 @@ export async function GET(
       throw errorFactory.UNAUTHORIZED("Authentication required");
     }
 
-    const savedSearchId = params.id;
+    const resolvedParams = await params;
+    const savedSearchId = resolvedParams.id;
     const { searchParams } = new URL(request.url);
     const includeOffers = searchParams.get('include_offers') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -118,7 +119,7 @@ export async function GET(
 // PATCH /api/saved-searches/[id] - Update saved search
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -127,7 +128,8 @@ export async function PATCH(
       throw errorFactory.UNAUTHORIZED("Authentication required");
     }
 
-    const savedSearchId = params.id;
+    const resolvedParams = await params;
+    const savedSearchId = resolvedParams.id;
     const body = await request.json();
     const validatedData = UpdateSavedSearchSchema.parse(body);
 
@@ -230,7 +232,7 @@ export async function PATCH(
 // DELETE /api/saved-searches/[id] - Delete saved search
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -239,7 +241,8 @@ export async function DELETE(
       throw errorFactory.UNAUTHORIZED("Authentication required");
     }
 
-    const savedSearchId = params.id;
+    const resolvedParams = await params;
+    const savedSearchId = resolvedParams.id;
 
     const supabase = createRouteHandlerClient();
 
@@ -285,7 +288,7 @@ export async function DELETE(
 // POST /api/saved-searches/[id]/execute - Execute saved search and get current results
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -294,7 +297,8 @@ export async function POST(
       throw errorFactory.UNAUTHORIZED("Authentication required");
     }
 
-    const savedSearchId = params.id;
+    const resolvedParams = await params;
+    const savedSearchId = resolvedParams.id;
 
     const supabase = createRouteHandlerClient();
 

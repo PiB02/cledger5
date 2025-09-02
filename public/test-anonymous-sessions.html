@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Session Foundation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .test-header {
+            background: #007acc;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+        .test-content {
+            padding: 15px;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .result {
+            background: #f8f9fa;
+            border-left: 4px solid #007acc;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.pass { background: #d4edda; color: #155724; }
+        .status.fail { background: #f8d7da; color: #721c24; }
+        .status.pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Anonymous Session Foundation System Test</h1>
+        <p>This page tests the complete "try before you buy" CV upload flow for anonymous users.</p>
+        
+        <div class="test-section">
+            <div class="test-header">Test 1: Create Anonymous Session</div>
+            <div class="test-content">
+                <button onclick="testCreateSession()">Create Anonymous Session</button>
+                <div id="create-session-result" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">Test 2: Validate Session</div>
+            <div class="test-content">
+                <button onclick="testValidateSession()" id="validate-btn" disabled>Validate Session</button>
+                <div id="validate-session-result" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">Test 3: Initialize CV Upload</div>
+            <div class="test-content">
+                <button onclick="testCVUploadInit()" id="cv-upload-btn" disabled>Initialize CV Upload</button>
+                <div id="cv-upload-result" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">Test 4: Check CV Processing Status</div>
+            <div class="test-content">
+                <button onclick="testCVStatus()" id="cv-status-btn" disabled>Check CV Status</button>
+                <div id="cv-status-result" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">Test 5: Rate Limiting Test</div>
+            <div class="test-content">
+                <button onclick="testRateLimit()" id="rate-limit-btn" disabled>Test Rate Limiting</button>
+                <div id="rate-limit-result" class="result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">Test Summary</div>
+            <div class="test-content" id="test-summary">
+                <p>Run tests above to see results...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global test state
+        let testResults = {
+            createSession: null,
+            validateSession: null,
+            cvUploadInit: null,
+            cvStatus: null,
+            rateLimit: null
+        };
+
+        let sessionToken = null;
+        let sessionId = null;
+        let cvSessionId = null;
+
+        // Utility functions
+        function showResult(elementId, result, success) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = JSON.stringify(result, null, 2);
+            element.style.borderLeftColor = success ? '#28a745' : '#dc3545';
+            return success;
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('test-summary');
+            const passed = Object.values(testResults).filter(r => r === true).length;
+            const total = Object.values(testResults).filter(r => r !== null).length;
+            
+            summary.innerHTML = `
+                <h3>Test Results: ${passed}/${total} passed</h3>
+                <div>Create Session: <span class="status ${testResults.createSession === true ? 'pass' : testResults.createSession === false ? 'fail' : 'pending'}">${testResults.createSession === true ? 'PASS' : testResults.createSession === false ? 'FAIL' : 'PENDING'}</span></div>
+                <div>Validate Session: <span class="status ${testResults.validateSession === true ? 'pass' : testResults.validateSession === false ? 'fail' : 'pending'}">${testResults.validateSession === true ? 'PASS' : testResults.validateSession === false ? 'FAIL' : 'PENDING'}</span></div>
+                <div>CV Upload Init: <span class="status ${testResults.cvUploadInit === true ? 'pass' : testResults.cvUploadInit === false ? 'fail' : 'pending'}">${testResults.cvUploadInit === true ? 'PASS' : testResults.cvUploadInit === false ? 'FAIL' : 'PENDING'}</span></div>
+                <div>CV Status: <span class="status ${testResults.cvStatus === true ? 'pass' : testResults.cvStatus === false ? 'fail' : 'pending'}">${testResults.cvStatus === true ? 'PASS' : testResults.cvStatus === false ? 'FAIL' : 'PENDING'}</span></div>
+                <div>Rate Limiting: <span class="status ${testResults.rateLimit === true ? 'pass' : testResults.rateLimit === false ? 'fail' : 'pending'}">${testResults.rateLimit === true ? 'PASS' : testResults.rateLimit === false ? 'FAIL' : 'PENDING'}</span></div>
+            `;
+        }
+
+        // Test functions
+        async function testCreateSession() {
+            try {
+                const response = await fetch('/api/anonymous/session/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        browser_fingerprint: 'test-fingerprint-' + Date.now()
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    sessionToken = data.session_token;
+                    sessionId = data.session_id;
+                    
+                    // Enable next test
+                    document.getElementById('validate-btn').disabled = false;
+                    
+                    testResults.createSession = showResult('create-session-result', data, true);
+                } else {
+                    testResults.createSession = showResult('create-session-result', data, false);
+                }
+            } catch (error) {
+                testResults.createSession = showResult('create-session-result', { error: error.message }, false);
+            }
+            
+            updateSummary();
+        }
+
+        async function testValidateSession() {
+            if (!sessionToken) {
+                showResult('validate-session-result', { error: 'No session token available' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/anonymous/session/validate', {
+                    method: 'GET',
+                    credentials: 'include' // Include cookies
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Enable next test
+                    document.getElementById('cv-upload-btn').disabled = false;
+                    document.getElementById('rate-limit-btn').disabled = false;
+                    
+                    testResults.validateSession = showResult('validate-session-result', data, true);
+                } else {
+                    testResults.validateSession = showResult('validate-session-result', data, false);
+                }
+            } catch (error) {
+                testResults.validateSession = showResult('validate-session-result', { error: error.message }, false);
+            }
+            
+            updateSummary();
+        }
+
+        async function testCVUploadInit() {
+            if (!sessionId) {
+                showResult('cv-upload-result', { error: 'No session ID available' }, false);
+                return;
+            }
+
+            try {
+                // Generate a test file hash
+                const testContent = 'Test CV Content ' + Date.now();
+                const encoder = new TextEncoder();
+                const data = encoder.encode(testContent);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                const response = await fetch('/api/anonymous/cv/upload/init', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        filename: 'test-cv-anonymous.pdf',
+                        file_size: 512000, // 500KB
+                        content_type: 'application/pdf',
+                        file_hash: fileHash
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    cvSessionId = result.cv_session_id;
+                    
+                    // Enable next test
+                    document.getElementById('cv-status-btn').disabled = false;
+                    
+                    testResults.cvUploadInit = showResult('cv-upload-result', result, true);
+                } else {
+                    testResults.cvUploadInit = showResult('cv-upload-result', result, false);
+                }
+            } catch (error) {
+                testResults.cvUploadInit = showResult('cv-upload-result', { error: error.message }, false);
+            }
+            
+            updateSummary();
+        }
+
+        async function testCVStatus() {
+            if (!cvSessionId) {
+                showResult('cv-status-result', { error: 'No CV session ID available' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/anonymous/cv/status/${cvSessionId}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    testResults.cvStatus = showResult('cv-status-result', data, true);
+                } else {
+                    testResults.cvStatus = showResult('cv-status-result', data, false);
+                }
+            } catch (error) {
+                testResults.cvStatus = showResult('cv-status-result', { error: error.message }, false);
+            }
+            
+            updateSummary();
+        }
+
+        async function testRateLimit() {
+            try {
+                let requestCount = 0;
+                let rateLimitHit = false;
+                
+                // Make multiple rapid requests
+                for (let i = 0; i < 10; i++) {
+                    try {
+                        const response = await fetch('/api/anonymous/session/validate', {
+                            method: 'GET',
+                            credentials: 'include'
+                        });
+                        
+                        if (response.status === 429) {
+                            rateLimitHit = true;
+                            break;
+                        }
+                        
+                        if (response.ok) {
+                            requestCount++;
+                        }
+                    } catch (error) {
+                        break;
+                    }
+                }
+                
+                const result = {
+                    requests_made: requestCount,
+                    rate_limit_hit: rateLimitHit,
+                    message: rateLimitHit ? 
+                        `Rate limiting works - hit limit after ${requestCount} requests` :
+                        `Made ${requestCount} requests without hitting rate limit`
+                };
+                
+                testResults.rateLimit = showResult('rate-limit-result', result, rateLimitHit);
+            } catch (error) {
+                testResults.rateLimit = showResult('rate-limit-result', { error: error.message }, false);
+            }
+            
+            updateSummary();
+        }
+
+        // Initialize
+        updateSummary();
+    </script>
+</body>
+</html>
