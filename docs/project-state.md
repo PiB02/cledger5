@@ -7,7 +7,7 @@
 
 ### **🎯 État Actuel : MVP COMPLET ET OPÉRATIONNEL**
 - **✅ 12 phases complétées** sur 12 phases prévues (100%)
-- **✅ 18 endpoints API** fully functional avec gestion d'erreurs complète
+- **✅ 19 endpoints API** fully functional avec gestion d'erreurs complète
 - **✅ Système d'authentification** Clerk stable avec RLS policies
 - **✅ Pipeline IA complet** GPT-4o-mini + text-embedding-3-small
 - **✅ Base de données** 18+ tables avec partitioning + indexes optimisés
@@ -84,7 +84,7 @@ cledger5/
 
 ---
 
-## 🔧 **ENDPOINTS API OPÉRATIONNELS (18 Total)**
+## 🔧 **ENDPOINTS API OPÉRATIONNELS (19 Total)**
 
 ### **Core APIs**
 1. `GET /api/health` - Health check système
@@ -106,13 +106,14 @@ cledger5/
 11. `POST /api/cv/upload/init` - Initialisation upload CV (anonyme/auth)
 12. `POST /api/cv/process` - Processing CV avec GPT-4o-mini
 13. `GET /api/cv/results/anonymous` - Résultats CV anonymes
+14. `POST /api/cv/migrate-anonymous` - Migration données CV anonymes vers user
 
 ### **User Features (Phase 12)**
-14. `GET|POST /api/applications` - Workflow candidatures
-15. `GET /api/applications/[id]` - Détail candidature avec statuts
-16. `GET|POST /api/saved-searches` - CRUD recherches sauvées
-17. `GET /api/saved-searches/[id]` - Détail recherche sauvée
-18. `GET|POST /api/alerts` - Configuration alertes utilisateur
+15. `GET|POST /api/applications` - Workflow candidatures
+16. `GET /api/applications/[id]` - Détail candidature avec statuts
+17. `GET|POST /api/saved-searches` - CRUD recherches sauvées
+18. `GET /api/saved-searches/[id]` - Détail recherche sauvée
+19. `GET|POST /api/alerts` - Configuration alertes utilisateur
 
 ---
 
@@ -142,28 +143,37 @@ cledger5/
 
 ## 🎯 **SESSION RÉCENTE - 02/09/2025**
 
-### **Problèmes Résolus**
-- **✅ CV Upload Errors**: Fixed Supabase Storage integration
-  - Problème: Upload pointait vers localhost:3010 inexistant
-  - Solution: Utilisation URLs signées Supabase Storage
-- **✅ Database Constraints**: Fixed anonymous_cv_sessions creation
-  - Problème: upload_status 'initialized' vs 'initiated' 
-  - Solution: Respect des contraintes CHECK database
-- **✅ Parser Method**: Fixed cvParser.parseFile → parseDocument
-  - Problème: Méthode inexistante causait erreurs parsing
-  - Solution: Utilisation correcte de l'API CVDocumentParser
-- **✅ Table Relationships**: Fixed anonymous_sessions ↔ anonymous_cv_sessions
-  - Problème: Process endpoint cherchait dans mauvaise table
-  - Solution: Création des 2 enregistrements liés lors init
+### **Phase 13: Anonymous-to-User Migration System (Complétée 02/09/2025)**
+- **✅ Registration Flow Optimization**: Suppression page intermédiaire post-CV
+  - Problème: Étape inutile entre "créer compte" et formulaire Clerk
+  - Solution: Redirection directe vers `/sign-up` depuis partial results
+- **✅ Signup Redirect Fix**: Dashboard comme destination post-inscription
+  - Problème: Redirection vers `/cv/upload` après signup
+  - Solution: `fallbackRedirectUrl="/dashboard"` dans composant SignUp
+- **✅ Anonymous CV Migration**: Système complet de migration données
+  - API: `/api/cv/migrate-anonymous` avec authentification Clerk
+  - Database: Fonction `migrate_anonymous_cv_to_user` avec transaction
+  - Frontend: Auto-migration + bouton manuel dans dashboard
+- **✅ Dashboard Smart**: Détection et traitement données localStorage
+  - Auto-migration si signup récent (<5min)
+  - Interface adaptative avec résultats CV ou dashboard standard
+  - Prévention doublons avec flag `migrationAttempted`
+
+### **Nouvelles Fonctionnalités**
+- **✅ API Migration CV**: `/api/cv/migrate-anonymous` POST endpoint
+- **✅ Fonctions Supabase**: `migrate_anonymous_cv_to_user` + `can_migrate_anonymous_session`
+- **✅ Dashboard Client**: Composant intelligent avec gestion localStorage
+- **✅ Database Links**: `anonymous_sessions.converted_to_user_id` → `users.id`
 
 ### **Tests Validés**
 - **✅ Anonymous CV Upload**: End-to-end flow opérationnel
-- **✅ File Parsing**: PDF + Word parsing avec métadonnées
-- **✅ AI Analysis**: GPT-4o-mini extraction + confidence scoring
-- **✅ Embedding Generation**: 1536d vectors pour matching sémantique
-- **✅ Results Display**: Interface résultats avec teaser data
+- **✅ Registration Flow**: Direct redirect sans étape intermédiaire
+- **✅ Auto-Migration**: Données CV transférées automatiquement après signup
+- **✅ Manual Migration**: Bouton "Sauvegarder dans mon compte" fonctionnel
+- **✅ Data Integrity**: Liens Supabase corrects entre tables anonymes/user
 
 ### **Commits GitHub**
+- [À venir] - feat: Anonymous CV migration system + registration flow optimization
 - `eb9514a` - fix: Resolve CV upload and processing errors (02/09/2025)
 - `cf960af` - feat: Complete Phase 12 - Advanced User Features & Production
 

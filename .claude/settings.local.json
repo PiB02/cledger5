@@ -12,7 +12,8 @@
       "mcp__supabase__list_tables",
       "mcp__supabase__execute_sql",
       "mcp__sequential-thinking__sequentialthinking",
-      "Bash(Remove-Item \"C:\\Users\\Admin\\odrive\\Pierre@Barreaud\\AI\\cledger5.claude\\cledger5\\docs\\current-context.md\" -Force)"
+      "Bash(Remove-Item \"C:\\Users\\Admin\\odrive\\Pierre@Barreaud\\AI\\cledger5.claude\\cledger5\\docs\\current-context.md\" -Force)",
+      "mcp__supabase__apply_migration"
     ],
     "deny": [],
     "ask": []

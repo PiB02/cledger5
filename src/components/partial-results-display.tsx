@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, CheckCircle, MapPin, Briefcase, Star, Lock, Users, TrendingUp, Clock } from "lucide-react";
-import { RegistrationPrompt } from "@/components/registration-prompt";
 
 /**
  * Partial Results Display Component
@@ -54,10 +54,10 @@ interface PartialResults {
 }
 
 export function PartialResultsDisplay({ sessionToken, cvSessionId, filename, onBack }: PartialResultsDisplayProps) {
+  const router = useRouter();
   const [results, setResults] = useState<PartialResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showRegistration, setShowRegistration] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
 
   // Fetch partial results
@@ -141,20 +141,25 @@ export function PartialResultsDisplay({ sessionToken, cvSessionId, filename, onB
 
   if (!results) return null;
 
-  if (showRegistration) {
-    return (
-      <RegistrationPrompt
-        sessionToken={sessionToken}
-        cvSessionId={cvSessionId}
-        previewData={{
+  // Store session data in localStorage for post-signup processing and redirect to Clerk
+  const handleSignup = () => {
+    // Store the anonymous session info for migration after signup
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('anonymous_session_data', JSON.stringify({
+        sessionToken,
+        cvSessionId,
+        timestamp: Date.now(),
+        previewData: {
           skills_found: results.summary.skills_found,
           opportunities: results.summary.job_opportunities_estimated,
           experience_level: results.summary.experience_level
-        }}
-        onBack={() => setShowRegistration(false)}
-      />
-    );
-  }
+        }
+      }));
+    }
+    
+    // Redirect directly to Clerk signup
+    router.push('/sign-up');
+  };
 
   const confidenceColor = (confidence: string) => {
     switch (confidence) {
@@ -350,7 +355,7 @@ export function PartialResultsDisplay({ sessionToken, cvSessionId, filename, onB
                     <Button 
                       size="lg" 
                       className="w-full bg-white text-[#00C2A8] hover:bg-gray-100 font-semibold shadow-lg"
-                      onClick={() => setShowRegistration(true)}
+                      onClick={handleSignup}
                     >
                       <Users className="mr-2 h-5 w-5" />
                       Créer mon compte gratuit

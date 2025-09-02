@@ -127,7 +127,7 @@ export default function SignUpPage() {
                         socialButtonsVariant: "iconButton"
                       }
                     }}
-                    fallbackRedirectUrl="/cv/upload"
+                    fallbackRedirectUrl="/dashboard"
                   />
                 </div>
 
