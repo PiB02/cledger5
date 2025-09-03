@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createSupabaseRouteHandler } from '@/lib/supabase/route-handler';
+import { createSupabaseService } from '@/lib/supabase';
 import { franceTravailAPI, type FTSearchParams } from '@/lib/france-travail';
 import { errorFactory } from '@/lib/errors';
 import { generateOfferFingerprint } from '@cledger5/utils';
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🇫🇷 Starting France Travail ingestion with params:', params);
 
-    const supabase = createRouteHandlerClient();
+    const supabase = createSupabaseService();
     let batchId: string | null = null;
 
     if (!params.dry_run) {
@@ -256,7 +256,7 @@ async function processOffer(
   };
 
   // Génération du fingerprint pour déduplication
-  const fingerprint = generateFingerprint({
+  const fingerprint = generateOfferFingerprint({
     title: normalizedOffer.title,
     company: normalizedOffer.company_name || '',
     location: normalizedOffer.location_name || '',
@@ -307,7 +307,7 @@ async function processOffer(
  */
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient();
+    const supabase = createSupabaseService();
 
     // Statistiques des offres France Travail
     const { data: stats, error } = await supabase
