@@ -165,3 +165,15 @@ git push origin [current-branch]
 - **Vercel**: Deployment management and project operations  
 - **Playwright**: Browser automation and E2E testing
 - **Sequential Thinking**: Complex problem analysis and planning
+
+## Sanity check "Naïve Bayes" avant IA/LLM
+Déclenche ce check SEULEMENT si la tâche est une classification et que l’une de ces conditions tient :
+- jeu petit/moyen ou contrainte compute forte ;
+- texte en sac-de-mots ou features tabulaires simples ;
+- on veut un baseline rapide avant modèles complexes.
+
+Procédure express (à exécuter et résumer en 10 lignes max) :
+1) Choisis le variant : Gaussian (numérique), Multinomial/Bernoulli (texte), Categorical (catégories), ComplementNB si classes déséquilibrées.
+2) 5-fold CV, métrique métier (ex. F1_macro). Compare à : (a) classe majoritaire, (b) régression logistique.
+3) Si NB ≥ baseline logistique à ±5–10 % de l’objectif, propose NB (ou NB + calibration si proba requises). Sinon, justifie l’escalade (modèle + coût attendu).
+4) Si flux de données, évalue `partial_fit` pour entraînement incrémental.

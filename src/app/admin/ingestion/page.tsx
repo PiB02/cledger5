@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,26 +50,9 @@ export default function IngestionPage() {
   const { user, isLoaded } = useUser();
   const [isLbaLoading, setIsLbaLoading] = useState(false);
   const [isFtLoading, setIsFtLoading] = useState(false);
-
-  // GDPR COMPLIANCE: Admin role verification
-  const isAdmin = isLoaded && user?.publicMetadata?.role === 'admin';
+  const [adminStatus, setAdminStatus] = useState<{isAdmin: boolean, bypassReason?: string}>({ isAdmin: false });
   
-  if (!isLoaded) {
-    return <div className="flex items-center justify-center min-h-screen">Chargement...</div>;
-  }
-  
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Accès non autorisé</h1>
-          <p className="text-gray-600">Cette page nécessite des privilèges administrateur.</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // States pour LBA
+  // States pour LBA (moved to top level to avoid hooks order violation)
   const [lbaFilters, setLbaFilters] = useState({
     from: "",
     to: "",
@@ -80,7 +63,7 @@ export default function IngestionPage() {
     dryRun: false
   });
 
-  // States pour FT
+  // States pour FT (moved to top level to avoid hooks order violation)
   const [ftFilters, setFtFilters] = useState({
     romeCodes: [] as string[],
     regions: "",
@@ -92,6 +75,42 @@ export default function IngestionPage() {
     dryRun: false
   });
 
+  // Check admin access with dev bypass support
+  useEffect(() => {
+    async function checkAdmin() {
+      // Always call admin-check API - it handles dev bypass internally
+
+      try {
+        const response = await fetch('/api/auth/admin-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        
+        const result = await response.json();
+        setAdminStatus(result);
+      } catch (error) {
+        console.error('Admin check failed:', error);
+        setAdminStatus({ isAdmin: false });
+      }
+    }
+
+    checkAdmin();
+  }, []); // Remove dependency on isLoaded and user for dev bypass
+  
+  if (!adminStatus.isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Accès non autorisé</h1>
+          <p className="text-gray-600">Cette page nécessite des privilèges administrateur.</p>
+          {adminStatus.bypassReason && (
+            <p className="text-sm text-green-600 mt-2">Dev: {adminStatus.bypassReason}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+  
   const handleRomeToggle = (source: 'lba' | 'ft', romeCode: string) => {
     if (source === 'lba') {
       setLbaFilters(prev => ({
@@ -155,7 +174,7 @@ export default function IngestionPage() {
         rome_codes: ftFilters.romeCodes,
         regions: ftFilters.regions ? ftFilters.regions.split(',').map(r => r.trim()) : undefined,
         departements: ftFilters.departments ? ftFilters.departments.split(',').map(d => d.trim()) : undefined,
-        type_contrat: ftFilters.typeContrat ? [ftFilters.typeContrat] : undefined,
+        type_contrat: ftFilters.typeContrat && ftFilters.typeContrat !== 'ALL' ? [ftFilters.typeContrat] : undefined,
         motsCles: ftFilters.keywords || undefined,
         max_pages: ftFilters.maxPages,
         per_page: ftFilters.perPage,
@@ -449,7 +468,7 @@ export default function IngestionPage() {
                       <SelectValue placeholder="Sélectionner un type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous</SelectItem>
+                      <SelectItem value="ALL">Tous</SelectItem>
                       <SelectItem value="CDI">CDI</SelectItem>
                       <SelectItem value="CDD">CDD</SelectItem>
                       <SelectItem value="MIS">Mission intérim</SelectItem>

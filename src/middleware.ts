@@ -6,6 +6,15 @@ const isProtectedRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware((auth, req) => {
+  // DEVELOPMENT BYPASS: Skip Clerk protection in dev mode with bypass enabled
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const devAdminBypass = process.env.DEV_ADMIN_BYPASS === 'true';
+  
+  if (isDevelopment && devAdminBypass && req.url.includes('/admin')) {
+    console.log('🔓 DEV MODE: Bypassing Clerk middleware for admin route');
+    return;
+  }
+  
   if (isProtectedRoute(req)) auth().protect()
 })
 

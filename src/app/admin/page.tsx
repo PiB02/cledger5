@@ -9,9 +9,11 @@ import {
   Download, 
   Brain,
   Zap,
-  Activity
+  Activity,
+  Monitor
 } from "lucide-react";
 import Link from "next/link";
+import BatchMonitor from "@/components/admin/batch-monitor";
 
 export default function AdminDashboard() {
   return (
@@ -100,6 +102,29 @@ export default function AdminDashboard() {
                 </Button>
               </Link>
               <Badge variant="outline">Auto: 6h</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Monitor className="h-5 w-5 text-green-500" />
+              Monitoring Batches
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Suivi temps réel des processus d'ingestion
+            </p>
+            <div className="flex gap-2">
+              <Link href="/admin/batches">
+                <Button size="sm" variant="outline">
+                  <Monitor className="h-4 w-4 mr-2" />
+                  Voir les batches
+                </Button>
+              </Link>
+              <Badge variant="secondary">3 actifs</Badge>
             </div>
           </CardContent>
         </Card>

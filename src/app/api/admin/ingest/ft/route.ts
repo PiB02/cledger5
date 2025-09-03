@@ -5,9 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 import { createSupabaseService } from '@/lib/supabase';
 import { errorFactory } from '@/lib/errors';
+import { checkAdminAccess, logAdminAccess } from '@/lib/auth/dev-admin';
 import { z } from 'zod';
 
 // Request validation schema (same as original)
@@ -24,32 +25,16 @@ const IngestionParamsSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // GDPR COMPLIANCE: Authenticated admin verification
+    // GDPR COMPLIANCE: Authenticated admin verification with dev bypass
     const { userId } = auth();
-    if (!userId) {
-      throw errorFactory.UNAUTHORIZED('Authentication required');
-    }
+    const adminCheck = await checkAdminAccess(userId);
 
-    // Verify admin role via Clerk metadata
-    const supabase = createSupabaseService();
-    const { data: user } = await supabase
-      .from('app_users')
-      .select('role')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (!user || user.role !== 'admin') {
-      // AUDIT LOG: Unauthorized access attempt
-      await supabase.from('audit_logs').insert({
-        user_id: userId,
-        action: 'admin_access_denied', 
-        resource: 'ft_ingestion',
-        ip_address: request.ip,
-        user_agent: request.headers.get('user-agent'),
-        metadata: { attempted_role: user?.role || 'none' },
-        created_at: new Date().toISOString(),
-      });
-
+    if (!adminCheck.isAdmin) {
+      // Log unauthorized access attempt
+      if (userId) {
+        await logAdminAccess(userId, 'admin_access_denied', 'ft_ingestion', request);
+      }
+      
       throw errorFactory.FORBIDDEN('Admin privileges required');
     }
 
@@ -58,14 +43,18 @@ export async function POST(request: NextRequest) {
     const params = IngestionParamsSchema.parse(body);
 
     // AUDIT LOG: Admin operation started
+    await logAdminAccess(adminCheck.userId!, 'ft_ingestion_start', 'ft_ingestion', request);
+    
+    const supabase = createSupabaseService();
     const auditEntry = await supabase.from('audit_logs').insert({
-      user_id: userId,
+      user_id: adminCheck.userId!,
       action: 'ft_ingestion_start',
       resource: 'ft_ingestion',
       ip_address: request.ip,
       user_agent: request.headers.get('user-agent'),
       metadata: {
         params,
+        dev_bypass: adminCheck.bypassReason,
         initiated_at: new Date().toISOString(),
       },
       created_at: new Date().toISOString(),
@@ -121,18 +110,9 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { userId } = auth();
-    if (!userId) {
-      throw errorFactory.UNAUTHORIZED('Authentication required');
-    }
+    const adminCheck = await checkAdminAccess(userId);
 
-    const supabase = createSupabaseService();
-    const { data: user } = await supabase
-      .from('app_users')
-      .select('role')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (!user || user.role !== 'admin') {
+    if (!adminCheck.isAdmin) {
       throw errorFactory.FORBIDDEN('Admin privileges required');
     }
 
