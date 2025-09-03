@@ -10,6 +10,7 @@ import { createSupabaseService } from '@/lib/supabase';
 import { errorFactory } from '@/lib/errors';
 import { checkAdminAccess, logAdminAccess } from '@/lib/auth/dev-admin';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
 
 // Request validation schema
 const IngestionParamsSchema = z.object({
@@ -353,9 +354,9 @@ async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
     return;
   }
 
-  // Générer UUID pour l'ID - FORCE RECOMPILE
-  const { randomUUID } = await import('crypto');
+  // Générer UUID pour l'ID - FIX CRITICAL
   const offerId = randomUUID();
+  console.log(`🔑 Generated UUID for ${ftOffer.id}: ${offerId} (type: ${typeof offerId})`);
 
   // Insertion dans offers_raw
   const { error: insertError } = await supabase

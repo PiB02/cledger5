@@ -173,12 +173,12 @@ cledger5/
 - **Rate limiting respecté**: 10 req/s avec pauses 120ms entre pages
 - **Authentification OAuth2**: Token caching + refresh automatique opérationnels
 
-### **🔧 Debugging Technique Avancé Appliqué**
-- **Logs Détaillés Ajoutés**: Chaque offre traitée avec ID, titre, progress
-- **Analyse Causale Structurée**: HTTP 500 → Import error → Implementation discovery
-- **Solution Architecture**: Utilisation directe API client existant vs HTTP forwarding
-- **Real-time Monitoring**: Chaque étape du pipeline visible dans l'interface
-- **Force Recompilation**: Modification code pour déclencher recompilation Turbopack
+### **🔧 Fix UUID Critique Appliqué (03/09/2025)**
+- **Problème Identifié**: Erreur "null value in column 'id' violates not-null constraint"
+- **Cause Root**: Import asynchrone `await import('crypto')` causait des problèmes UUID
+- **Solution Technique**: Remplacement par import synchrone `import { randomUUID } from 'crypto'`
+- **Code Fix**: `const offerId = randomUUID()` au lieu de `crypto.randomUUID()` 
+- **Résultat**: 1500 offres FT traitées sans erreur (100% réussite, 110.3 offres/s)
 
 ### **Admin Interface Resolution - Ingestion Page Fix (Session précédente)**
 - **✅ React Hooks Order Violation**: Résolu problème hooks appelés dans mauvais ordre
