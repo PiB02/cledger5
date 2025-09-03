@@ -160,7 +160,7 @@ var LBAClient = class {
       try {
         const response = await fetch(url, __spreadProps(__spreadValues({}, options), {
           headers: __spreadProps(__spreadValues({}, options.headers), {
-            "x-api-key": this.apiKey,
+            "Authorization": `Bearer ${this.apiKey}`,
             "Content-Type": "application/json"
           })
         }));

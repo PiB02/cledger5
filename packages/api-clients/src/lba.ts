@@ -172,7 +172,7 @@ export class LBAClient {
           ...options,
           headers: {
             ...options.headers,
-            'x-api-key': this.apiKey,
+            'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
         })
