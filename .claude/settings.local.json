@@ -30,7 +30,14 @@
       "mcp__playwright__browser_evaluate",
       "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/ingest/lba\" -Method POST -ContentType \"application/json\" -Headers @{\"x-admin-secret\" = \"Iletait1x\"} -Body '{\\\"\"limit\\\"\": 10, \\\"\"dryRun\\\"\": true}')",
       "Bash(node:*)",
-      "Bash(Remove-Item \"test-lba-auth.js\" -Force)"
+      "Bash(Remove-Item \"test-lba-auth.js\" -Force)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/ingest/lba\" -Method POST -ContentType \"application/json\" -Headers @{\"x-admin-secret\" = \"Iletait1x\"} -Body '{\"\"limit\"\": 10, \"\"dryRun\"\": true}')",
+      "mcp__playwright__browser_handle_dialog",
+      "mcp__playwright__browser_console_messages",
+      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Recurse -Force node_modules/.cache -ErrorAction SilentlyContinue)",
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []

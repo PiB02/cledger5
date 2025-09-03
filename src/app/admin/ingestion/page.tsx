@@ -22,8 +22,10 @@ import {
   Filter,
   Play,
   Settings,
-  Loader2
+  Loader2,
+  BarChart3
 } from "lucide-react";
+import { RealTimeProgress } from "@/components/ingestion/real-time-progress";
 
 // Codes ROME disponibles dans la base
 const ROME_CODES = [
@@ -51,6 +53,20 @@ export default function IngestionPage() {
   const [isLbaLoading, setIsLbaLoading] = useState(false);
   const [isFtLoading, setIsFtLoading] = useState(false);
   const [adminStatus, setAdminStatus] = useState<{isAdmin: boolean, bypassReason?: string}>({ isAdmin: false });
+  
+  // États pour le suivi en temps réel
+  const [lbaProgress, setLbaProgress] = useState<{
+    active: boolean;
+    batchId?: string;
+    source: 'lba' | 'ft';
+    title: string;
+  } | null>(null);
+  const [ftProgress, setFtProgress] = useState<{
+    active: boolean;
+    batchId?: string;
+    source: 'lba' | 'ft';
+    title: string;
+  } | null>(null);
   
   // States pour LBA (moved to top level to avoid hooks order violation)
   const [lbaFilters, setLbaFilters] = useState({
@@ -158,7 +174,20 @@ export default function IngestionPage() {
 
       const result = await response.json();
       
-      alert(`Ingestion LBA lancée - Batch ID: ${result.batchId || 'N/A'}`);
+      if (result.success && result.data.batchId) {
+        // Activer le suivi temps réel
+        setLbaProgress({
+          active: true,
+          batchId: result.data.batchId,
+          source: 'lba',
+          title: 'Ingestion LBA en cours'
+        });
+        
+        // Message de confirmation
+        alert(`Ingestion LBA démarrée - Suivi en temps réel activé\nBatch ID: ${result.data.batchId}`);
+      } else {
+        alert(`Ingestion LBA lancée - Résultat: ${JSON.stringify(result)}`);
+      }
       
     } catch (error) {
       alert(`Erreur ingestion LBA: ${error instanceof Error ? error.message : "Erreur inconnue"}`);
@@ -197,7 +226,19 @@ export default function IngestionPage() {
 
       const result = await response.json();
       
-      alert(`Ingestion France Travail lancée - ${result.total_fetched || 0} offres récupérées`);
+      if (result.success && result.data?.batchId) {
+        // Activer le suivi temps réel pour FT
+        setFtProgress({
+          active: true,
+          batchId: result.data.batchId,
+          source: 'ft',
+          title: 'Ingestion France Travail en cours'
+        });
+        
+        alert(`Ingestion France Travail démarrée - Suivi en temps réel activé\nBatch ID: ${result.data.batchId}`);
+      } else {
+        alert(`Ingestion France Travail lancée - ${result.total_fetched || 0} offres récupérées`);
+      }
       
     } catch (error) {
       alert(`Erreur ingestion France Travail: ${error instanceof Error ? error.message : "Erreur inconnue"}`);
@@ -256,6 +297,44 @@ export default function IngestionPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Suivi temps réel des ingestions */}
+      {(lbaProgress?.active || ftProgress?.active) && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+            <BarChart3 className="h-5 w-5 text-cyan-500" />
+            Suivi Temps Réel
+          </div>
+          
+          {lbaProgress?.active && (
+            <RealTimeProgress
+              title={lbaProgress.title}
+              source={lbaProgress.source}
+              batchId={lbaProgress.batchId}
+              onClose={() => setLbaProgress(null)}
+              initialProgress={{
+                status: 'running',
+                stage: 'Connexion à l\'API LBA...',
+                progress: 0
+              }}
+            />
+          )}
+          
+          {ftProgress?.active && (
+            <RealTimeProgress
+              title={ftProgress.title}
+              source={ftProgress.source}
+              batchId={ftProgress.batchId}
+              onClose={() => setFtProgress(null)}
+              initialProgress={{
+                status: 'running',
+                stage: 'Connexion à l\'API France Travail...',
+                progress: 0
+              }}
+            />
+          )}
+        </div>
+      )}
 
       {/* Ingestion avec Filtres */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

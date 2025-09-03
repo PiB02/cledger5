@@ -4,12 +4,30 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { checkAdminAccess, logAdminAccess, getDevAdminStatus } from '@/lib/auth/dev-admin';
+
+// Dynamic Clerk import with fallback for development
+let clerkAuth: any = null;
+try {
+  const clerkModule = require('@clerk/nextjs/server');
+  clerkAuth = clerkModule.auth;
+} catch (error) {
+  console.warn('Clerk not available, using dev bypass mode');
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
+    // Get userId with fallback for dev mode
+    let userId: string | null = null;
+    
+    if (clerkAuth) {
+      try {
+        const authResult = clerkAuth();
+        userId = authResult?.userId || null;
+      } catch (error) {
+        console.warn('Clerk auth failed:', error);
+      }
+    }
     
     // DEVELOPMENT BYPASS: Allow admin access even without Clerk auth in dev mode
     const devStatus = getDevAdminStatus();

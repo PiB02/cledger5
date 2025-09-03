@@ -22,6 +22,12 @@ export default clerkMiddleware((auth, req) => {
     return;
   }
   
+  // EXPLICIT EXCLUSION: Skip Clerk for /api/ingest routes
+  if (pathname.startsWith('/api/ingest')) {
+    console.log('🔓 Explicitly skipping Clerk middleware for ingestion API:', pathname);
+    return;
+  }
+  
   // DEVELOPMENT BYPASS: Skip Clerk protection in dev mode with bypass enabled
   const isDevelopment = process.env.NODE_ENV === 'development';
   const devAdminBypass = process.env.DEV_ADMIN_BYPASS === 'true';
