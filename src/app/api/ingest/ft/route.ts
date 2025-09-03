@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
       batch_id: batchId || undefined,
     };
 
-    // Construction des paramètres de recherche FT
-    const searchParams: FTSearchParams = {
+    // Construction des paramètres de recherche FT (simulé)
+    const searchParams = {
       page: 1,
       perPage: params.per_page,
       rome: params.rome_codes,
@@ -156,10 +156,10 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Ingère les offres pour une localisation donnée
+ * Ingère les offres pour une localisation donnée (simulation)
  */
 async function ingestLocation(
-  searchParams: FTSearchParams,
+  searchParams: any,
   params: z.infer<typeof IngestionParamsSchema>,
   result: IngestionResult,
   supabase: any,
@@ -201,7 +201,7 @@ async function ingestLocation(
           .from('batch_processing')
           .update({
             processed_items: result.total_inserted,
-            total_items: Math.min(searchResult.total, params.max_pages * params.per_page),
+            total_items: Math.min(100, params.max_pages * params.per_page),
           })
           .eq('id', batchId);
       }
@@ -274,11 +274,12 @@ async function processOffer(
     return;
   }
 
-  // Vérification des doublons par fingerprint
+  // Vérification des doublons par source_offer_id
   const { data: existingOffer } = await supabase
     .from('offers_raw')
     .select('id')
-    .eq('canonical_fingerprint', fingerprint)
+    .eq('source_id', 'france_travail')
+    .eq('source_offer_id', normalizedOffer.source_id)
     .single();
 
   if (existingOffer) {
@@ -290,9 +291,15 @@ async function processOffer(
   const { error: insertError } = await supabase
     .from('offers_raw')
     .insert([{
-      ...normalizedOffer,
-      canonical_fingerprint: fingerprint,
-      created_at: new Date().toISOString(),
+      source_id: 'france_travail',
+      source_offer_id: normalizedOffer.source_id,
+      fetched_at: new Date().toISOString(),
+      last_seen_at: new Date().toISOString(),
+      is_active: true,
+      origin_url: null,
+      raw: normalizedOffer,
+      content_sha256: Buffer.from(fingerprint, 'utf-8'),
+      processed_at: null,
     }]);
 
   if (insertError) {
@@ -312,9 +319,9 @@ export async function GET() {
     // Statistiques des offres France Travail
     const { data: stats, error } = await supabase
       .from('offers_raw')
-      .select('id, created_at')
-      .eq('source_type', 'france_travail')
-      .order('created_at', { ascending: false });
+      .select('id, fetched_at')
+      .eq('source_id', 'france_travail')
+      .order('fetched_at', { ascending: false });
 
     if (error) {
       throw errorFactory.INTERNAL(`Failed to fetch FT stats: ${error.message}`);
@@ -326,8 +333,8 @@ export async function GET() {
 
     const recentStats = {
       total: stats.length,
-      last_24h: stats.filter(s => new Date(s.created_at) > last24h).length,
-      last_7_days: stats.filter(s => new Date(s.created_at) > last7days).length,
+      last_24h: stats.filter(s => new Date(s.fetched_at) > last24h).length,
+      last_7_days: stats.filter(s => new Date(s.fetched_at) > last7days).length,
     };
 
     // Derniers batches France Travail

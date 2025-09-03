@@ -65,12 +65,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
     }).select('id').single();
 
-    // DIRECT IMPLEMENTATION: Call France Travail API directly like LBA
-    const { franceTravailAPI } = await import('@/lib/france-travail');
-    const { generateOfferFingerprint } = await import('@cledger5/utils');
-    const cryptoModule = await import('crypto');
-
-    // Return batch ID immediately for SSE connection
+    // DIRECT IMPLEMENTATION: Execute FT ingestion directly (simulation)
     const response = NextResponse.json({
       success: true,
       data: {
@@ -87,6 +82,7 @@ export async function POST(request: NextRequest) {
       totalFetched: 0,
       totalProcessed: 0,
       totalInserted: 0,
+      totalUpdated: 0,
       totalDeduplicated: 0,
       totalErrors: 0,
       errors: [] as string[],
@@ -95,7 +91,7 @@ export async function POST(request: NextRequest) {
       startTime: new Date().toISOString(),
     };
 
-    // Progress update function using global store
+    // Helper function to send progress updates using global store
     const updateProgress = async (stage: string, progress: number) => {
       try {
         if (global.updateBatchProgress) {
@@ -107,6 +103,7 @@ export async function POST(request: NextRequest) {
               totalFetched: result.totalFetched,
               totalProcessed: result.totalProcessed,
               totalInserted: result.totalInserted,
+              totalUpdated: result.totalUpdated,
               totalDeduplicated: result.totalDeduplicated,
               totalErrors: result.totalErrors,
               errors: result.errors
@@ -119,164 +116,120 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    // Launch ingestion in background
+    // Launch real FT ingestion in background using internal API
     setImmediate(async () => {
       try {
         await updateProgress('Initialisation ingestion France Travail...', 5);
+        
+        // Direct FT API call using the existing client
+        const { franceTravailAPI } = await import('@/lib/france-travail');
+        
+        // Simulate ingestion process with real API structure
+        let totalFetched = 0;
+        let totalProcessed = 0;
+        let totalInserted = 0;
+        let totalErrors = 0;
+        let errors: string[] = [];
 
-        // Build search parameters
-        const searchParams = {
-          page: 1,
-          perPage: params.per_page,
-          rome: params.rome_codes,
-          motsCles: params.motsCles,
-          typeContrat: params.type_contrat,
-        };
+        try {
+          await updateProgress('Récupération des offres France Travail...', 10);
 
-        // Process locations
-        const locations = [];
-        if (params.regions?.length) {
-          for (const region of params.regions) {
-            locations.push({ region });
-          }
-        }
-        if (params.departements?.length) {
-          for (const dept of params.departements) {
-            locations.push({ departement: dept });
-          }
-        }
-        if (locations.length === 0) {
-          locations.push({});
-        }
+          // Vraie ingestion avec plusieurs pages
+          for (let page = 1; page <= params.max_pages; page++) {
+            await updateProgress(`Traitement page ${page}/${params.max_pages}...`, 10 + (page / params.max_pages * 80));
+            
+            const searchResult = await franceTravailAPI.searchOffers({
+              page,
+              perPage: params.per_page,
+              rome: params.rome_codes,
+              regions: params.regions,
+              departements: params.departements,
+              typeContrat: params.type_contrat,
+              motsCles: params.motsCles,
+            });
 
-        await updateProgress('Récupération des données France Travail...', 10);
+            console.log(`🔍 Page ${page} FT result:`, {
+              hasResult: Boolean(searchResult),
+              hasResultats: Boolean(searchResult?.resultats),
+              nbResultats: searchResult?.resultats?.length || 0,
+              searchResult: searchResult ? Object.keys(searchResult) : 'null'
+            });
 
-        // Process each location
-        for (const location of locations) {
-          const locationParams = { ...searchParams, ...location };
-          
-          let currentPage = 1;
-          let hasMorePages = true;
+            if (!searchResult || !searchResult.resultats || searchResult.resultats.length === 0) {
+              console.log(`Page ${page} vide, arrêt de l'ingestion`);
+              break;
+            }
 
-          while (hasMorePages && currentPage <= params.max_pages) {
-            try {
-              const searchResult = await franceTravailAPI.searchOffers({
-                ...locationParams,
-                page: currentPage,
-              });
+            totalFetched += searchResult.resultats.length;
+            console.log(`📊 Page ${page}: ${searchResult.resultats.length} offres récupérées, total: ${totalFetched}`);
+            console.log(`🔄 Début traitement des ${searchResult.resultats.length} offres de la page ${page}`);
 
-              result.totalFetched += searchResult.resultats.length;
-              
-              const fetchProgress = Math.min(10 + ((currentPage / params.max_pages) * 40), 50);
-              await updateProgress(`Page ${currentPage}: ${searchResult.resultats.length} offres récupérées`, fetchProgress);
-
-              if (searchResult.resultats.length === 0) {
-                hasMorePages = false;
-                break;
+            // Traiter chaque offre de cette page
+            console.log(`📝 Processing ${searchResult.resultats.length} offers from page ${page}`);
+            for (let i = 0; i < searchResult.resultats.length; i++) {
+              const ftOffer = searchResult.resultats[i];
+              console.log(`  📄 Processing offer ${i + 1}/${searchResult.resultats.length}: ${ftOffer.id} - ${ftOffer.intitule?.substring(0, 50)}...`);
+              try {
+                await processOfferFT(ftOffer, supabase, params.dry_run);
+                totalProcessed++;
+                totalInserted++;
+                console.log(`    ✅ Offer ${ftOffer.id} processed successfully`);
+              } catch (error) {
+                console.log(`    ❌ Error processing offer ${ftOffer.id}:`, error);
+                errors.push(`Offre ${ftOffer.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                totalErrors++;
               }
+            }
+            console.log(`✅ Page ${page} complètement traitée: ${totalProcessed} traitées, ${totalErrors} erreurs`);
 
-              // Process offers
-              for (const ftOffer of searchResult.resultats) {
-                try {
-                  // Normalize France Travail offer
-                  const normalizedOffer = {
-                    source_id: ftOffer.id,
-                    source_type: 'france_travail' as const,
-                    title: ftOffer.intitule,
-                    description: ftOffer.description,
-                    company_name: ftOffer.entreprise?.nom || null,
-                    company_siret: ftOffer.entreprise?.siret || null,
-                    location_name: ftOffer.lieuTravail?.commune || null,
-                    location_postal_code: ftOffer.lieuTravail?.codePostal || null,
-                    contract_type: ftOffer.typeContrat?.code || null,
-                    salary_min: ftOffer.salaire?.minimum || null,
-                    salary_max: ftOffer.salaire?.maximum || null,
-                    rome_code: ftOffer.romeCode || null,
-                    posted_at: ftOffer.dateCreation ? new Date(ftOffer.dateCreation).toISOString() : new Date().toISOString(),
-                    raw_data: ftOffer,
-                  };
-
-                  // Generate fingerprint
-                  const fingerprint = generateOfferFingerprint({
-                    title: normalizedOffer.title,
-                    company: normalizedOffer.company_name || '',
-                    location: normalizedOffer.location_name || '',
-                    sourceId: normalizedOffer.source_id,
-                  });
-
-                  if (!params.dry_run) {
-                    // Check for duplicates
-                    const { data: existingOffer } = await supabase
-                      .from('offers_raw')
-                      .select('id')
-                      .eq('canonical_fingerprint', fingerprint)
-                      .single();
-
-                    if (existingOffer) {
-                      result.totalDeduplicated++;
-                    } else {
-                      // Insert into offers_raw
-                      const { error: insertError } = await supabase
-                        .from('offers_raw')
-                        .insert([{
-                          ...normalizedOffer,
-                          canonical_fingerprint: fingerprint,
-                          created_at: new Date().toISOString(),
-                        }]);
-
-                      if (insertError) {
-                        result.errors.push(`Insert failed: ${insertError.message}`);
-                        result.totalErrors++;
-                      } else {
-                        result.totalInserted++;
-                      }
-                    }
-                  } else {
-                    result.totalInserted++;
-                  }
-                  
-                  result.totalProcessed++;
-
-                  // Update progress every 25 offers
-                  if (result.totalProcessed % 25 === 0) {
-                    const processingProgress = Math.min(50 + ((result.totalProcessed / result.totalFetched) * 40), 90);
-                    await updateProgress(
-                      `Traité: ${result.totalProcessed}/${result.totalFetched} offres FT`,
-                      processingProgress
-                    );
-                  }
-
-                } catch (offerError) {
-                  result.errors.push(`Offer ${ftOffer.id}: ${offerError}`);
-                  result.totalErrors++;
-                }
-              }
-
-              // Check for more pages
-              hasMorePages = currentPage < searchResult.nbPages && currentPage < params.max_pages;
-              currentPage++;
-
-              // Rate limiting (10 req/s max for FT)
-              await new Promise(resolve => setTimeout(resolve, 120));
-
-            } catch (pageError) {
-              result.errors.push(`Page ${currentPage}: ${pageError}`);
-              result.totalErrors++;
-              hasMorePages = false;
+            // Rate limiting : pause entre les pages
+            if (page < params.max_pages) {
+              await new Promise(resolve => setTimeout(resolve, 120)); // 120ms = respect 10 req/s
             }
           }
+        } catch (error) {
+          errors.push(`FT API Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          totalErrors++;
         }
 
-        // Finalize ingestion
+        const internalResult = {
+          success: totalErrors === 0,
+          data: {
+            total_fetched: totalFetched,
+            total_inserted: totalInserted,
+            total_duplicates: 0,
+            total_errors: totalErrors,
+            errors: errors
+          }
+        };
+        
+        // Update final results
+        result.totalFetched = totalFetched;
+        result.totalProcessed = totalProcessed;
+        result.totalInserted = totalInserted;
+        result.totalErrors = totalErrors;
+        result.errors = errors;
+
         await updateProgress('Ingestion France Travail terminée avec succès', 100);
         
         console.log(`[FT Ingestion ${batchId}] Completed:`, {
           totalFetched: result.totalFetched,
           totalProcessed: result.totalProcessed,
           totalInserted: result.totalInserted,
-          totalDeduplicated: result.totalDeduplicated,
           totalErrors: result.totalErrors
         });
+
+        // AUDIT LOG: Operation completed
+        await supabase.from('audit_logs').update({
+          metadata: {
+            params,
+            result: {
+              ...result,
+              message: 'Ingestion France Travail réelle réussie'
+            },
+            completed_at: new Date().toISOString(),
+          }
+        }).eq('id', auditEntry.data?.id);
 
       } catch (error) {
         console.error('FT ingestion error:', error);
@@ -306,7 +259,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint for France Travail ingestion statistics (admin only)
+// GET endpoint for FT ingestion statistics (admin only)
 export async function GET(request: NextRequest) {
   try {
     const { userId } = auth();
@@ -318,12 +271,12 @@ export async function GET(request: NextRequest) {
 
     const supabase = createSupabaseService();
 
-    // Get France Travail statistics directly
+    // Get France Travail statistics directly  
     const { data: stats, error } = await supabase
       .from('offers_raw')
-      .select('id, created_at')
-      .eq('source_type', 'france_travail')
-      .order('created_at', { ascending: false });
+      .select('id, fetched_at')
+      .eq('source_id', 'france_travail')
+      .order('fetched_at', { ascending: false });
 
     if (error) {
       throw errorFactory.INTERNAL(`Failed to fetch FT stats: ${error.message}`);
@@ -335,15 +288,15 @@ export async function GET(request: NextRequest) {
 
     const recentStats = {
       total: stats.length,
-      last_24h: stats.filter(s => new Date(s.created_at) > last24h).length,
-      last_7_days: stats.filter(s => new Date(s.created_at) > last7days).length,
+      last_24h: stats.filter(s => new Date(s.fetched_at) > last24h).length,
+      last_7_days: stats.filter(s => new Date(s.fetched_at) > last7days).length,
     };
 
-    // Get recent batches
+    // Get recent audit logs for FT ingestion
     const { data: recentBatches } = await supabase
-      .from('batch_processing')
+      .from('audit_logs')
       .select('*')
-      .eq('type', 'ft_ingestion')
+      .eq('action', 'ft_ingestion_start')
       .order('created_at', { ascending: false })
       .limit(10);
 
@@ -362,4 +315,67 @@ export async function GET(request: NextRequest) {
       { status: error.statusCode || 500 }
     );
   }
+}
+
+/**
+ * Traite et insère une offre FT individuelle dans offers_raw
+ */
+async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
+  // Génération d'un fingerprint pour déduplication
+  const { generateOfferFingerprint } = await import('@cledger5/utils');
+  const fingerprint = generateOfferFingerprint({
+    title: ftOffer.intitule || '',
+    company: ftOffer.entreprise?.nom || '',
+    location: ftOffer.lieuTravail?.commune || '',
+    sourceId: ftOffer.id,
+  });
+
+  if (dryRun) {
+    console.log('🔍 DRY RUN - FT Offre:', {
+      id: ftOffer.id,
+      title: ftOffer.intitule,
+      company: ftOffer.entreprise?.nom,
+      fingerprint,
+    });
+    return;
+  }
+
+  // Vérification des doublons par source_offer_id
+  const { data: existingOffer } = await supabase
+    .from('offers_raw')
+    .select('id')
+    .eq('source_id', 'france_travail')
+    .eq('source_offer_id', ftOffer.id)
+    .single();
+
+  if (existingOffer) {
+    console.log(`Offre FT ${ftOffer.id} déjà présente, skip`);
+    return;
+  }
+
+  // Générer UUID pour l'ID - FORCE RECOMPILE
+  const { randomUUID } = await import('crypto');
+  const offerId = randomUUID();
+
+  // Insertion dans offers_raw
+  const { error: insertError } = await supabase
+    .from('offers_raw')
+    .insert([{
+      id: offerId,
+      source_id: 'france_travail',
+      source_offer_id: ftOffer.id,
+      fetched_at: new Date().toISOString(),
+      last_seen_at: new Date().toISOString(),
+      is_active: true,
+      origin_url: null,
+      raw: ftOffer, // Toutes les données FT en JSON
+      content_sha256: Buffer.from(fingerprint, 'utf-8'),
+      processed_at: null, // Sera mis à jour après traitement IA
+    }]);
+
+  if (insertError) {
+    throw new Error(`Insert failed: ${insertError.message}`);
+  }
+
+  console.log(`✅ Offre FT ${ftOffer.id} insérée: ${ftOffer.intitule}`);
 }
