@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,8 +47,27 @@ const ROME_CODES = [
 ];
 
 export default function IngestionPage() {
+  const { user, isLoaded } = useUser();
   const [isLbaLoading, setIsLbaLoading] = useState(false);
   const [isFtLoading, setIsFtLoading] = useState(false);
+
+  // GDPR COMPLIANCE: Admin role verification
+  const isAdmin = isLoaded && user?.publicMetadata?.role === 'admin';
+  
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center min-h-screen">Chargement...</div>;
+  }
+  
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Accès non autorisé</h1>
+          <p className="text-gray-600">Cette page nécessite des privilèges administrateur.</p>
+        </div>
+      </div>
+    );
+  }
   
   // States pour LBA
   const [lbaFilters, setLbaFilters] = useState({
@@ -103,11 +123,12 @@ export default function IngestionPage() {
         dryRun: lbaFilters.dryRun
       };
 
-      const response = await fetch('/api/ingest/lba', {
+      // GDPR COMPLIANCE: Use authenticated API endpoint
+      const response = await fetch('/api/admin/ingest/lba', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || 'dev-secret'
+          // Authentication handled by Clerk middleware - no credentials in client
         },
         body: JSON.stringify(payload)
       });
@@ -141,11 +162,12 @@ export default function IngestionPage() {
         dry_run: ftFilters.dryRun
       };
 
-      const response = await fetch('/api/ingest/ft', {
+      // GDPR COMPLIANCE: Use authenticated API endpoint  
+      const response = await fetch('/api/admin/ingest/ft', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || 'dev-secret'
+          // Authentication handled by Clerk middleware - no credentials in client
         },
         body: JSON.stringify(payload)
       });
