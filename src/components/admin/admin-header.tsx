@@ -3,10 +3,10 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Search, Settings } from "lucide-react";
+import { Bell, Settings, User } from "lucide-react";
 import Link from "next/link";
 
-export function Header() {
+export function AdminHeader() {
   const { user } = useUser();
 
   return (
@@ -14,29 +14,21 @@ export function Header() {
       <div className="flex items-center justify-between h-16 px-6">
         {/* Left side - Title */}
         <div>
-          <h2 className="text-lg font-semibold">
-            Bonjour, {user?.firstName || "Candidat"}
+          <h2 className="text-lg font-semibold text-orange-600">
+            Interface Admin
           </h2>
           <p className="text-sm text-muted-foreground">
-            Prêt à trouver ton prochain défi ?
+            Gestion de la plateforme cledger5
           </p>
         </div>
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-4">
-          {/* Quick Search */}
+          {/* Quick Actions */}
           <Button variant="outline" size="sm">
-            <Search className="h-4 w-4 mr-2" />
-            Recherche rapide
+            <Settings className="h-4 w-4 mr-2" />
+            Configuration
           </Button>
-
-          {/* Admin Access */}
-          <Link href="/admin">
-            <Button variant="outline" size="sm" className="text-orange-600 border-orange-300 hover:bg-orange-50">
-              <Settings className="h-4 w-4 mr-2" />
-              Admin
-            </Button>
-          </Link>
 
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="relative">
@@ -55,6 +47,14 @@ export function Header() {
             }}
             afterSignOutUrl="/"
           />
+
+          {/* Switch to User Mode */}
+          <Link href="/dashboard">
+            <Button variant="ghost" size="sm" className="text-orange-600 hover:bg-orange-50">
+              <User className="h-4 w-4 mr-2" />
+              Mode User
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

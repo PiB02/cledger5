@@ -173,7 +173,7 @@ cledger5/
 - **✅ Data Integrity**: Liens Supabase corrects entre tables anonymes/user
 
 ### **Commits GitHub**
-- [À venir] - feat: Anonymous CV migration system + registration flow optimization
+- `d5bf775` - feat: Anonymous CV migration system + registration flow optimization (02/09/2025)
 - `eb9514a` - fix: Resolve CV upload and processing errors (02/09/2025)
 - `cf960af` - feat: Complete Phase 12 - Advanced User Features & Production
 
