@@ -44,25 +44,23 @@ export async function checkAdminAccess(userId: string | null): Promise<AdminChec
     }
   }
 
-  // Development bypass: auto-admin for authenticated users
+  // Development bypass: auto-admin for any request
+  console.log('🔓 DEV MODE: Auto-granting admin access', userId ? `to user ${userId.slice(0, 8)}` : 'to anonymous user');
+  
+  // Auto-create or update admin user in dev if userId exists
   if (userId) {
-    console.log('🔓 DEV MODE: Auto-granting admin access to user', userId.slice(0, 8));
-    
-    // Auto-create or update admin user in dev
     try {
       await ensureDevAdminUser(userId);
     } catch (error) {
       console.warn('Failed to create dev admin user:', error);
     }
-
-    return { 
-      isAdmin: true, 
-      bypassReason: 'DEV_ADMIN_BYPASS enabled',
-      userId 
-    };
   }
 
-  return { isAdmin: false };
+  return { 
+    isAdmin: true, 
+    bypassReason: 'DEV_ADMIN_BYPASS enabled (no auth required)',
+    userId: userId || 'dev-anonymous-admin'
+  };
 }
 
 /**

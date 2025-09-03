@@ -27,7 +27,10 @@
       "mcp__playwright__browser_wait_for",
       "Bash(npx:*)",
       "Bash(timeout:*)",
-      "mcp__playwright__browser_evaluate"
+      "mcp__playwright__browser_evaluate",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/ingest/lba\" -Method POST -ContentType \"application/json\" -Headers @{\"x-admin-secret\" = \"Iletait1x\"} -Body '{\\\"\"limit\\\"\": 10, \\\"\"dryRun\\\"\": true}')",
+      "Bash(node:*)",
+      "Bash(Remove-Item \"test-lba-auth.js\" -Force)"
     ],
     "deny": [],
     "ask": []
