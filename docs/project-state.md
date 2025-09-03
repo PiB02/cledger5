@@ -180,6 +180,30 @@ cledger5/
 - **Code Fix**: `const offerId = randomUUID()` au lieu de `crypto.randomUUID()` 
 - **Résultat**: 1500 offres FT traitées sans erreur (100% réussite, 110.3 offres/s)
 
+### **📊 État des Pipelines Data - Analyse Complète (03/09/2025)**
+
+#### **✅ Pipeline LBA - COMPLET (100%)**
+```
+Ingestion → Canonicalisation → AI Enhancement → Embeddings → Search Ready
+   ✅           ✅                ✅                ✅           ✅
+```
+- **Ingestion**: `offers_raw` avec déduplication
+- **Canonicalisation**: `offers` + `companies` + `locations`
+- **AI Enhancement**: GPT-4o-mini enrichissement automatique
+- **Embeddings**: Queue automatique vers `offer_embeddings`
+- **État**: **PRODUCTION READY - Offres LBA searchables**
+
+#### **⚠️ Pipeline FT - INCOMPLET (25%)**
+```
+Ingestion → Canonicalisation → AI Enhancement → Embeddings → Search Ready  
+   ✅           ❌                ❌                ❌           ❌
+```
+- **✅ Ingestion**: 1500 offres FT dans `offers_raw` (UUID fix appliqué)
+- **❌ Canonicalisation**: Pas de traitement vers `offers`
+- **❌ AI Enhancement**: Pas d'enrichissement GPT-4o-mini
+- **❌ Embeddings**: Pas de génération vectorielle
+- **État**: **DONNÉES INGÉRÉES MAIS NON-SEARCHABLES**
+
 ### **Admin Interface Resolution - Ingestion Page Fix (Session précédente)**
 - **✅ React Hooks Order Violation**: Résolu problème hooks appelés dans mauvais ordre
 - **✅ SelectItem Empty Value Error**: Corrigé composant shadcn/ui
@@ -232,18 +256,57 @@ cledger5/
 
 ---
 
-## 🔮 **STATUT FUTUR - POST-MVP**
+## 🚧 **TÂCHES PRIORITAIRES - PIPELINE FT**
+
+### **🎯 Phase 13.1: Complétion Pipeline France Travail (CRITIQUE)**
+
+#### **1. Canonicalisation FT (Priorité 1)**
+- **Objectif**: Transformer `offers_raw` FT → `offers` + `companies` + `locations`
+- **Implémentation**: Adapter le processus LBA existant pour les données FT
+- **Fichiers**: Créer `/api/canonicalization/ft/route.ts` 
+- **Défi technique**: Mapping des champs FT vers le schéma canonical
+- **Impact**: Rend les offres FT disponibles pour l'enrichissement
+
+#### **2. AI Enhancement FT (Priorité 1)**  
+- **Objectif**: Enrichissement GPT-4o-mini des offres FT canoniques
+- **Implémentation**: Réutiliser le système de queue existant
+- **Fichiers**: Modifier `/api/admin/offers/[id]/enrich/route.ts`
+- **Intégration**: Queue automatique après canonicalisation
+- **Impact**: Extraction skills/seniority/languages pour matching
+
+#### **3. Embeddings FT (Priorité 1)**
+- **Objectif**: Génération embeddings vectoriels pour search sémantique  
+- **Implémentation**: Utiliser le système `/api/embeddings/queue/route.ts`
+- **Déclencheur**: Automatique après AI enhancement
+- **Format**: Utiliser le template standardisé (≤1500 chars)
+- **Impact**: **Rend les offres FT searchables dans l'interface**
+
+#### **4. Interface Admin Pipeline (Priorité 2)**
+- **Canonicalisation monitoring**: Métriques temps réel
+- **AI enhancement tracking**: Progress bars dédiées  
+- **Embeddings status**: Indicateurs de statut vectoriel
+- **Pipeline health dashboard**: Vue d'ensemble des étapes
+
+### **⚡ Estimation Effort & Impact**
+- **Durée estimée**: 2-3 sessions de développement (6-8h)
+- **Complexité**: Moyenne (réutilisation code LBA existant)  
+- **Impact business**: **MAJEUR** - Double le volume d'offres searchables
+- **Priorité**: **CRITIQUE** pour exploit complet des données FT
+
+## 🔮 **STATUT FUTUR - POST-PIPELINE**
 
 ### **Phase 13-14: Évolutions Optionnelles**
 - **Phase 13**: Tests automatisés + monitoring production (≥80% coverage)
 - **Phase 14**: Features avancées (Recruiter Dashboard, Mobile App, ML avancé)
 
 ### **Priorisation Business**
-1. **PRIORITÉ 1**: Déploiement production + user testing
-2. **PRIORITÉ 2**: Monitoring + performance optimization
-3. **PRIORITÉ 3**: Features recruteur + mobile experience
+1. **PRIORITÉ 1**: **Complétion Pipeline FT** (1500+ offres supplémentaires)
+2. **PRIORITÉ 2**: Déploiement production + user testing  
+3. **PRIORITÉ 3**: Monitoring + performance optimization
+4. **PRIORITÉ 4**: Features recruteur + mobile experience
 
 ### **Technical Debt Identifié**
+- **Pipeline FT incomplet** (canonicalisation + AI + embeddings manquants)
 - Tests automatisés manquants (Vitest + Playwright)
 - Monitoring production (logs, metrics, alerting)
 - Documentation API (OpenAPI/Swagger)
