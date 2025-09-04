@@ -143,72 +143,62 @@ cledger5/
 
 ## 🎯 **SESSION RÉCENTE - 04/09/2025**
 
-### **🎯 INGESTION INTERFACE V2 - SYSTÈME COMPLET OPÉRATIONNEL (04/09/2025 - Session Actuelle)**
-**BREAKTHROUGH UX/MONITORING** : Interface ingestion production-ready avec métriques temps réel parfaites
+### **🎯 ADMIN OFFERS INTERFACE - INTERFACE GESTION OFFRES COMPLÈTE (04/09/2025 - Session Actuelle)**
+**BREAKTHROUGH UI/UX** : Interface admin complète de gestion des offres avec système de filtres avancé et vue détaillée
 
-#### **🔧 Problèmes Résolus Cette Session**
+#### **🔧 Fonctionnalités Développées Cette Session**
 
-##### **1. Menu Admin Navigation Fix** ✅
-- **Code**: `src/components/admin/admin-sidebar.tsx:23` - Redirection `/admin/ingestion` → `/admin/ingestion-v2`
-- **Impact**: Interface moderne accessible via menu sidebar
+##### **1. Interface Admin Offres - Page Listing** ✅
+- **Page**: `/admin/offers` - Interface complète de gestion des offres
+- **Features**: 
+  - Data table moderne avec colonnes : Titre, Entreprise, Localisation, Contrat, Source, Enrichissement
+  - Système de filtres avancé : recherche texte, statut enrichissement, source, type contrat, dates
+  - Pagination côté serveur pour performance optimale
+  - Badges visuels pour statut enrichissement et sources (LBA/FT)
+  - Actions rapides : voir détail, navigation intuitive
+- **API**: Utilise `/api/admin/offers` existant avec tous les filtres
+- **Design**: Cohérent avec l'interface admin existante (sidebar + header)
 
-##### **2. Foreign Key Constraint Fix** ✅
-- **Problème**: `offers_raw_source_id_fkey` violation avec `source_id: 'france_travail'`
-- **Solution**: 4 fichiers mis à jour avec `source_id: 'FT'`
-- **Validation**: 150 offres FT ingérées avec succès
+##### **2. Interface Admin Offres - Page Détail** ✅
+- **Page**: `/admin/offers/[id]` - Vue détaillée complète d'une offre
+- **Architecture**: Interface en onglets pour organisation optimale des informations
+- **Onglets implémentés**:
+  - **"Offre"**: Données canoniques principales (infos générales, contrat, entreprise, localisation)
+  - **"Données brutes"**: JSON original des APIs sources (LBA/FT) avec historique
+  - **"Enrichissement IA"**: Résultats GPT-4o-mini, scores de confiance, compétences extraites
+  - **"Embedding"**: Texte standardisé pour embedding vectoriel (matching sémantique)
+  - **"Import"**: Métadonnées d'import, sources, empreinte canonique
+- **Actions**: Bouton enrichissement manuel, actualisation, navigation retour
+- **API**: Utilise `/api/admin/offers/[id]` + nouveau endpoint `/api/admin/offers/[id]/embedding-text`
 
-##### **3. Métriques Temps Réel FT - RÉSOLU** ⭐
-- **Problème**: Métriques "Récupérées/Traitées/Insérées/Erreurs" mises à jour seulement à la fin
-- **Analyse**: Fonction `updateProgress()` utilisait l'objet `result` au lieu des variables locales
-- **Solution**: 
-  - Ajout paramètre `currentMetrics` optionnel à `updateProgress()`
-  - Passage des variables `totalFetched`, `totalProcessed`, etc. en temps réel
-  - Mises à jour toutes les 10 offres + événements spéciaux
-- **Test validé**: 300 offres FT avec métriques progression temps réel complète
+##### **3. Corrections UX & Performance** ✅
+- **Fix SelectItem Error**: Correction des valeurs vides dans les composants Select
+- **Labels Component**: Ajout composant Label manquant pour cohérence
+- **Responsive Design**: Interface adaptée mobile/desktop selon design principles
+- **Error Handling**: Gestion propre des erreurs de chargement
+- **Loading States**: Indicateurs de chargement appropriés
 
-##### **4. Compteur Déduplication FT - RÉVOLUTIONNAIRE** ⭐⭐
-- **Problème**: "Dédup:" restait toujours à 0 malgré la logique de déduplication
-- **Analyse**: Fonction `processOfferFT()` faisait `return` silencieux sur doublons
-- **Solution**: 
-  - Refactoring `processOfferFT()` → retourne `'duplicate'` | `'inserted'` | `'dry_run'`
-  - Ajout compteur `totalDeduplicated` correctement incrémenté
-  - Logs détaillés : `"🔄 Offer already exists (duplicate)"`
-- **Test validé**: **260 doublons détectés** sur 300 offres (87% déduplication!)
+#### **🚀 Interface Admin Offres - Production Ready**
+- ✅ **Page Listing Complète**: Data table avec filtres avancés et pagination
+- ✅ **Page Détail Organisée**: 5 onglets structurant toutes les données disponibles
+- ✅ **Navigation Intuitive**: Intégration parfaite dans l'interface admin existante
+- ✅ **Performance Optimisée**: Pagination serveur, requêtes optimisées
+- ✅ **Design Cohérent**: Respect des design principles (shadcn/ui, Tailwind)
+- ✅ **Gestion d'Erreurs**: Feedback utilisateur approprié pour tous les cas
+- ✅ **Tests Validés**: Interface fonctionnelle testée avec Playwright
 
-##### **5. Compteur Déduplication LBA - PARITÉ COMPLÈTE** ⭐⭐
-- **Problème identifié**: Même issue LBA avec `.upsert()` qui ne distingue pas insertion/update
-- **Solution**: 
-  - Remplacement `.upsert()` par logique explicite de vérification d'existence
-  - Check `existingOffer` → UPDATE ou INSERT selon le cas
-  - Compteur `totalDeduplicated` correctement incrémenté
-- **Test validé**: **54 doublons détectés** sur 291 offres (18% déduplication)
+#### **💡 Valeur Business de l'Interface**
+- **Visibilité Complète**: Accès admin à toutes les données d'offres (brutes + enrichies)
+- **Monitoring Enrichissement**: Suivi en temps réel des statuts d'enrichissement IA
+- **Debug & Maintenance**: Vue détaillée pour diagnostiquer issues de data pipeline
+- **Workflow Admin**: Interface intuitive pour gestion opérationnelle quotidienne
+- **Scalabilité**: Architecture prête pour gestion de milliers d'offres
 
-#### **📊 Tests de Validation Complets**
-
-| Source | Récupérées | Traitées | Insérées | **Dédup** | Erreurs | Taux réussite | Vitesse |
-|--------|------------|----------|----------|-----------|---------|---------------|---------|
-| **FT** | 300        | 300      | 40       | **260** ⭐ | 0       | 100%          | 13.0/s  |
-| **LBA** | 291        | 291      | 237      | **54** ⭐  | 0       | 100%          | 10.7/s  |
-
-#### **🚀 Interface Ingestion V2 - 100% Production Ready**
-- ✅ **SSE Streaming Temps Réel**: Progression continue pendant traitement
-- ✅ **Métriques Complètes**: Récupérées → Traitées → Insérées → Dédup → Erreurs
-- ✅ **Système Déduplication**: Compteurs précis LBA + FT évitant pollution données
-- ✅ **Monitoring Opérationnel**: Vitesse, taux réussite, temps écoulé, logs détaillés
-- ✅ **Gestion d'Erreurs**: Interface réactive avec feedback utilisateur immédiat
-- ✅ **Architecture Robuste**: Rate limiting, transactions DB, audit trails
-
-#### **💡 Valeur Business Exceptionnelle**
-- **Déduplication Intelligence**: 87% doublons FT vs 18% LBA (insight qualité sources)
-- **Monitoring Précis**: Visibilité opérationnelle complète sur pipeline ingestion
-- **ROI Mesurable**: Évite traitement inutile de 314 doublons sur 591 offres totales
-- **Scalabilité Prouvée**: Tests 500+ offres avec performance stable
-
-#### **🏗️ Architecture Technique Validée**
+#### **🏗️ Architecture UI/UX Validée**
 ```
-Interface Admin V2 → API Ingestion (FT/LBA) → offers_raw → SSE Streaming → Frontend Updates
-       ✅                    ✅                    ✅           ✅              ✅
-   Configuration      Rate Limiting + Auth    Déduplication   Temps Réel    UX Parfait
+Admin Sidebar → /admin/offers (Listing) → /admin/offers/[id] (Détail) → 5 Onglets
+     ✅                ✅                          ✅                      ✅
+  Navigation      Filtres + Table            Données Complètes      UX Optimale
 ```
 
 ### **🏆 PIPELINE FRANCE TRAVAIL - EXPERTISE MULTI-AGENT DÉPLOYÉE (04/09/2025 - Session Précédente)**
