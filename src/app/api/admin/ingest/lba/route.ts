@@ -182,33 +182,60 @@ export async function POST(request: NextRequest) {
               const contentHash = cryptoModule.createHash('sha256').update(JSON.stringify(lbaOffer)).digest('hex');
               
               if (!params.dryRun) {
-                // Save to offers_raw
-                const now = new Date().toISOString();
-                const { error: rawError } = await supabase
+                // Check for existing offer first
+                const { data: existingOffer } = await supabase
                   .from('offers_raw')
-                  .upsert({
-                    id: cryptoModule.randomUUID(),
-                    source_id: 'LBA',
-                    source_offer_id: canonicalOffer.external_id,
-                    fetched_at: now,
-                    last_seen_at: now,
-                    is_active: true,
-                    origin_url: null,
-                    raw: lbaOffer,
-                    content_sha256: Buffer.from(contentHash, 'hex'),
-                  }, {
-                    onConflict: 'source_id,source_offer_id,fetched_at',
-                  });
-                
-                if (rawError) {
-                  console.error('Error saving raw offer:', rawError);
-                  result.errors.push(`Raw save error for ${canonicalOffer.external_id}`);
-                  result.totalErrors++;
-                  continue;
+                  .select('id')
+                  .eq('source_id', 'LBA')
+                  .eq('source_offer_id', canonicalOffer.external_id)
+                  .single();
+
+                if (existingOffer) {
+                  // Duplicate found, update last_seen_at
+                  const { error: updateError } = await supabase
+                    .from('offers_raw')
+                    .update({ 
+                      last_seen_at: new Date().toISOString(),
+                      raw: lbaOffer // Update with latest data
+                    })
+                    .eq('id', existingOffer.id);
+                    
+                  if (updateError) {
+                    console.error('Error updating existing offer:', updateError);
+                    result.errors.push(`Update error for ${canonicalOffer.external_id}`);
+                    result.totalErrors++;
+                    continue;
+                  }
+                  
+                  result.totalDeduplicated++;
+                  console.log(`🔄 LBA Offer ${canonicalOffer.external_id} already exists (duplicate)`);
+                } else {
+                  // New offer, insert it
+                  const now = new Date().toISOString();
+                  const { error: rawError } = await supabase
+                    .from('offers_raw')
+                    .insert({
+                      id: crypto.randomUUID(),
+                      source_id: 'LBA',
+                      source_offer_id: canonicalOffer.external_id,
+                      fetched_at: now,
+                      last_seen_at: now,
+                      is_active: true,
+                      origin_url: null,
+                      raw: lbaOffer,
+                      content_sha256: Buffer.from(contentHash, 'hex'),
+                    });
+                  
+                  if (rawError) {
+                    console.error('Error saving raw offer:', rawError);
+                    result.errors.push(`Raw save error for ${canonicalOffer.external_id}`);
+                    result.totalErrors++;
+                    continue;
+                  }
+                  
+                  result.totalInserted++;
+                  console.log(`✅ LBA Offer ${canonicalOffer.external_id} inserted successfully`);
                 }
-                
-                // Process company and location (simplified for demo)
-                result.totalInserted++;
               } else {
                 result.totalInserted++;
               }

@@ -93,24 +93,27 @@ export async function POST(request: NextRequest) {
     };
 
     // Helper function to send progress updates using global store
-    const updateProgress = async (stage: string, progress: number) => {
+    const updateProgress = async (stage: string, progress: number, currentMetrics?: any) => {
       try {
         if (global.updateBatchProgress) {
+          // Use current metrics if provided, otherwise use result object
+          const metricsToSend = currentMetrics || {
+            totalFetched: result.totalFetched,
+            totalProcessed: result.totalProcessed,
+            totalInserted: result.totalInserted,
+            totalUpdated: result.totalUpdated,
+            totalDeduplicated: result.totalDeduplicated,
+            totalErrors: result.totalErrors,
+            errors: result.errors
+          };
+          
           global.updateBatchProgress(batchId, {
             status: progress >= 100 ? 'completed' : 'running',
             progress,
             stage,
-            metrics: {
-              totalFetched: result.totalFetched,
-              totalProcessed: result.totalProcessed,
-              totalInserted: result.totalInserted,
-              totalUpdated: result.totalUpdated,
-              totalDeduplicated: result.totalDeduplicated,
-              totalErrors: result.totalErrors,
-              errors: result.errors
-            }
+            metrics: metricsToSend
           });
-          console.log(`FT Progress: ${batchId} - ${progress}% - ${stage}`);
+          console.log(`FT Progress: ${batchId} - ${progress}% - ${stage}`, metricsToSend);
         }
       } catch (updateError) {
         console.warn('Failed to update FT progress:', updateError);
@@ -129,6 +132,7 @@ export async function POST(request: NextRequest) {
         let totalFetched = 0;
         let totalProcessed = 0;
         let totalInserted = 0;
+        let totalDeduplicated = 0;
         let totalErrors = 0;
         let errors: string[] = [];
 
@@ -137,7 +141,16 @@ export async function POST(request: NextRequest) {
 
           // Vraie ingestion avec plusieurs pages
           for (let page = 1; page <= params.max_pages; page++) {
-            await updateProgress(`Traitement page ${page}/${params.max_pages}...`, 10 + (page / params.max_pages * 80));
+            const currentProgress = 10 + (page / params.max_pages * 80);
+            await updateProgress(`Traitement page ${page}/${params.max_pages}...`, currentProgress, {
+              totalFetched,
+              totalProcessed,
+              totalInserted,
+              totalUpdated: 0,
+              totalDeduplicated,
+              totalErrors,
+              errors
+            });
             
             const searchResult = await franceTravailAPI.searchOffers({
               page,
@@ -165,23 +178,77 @@ export async function POST(request: NextRequest) {
             console.log(`📊 Page ${page}: ${searchResult.resultats.length} offres récupérées, total: ${totalFetched}`);
             console.log(`🔄 Début traitement des ${searchResult.resultats.length} offres de la page ${page}`);
 
+            // Mise à jour après récupération des données
+            await updateProgress(`Traitement ${searchResult.resultats.length} offres de la page ${page}...`, currentProgress + 2, {
+              totalFetched,
+              totalProcessed,
+              totalInserted,
+              totalUpdated: 0,
+              totalDeduplicated,
+              totalErrors,
+              errors
+            });
+
             // Traiter chaque offre de cette page
             console.log(`📝 Processing ${searchResult.resultats.length} offers from page ${page}`);
             for (let i = 0; i < searchResult.resultats.length; i++) {
               const ftOffer = searchResult.resultats[i];
               console.log(`  📄 Processing offer ${i + 1}/${searchResult.resultats.length}: ${ftOffer.id} - ${ftOffer.intitule?.substring(0, 50)}...`);
               try {
-                await processOfferFT(ftOffer, supabase, params.dry_run);
+                const result = await processOfferFT(ftOffer, supabase, params.dry_run);
                 totalProcessed++;
-                totalInserted++;
-                console.log(`    ✅ Offer ${ftOffer.id} processed successfully`);
+                
+                if (result === 'inserted' || result === 'dry_run') {
+                  totalInserted++;
+                  console.log(`    ✅ Offer ${ftOffer.id} processed successfully`);
+                } else if (result === 'duplicate') {
+                  totalDeduplicated++;
+                  console.log(`    🔄 Offer ${ftOffer.id} already exists (duplicate)`);
+                }
+                
+                // Mise à jour régulière des métriques (toutes les 10 offres ou pour les petits batches)
+                if (totalProcessed % 10 === 0 || searchResult.resultats.length <= 20) {
+                  const offerProgress = currentProgress + 2 + ((i + 1) / searchResult.resultats.length) * 3;
+                  await updateProgress(`Traitement offre ${i + 1}/${searchResult.resultats.length} (page ${page})`, offerProgress, {
+                    totalFetched,
+                    totalProcessed,
+                    totalInserted,
+                    totalUpdated: 0,
+                    totalDeduplicated,
+                    totalErrors,
+                    errors
+                  });
+                }
               } catch (error) {
                 console.log(`    ❌ Error processing offer ${ftOffer.id}:`, error);
                 errors.push(`Offre ${ftOffer.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 totalErrors++;
+                
+                // Mise à jour immédiate en cas d'erreur
+                const offerProgress = currentProgress + 2 + ((i + 1) / searchResult.resultats.length) * 3;
+                await updateProgress(`Erreur sur offre ${ftOffer.id} (page ${page})`, offerProgress, {
+                  totalFetched,
+                  totalProcessed,
+                  totalInserted,
+                  totalUpdated: 0,
+                  totalDeduplicated,
+                  totalErrors,
+                  errors
+                });
               }
             }
             console.log(`✅ Page ${page} complètement traitée: ${totalProcessed} traitées, ${totalErrors} erreurs`);
+
+            // Mise à jour finale de la page
+            await updateProgress(`Page ${page}/${params.max_pages} terminée: ${totalProcessed} traitées`, currentProgress + 5, {
+              totalFetched,
+              totalProcessed,
+              totalInserted,
+              totalUpdated: 0,
+              totalDeduplicated,
+              totalErrors,
+              errors
+            });
 
             // Rate limiting : pause entre les pages
             if (page < params.max_pages) {
@@ -208,10 +275,19 @@ export async function POST(request: NextRequest) {
         result.totalFetched = totalFetched;
         result.totalProcessed = totalProcessed;
         result.totalInserted = totalInserted;
+        result.totalDeduplicated = totalDeduplicated;
         result.totalErrors = totalErrors;
         result.errors = errors;
 
-        await updateProgress('Ingestion France Travail terminée avec succès', 100);
+        await updateProgress('Ingestion France Travail terminée avec succès', 100, {
+          totalFetched,
+          totalProcessed,
+          totalInserted,
+          totalUpdated: 0,
+          totalDeduplicated,
+          totalErrors,
+          errors
+        });
         
         console.log(`[FT Ingestion ${batchId}] Completed:`, {
           totalFetched: result.totalFetched,
@@ -321,7 +397,7 @@ export async function GET(request: NextRequest) {
 /**
  * Traite et insère une offre FT individuelle dans offers_raw
  */
-async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
+async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean): Promise<'inserted' | 'duplicate' | 'dry_run'> {
   // Génération d'un fingerprint pour déduplication
   const { generateOfferFingerprint } = await import('@cledger5/utils');
   const fingerprint = generateOfferFingerprint({
@@ -338,7 +414,7 @@ async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
       company: ftOffer.entreprise?.nom,
       fingerprint,
     });
-    return;
+    return 'dry_run';
   }
 
   // Vérification des doublons par source_offer_id
@@ -351,7 +427,7 @@ async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
 
   if (existingOffer) {
     console.log(`Offre FT ${ftOffer.id} déjà présente, skip`);
-    return;
+    return 'duplicate';
   }
 
   // Générer UUID pour l'ID - FIX CRITICAL
@@ -379,4 +455,5 @@ async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
   }
 
   console.log(`✅ Offre FT ${ftOffer.id} insérée: ${ftOffer.intitule}`);
+  return 'inserted';
 }

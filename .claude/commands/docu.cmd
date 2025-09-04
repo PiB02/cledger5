@@ -1,0 +1,1 @@
+Documente les avancées récentes du projet en mettant à jour la documentation (README, commentaires de code, et fichiers de doc pertinents), puis fait un commit avec un message descriptif et pousse les changements sur GitHub
