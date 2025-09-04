@@ -37,7 +37,14 @@
       "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
       "Bash(Remove-Item -Recurse -Force node_modules/.cache -ErrorAction SilentlyContinue)",
       "mcp__playwright__browser_take_screenshot",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(supabase:*)",
+      "Read(*)",
+      "Read(/C:\\Users\\Admin\\odrive\\Pierre@Barreaud\\AI\\cledger5.claude\\cledger5\\src\\lib/**)",
+      "Read(/C:\\Users\\Admin\\odrive\\Pierre@Barreaud\\AI\\cledger5.claude\\cledger5\\src\\lib/**)",
+      "Read(/C:\\Users\\Admin\\odrive\\Pierre@Barreaud\\AI\\cledger5.claude\\cledger5\\src\\app\\api\\canonicalization\\ft/**)",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/canonicalization/ft?admin_secret=Iletait1x\" -Method GET -ContentType \"application/json\")",
+      "Bash(Invoke-RestMethod -Uri \"http://localhost:3000/api/enrich/queue\" -Method POST -ContentType \"application/json\" -Headers @{\"x-admin-secret\" = \"Iletait1x\"} -Body '{}')"
     ],
     "deny": [],
     "ask": []
