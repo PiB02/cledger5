@@ -265,7 +265,6 @@ export async function processBatchOffersFT(sourceId: string, limit = 100): Promi
       .from('offers_raw')
       .select('id, source_id, source_offer_id, raw_data, fetched_at')
       .eq('source_id', sourceId)
-      .eq('source_type', 'france_travail')
       .is('processed_at', null)
       .order('fetched_at', { ascending: true })
       .limit(limit)

@@ -233,7 +233,6 @@ async function processOffer(
   // Normalisation des données FT vers le format cledger5
   const normalizedOffer = {
     source_id: ftOffer.id,
-    source_type: 'france_travail' as const,
     title: ftOffer.intitule,
     description: ftOffer.description,
     company_name: ftOffer.entreprise?.nom || null,
@@ -278,7 +277,7 @@ async function processOffer(
   const { data: existingOffer } = await supabase
     .from('offers_raw')
     .select('id')
-    .eq('source_id', 'france_travail')
+    .eq('source_id', 'FT')
     .eq('source_offer_id', normalizedOffer.source_id)
     .single();
 
@@ -291,7 +290,7 @@ async function processOffer(
   const { error: insertError } = await supabase
     .from('offers_raw')
     .insert([{
-      source_id: 'france_travail',
+      source_id: 'FT',
       source_offer_id: normalizedOffer.source_id,
       fetched_at: new Date().toISOString(),
       last_seen_at: new Date().toISOString(),
@@ -320,7 +319,7 @@ export async function GET() {
     const { data: stats, error } = await supabase
       .from('offers_raw')
       .select('id, fetched_at')
-      .eq('source_id', 'france_travail')
+      .eq('source_id', 'FT')
       .order('fetched_at', { ascending: false });
 
     if (error) {

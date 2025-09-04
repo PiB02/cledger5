@@ -20,7 +20,7 @@ const navigation = [
   { name: "Offres", href: "/admin/offers", icon: FileText },
   { name: "Candidats", href: "/admin/candidates", icon: Users },
   { name: "Entreprises", href: "/admin/companies", icon: Building2 },
-  { name: "Ingestion", href: "/admin/ingestion", icon: Download },
+  { name: "Ingestion", href: "/admin/ingestion-v2", icon: Download },
   { name: "Canonicalisation", href: "/admin/canonicalization", icon: Filter },
   { name: "Enrichissement IA", href: "/admin/enrichment", icon: Brain },
   { name: "Embeddings", href: "/admin/embeddings", icon: Zap },

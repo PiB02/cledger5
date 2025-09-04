@@ -276,7 +276,7 @@ export async function GET(request: NextRequest) {
     const { data: stats, error } = await supabase
       .from('offers_raw')
       .select('id, fetched_at')
-      .eq('source_id', 'france_travail')
+      .eq('source_id', 'FT')
       .order('fetched_at', { ascending: false });
 
     if (error) {
@@ -345,7 +345,7 @@ async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
   const { data: existingOffer } = await supabase
     .from('offers_raw')
     .select('id')
-    .eq('source_id', 'france_travail')
+    .eq('source_id', 'FT')
     .eq('source_offer_id', ftOffer.id)
     .single();
 
@@ -363,7 +363,7 @@ async function processOfferFT(ftOffer: any, supabase: any, dryRun: boolean) {
     .from('offers_raw')
     .insert([{
       id: offerId,
-      source_id: 'france_travail',
+      source_id: 'FT',
       source_offer_id: ftOffer.id,
       fetched_at: new Date().toISOString(),
       last_seen_at: new Date().toISOString(),

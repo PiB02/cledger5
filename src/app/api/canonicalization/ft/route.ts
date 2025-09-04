@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
         .from('offers_raw')
         .select('id, source_id, source_offer_id, fetched_at')
         .eq('source_id', source_id)
-        .eq('source_type', 'france_travail')
         .is('processed_at', null)
         .limit(1000)
       
@@ -121,8 +120,8 @@ export async function GET(request: NextRequest) {
     // Statistiques spécifiques FT
     const { data: rawStatsFT, error: rawError } = await supabase
       .from('offers_raw')
-      .select('source_id, processed_at, source_type')
-      .eq('source_type', 'france_travail')
+      .select('source_id, processed_at')
+      .eq('source_id', 'FT')
     
     if (rawError) {
       throw new Error(`Failed to fetch FT raw stats: ${rawError.message}`)
@@ -132,7 +131,7 @@ export async function GET(request: NextRequest) {
     const { data: canonicalStatsFT, error: canonicalError } = await supabase
       .from('offer_sources')
       .select('source_id, offer_id')
-      .like('source_id', '%france_travail%')
+      .eq('source_id', 'FT')
     
     if (canonicalError) {
       throw new Error(`Failed to fetch FT canonical stats: ${canonicalError.message}`)
@@ -142,7 +141,7 @@ export async function GET(request: NextRequest) {
     const statsBySourceFT = rawStatsFT?.reduce((acc: any, row: any) => {
       const source = row.source_id
       if (!acc[source]) {
-        acc[source] = { total: 0, processed: 0, pending: 0, source_type: row.source_type }
+        acc[source] = { total: 0, processed: 0, pending: 0, source_type: 'france_travail' }
       }
       acc[source].total++
       if (row.processed_at) {
