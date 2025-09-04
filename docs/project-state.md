@@ -143,7 +143,37 @@ cledger5/
 
 ## 🎯 **SESSION RÉCENTE - 04/09/2025**
 
-### **🏆 PIPELINE FRANCE TRAVAIL - EXPERTISE MULTI-AGENT DÉPLOYÉE (04/09/2025)**
+### **🎯 ACTUALISATION INTERFACE ADMIN INGESTION V2 (04/09/2025 - Session Actuelle)**
+**OPTIMISATION ADMIN UX** : Finalisation interface ingestion avec corrections critiques
+
+#### **🔧 Problèmes Résolus Cette Session**
+- **✅ Menu Admin Navigation Fix**: Redirection `/admin/ingestion` → `/admin/ingestion-v2`
+  - **Code**: `src/components/admin/admin-sidebar.tsx:23` - href mis à jour
+  - **Impact**: Interface moderne accessible via menu sidebar
+  
+- **✅ Foreign Key Constraint Fix**: `offers_raw_source_id_fkey` violation résolue
+  - **Problème**: `source_id: 'france_travail'` non autorisé (contrainte FK)
+  - **Analyse**: Table `sources` définit uniquement 'FT' et 'LBA' comme valeurs valides
+  - **Solution**: 4 fichiers mis à jour avec `source_id: 'FT'` :
+    - `src/app/api/admin/ingest/ft/route.ts` (3 occurrences)
+    - `src/app/api/ingest/ft/route.ts` (2 occurrences)
+    - `src/app/api/canonicalization/ft/route.ts` (1 occurrence)
+  - **Validation**: 150 offres FT ingérées avec succès via interface V2
+
+#### **📊 Tests Interface Ingestion V2**
+- **✅ Navigation Correcte**: Menu admin → ingestion-v2 fonctionnel
+- **✅ Configuration FT**: Paramètres ROME codes, pagination, rate limiting
+- **✅ Pipeline End-to-End**: API FT → offers_raw → SSE streaming
+- **✅ Error Handling**: Gestion d'erreurs avec feedback utilisateur
+- **✅ Monitoring Temps Réel**: 150 offres ingérées en ~45s avec progression live
+
+#### **🏗️ Architecture Technique Consolidée**
+```
+Admin Interface V2 → FT Ingestion API → offers_raw → SSE Progress
+       ✅                 ✅             ✅          ✅
+```
+
+### **🏆 PIPELINE FRANCE TRAVAIL - EXPERTISE MULTI-AGENT DÉPLOYÉE (04/09/2025 - Session Précédente)**
 **BREAKTHROUGH EXCEPTIONNEL** : Implémentation de classe mondiale avec collaboration 3 agents experts
 
 #### **🤖 Innovation Multi-Agent Réalisée**
